@@ -1,0 +1,28 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+
+model Producto {
+  id          Int           @id @default(autoincrement())
+  codigo      String        @unique
+  nombre      String
+  descripcion String?
+  movimientos Movimiento[]
+}
+
+model Movimiento {
+  id           Int       @id @default(autoincrement())
+  tipo         String    // 'entrada' o 'salida'
+  fecha        DateTime
+  cantidad     Int
+  precioUnitario Float?  // Solo para entradas
+  motivo       String
+  producto     Producto  @relation(fields: [productoId], references: [id])
+  productoId   Int
+}
