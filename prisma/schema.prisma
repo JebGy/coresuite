@@ -7,13 +7,49 @@ generator client {
   provider = "prisma-client-js"
 }
 
+model Almacen {
+  id          Int           @id @default(autoincrement())
+  nombre      String
+  ubicacion   String?
+  descripcion String?
+  unidadId    Int?          // Unidad a la que pertenece el almacén
+  unidad      Unidad?       @relation(fields: [unidadId], references: [id])
+  productos   Producto[]    // Productos que pertenecen a este almacén
+  movimientos Movimiento[]
+  ordenesEntrega OrdenEntrega[]
+}
+
+model Unidad {
+  id          Int           @id @default(autoincrement())
+  nombre      String
+  descripcion String?
+  almacenes   Almacen[]
+  trabajadores Trabajador[]
+}
+
+model Trabajador {
+  id          Int           @id @default(autoincrement())
+  dni         String        @unique
+  nombres     String
+  apellidos   String
+  email       String        @unique
+  telefono    String
+  unidadId    Int
+  unidad      Unidad        @relation(fields: [unidadId], references: [id])
+  ordenesEntrega OrdenEntrega[]
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+}
 
 model Producto {
   id          Int           @id @default(autoincrement())
   codigo      String        @unique
   nombre      String
   descripcion String?
+  almacenId   Int?          // Almacén al que pertenece el producto
+  almacen     Almacen?      @relation(fields: [almacenId], references: [id])
   movimientos Movimiento[]
+  ordenesEntrega OrdenEntrega[]
 }
 
 model Movimiento {
@@ -25,4 +61,33 @@ model Movimiento {
   motivo       String
   producto     Producto  @relation(fields: [productoId], references: [id])
   productoId   Int
+  almacen      Almacen   @relation(fields: [almacenId], references: [id])
+  almacenId    Int
+  ordenEntregaId Int?    // Si es una salida por orden de entrega
+  ordenEntrega OrdenEntrega? @relation(fields: [ordenEntregaId], references: [id])
+}
+
+model OrdenEntrega {
+  id          Int           @id @default(autoincrement())
+  numeroTicket String       @unique
+  fechaSolicitud DateTime   @default(now())
+  fechaAprobacion DateTime?
+  estado      String        // 'pendiente', 'aprobada', 'rechazada', 'entregada'
+  cantidad    Int
+  motivo      String
+  observaciones String?
+  
+  // Relaciones
+  trabajador  Trabajador    @relation(fields: [trabajadorId], references: [id])
+  trabajadorId Int
+  producto    Producto      @relation(fields: [productoId], references: [id])
+  productoId  Int
+  almacen     Almacen       @relation(fields: [almacenId], references: [id])
+  almacenId   Int
+  
+  // Movimiento generado al aprobar
+  movimientos Movimiento[]
+  
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
 }

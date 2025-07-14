@@ -1,79 +1,25 @@
 "use client"
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { ReportCharts } from "./components/ReportCharts";
+import { KardexTable } from "./components/kardexTable";
+import { KardexConsolidadoTable } from "./components/KardexConsolidadoTable";
+import { calcularKardex, calcularKardexPorAlmacen, calcularKardexConsolidado } from "@/lib/kardex";
+import { Almacen, Producto, Movimiento, KardexRow, KardexConsolidado } from "@/types";
+import { addAlmacen, getAlmacenes } from "./actions/AlmacenesActions";
+import { addProudcto, getProductos } from "./actions/ProductosActions";
+import { addMovimiento, getMovimientos } from "./actions/MovimientosActions";
 
-// Tipos de datos
-interface Producto {
-  id: number;
-  codigo: string;
-  nombre: string;
-  descripcion?: string;
-}
+// Tipos de datos ya importados desde @/types
 
-interface Movimiento {
-  id: number;
-  tipo: "entrada" | "salida";
-  fecha: string;
-  cantidad: number;
-  precioUnitario?: number;
-  motivo: string;
-  productoId: number;
-}
+// Lógica de Kardex importada desde lib/kardex.ts
 
-interface KardexRow {
-  fecha: string;
-  detalle: string;
-  entrada: number;
-  salida: number;
-  saldoCantidad: number;
-  saldoValor: number;
-  costoPromedio: number;
-}
-
-// Lógica de Kardex
-function calcularKardex(movimientos: Movimiento[]): KardexRow[] {
-  let saldoCantidad = 0;
-  let saldoValor = 0;
-  let costoPromedio = 0;
-  const kardex: KardexRow[] = [];
-
-  movimientos.forEach((mov) => {
-    if (mov.tipo === "entrada") {
-      const valorEntrada = mov.cantidad * (mov.precioUnitario ?? 0);
-      saldoCantidad += mov.cantidad;
-      saldoValor += valorEntrada;
-      costoPromedio = saldoCantidad ? saldoValor / saldoCantidad : 0;
-      kardex.push({
-        fecha: mov.fecha,
-        detalle: mov.motivo,
-        entrada: mov.cantidad,
-        salida: 0,
-        saldoCantidad,
-        saldoValor,
-        costoPromedio,
-      });
-    } else {
-      const valorSalida = mov.cantidad * costoPromedio;
-      saldoCantidad -= mov.cantidad;
-      saldoValor -= valorSalida;
-      kardex.push({
-        fecha: mov.fecha,
-        detalle: mov.motivo,
-        entrada: 0,
-        salida: mov.cantidad,
-        saldoCantidad,
-        saldoValor,
-        costoPromedio,
-      });
-    }
-  });
-  return kardex;
-}
-
-export default function Home() {
+export default function Dashboard() {
   // Estados para productos y movimientos
+  const [almacenes, setAlmacenes] = useState<Almacen[]>([]);
   const [productos, setProductos] = useState<Producto[]>([]);
   const [movimientos, setMovimientos] = useState<Movimiento[]>([]);
-  const [productoForm, setProductoForm] = useState({ codigo: "", nombre: "", descripcion: "" });
+  const [almacenForm, setAlmacenForm] = useState({ nombre: "", ubicacion: "", descripcion: "" });
+  const [productoForm, setProductoForm] = useState({ codigo: "", nombre: "", descripcion: "", almacenId: 0 });
   const [movimientoForm, setMovimientoForm] = useState({
     tipo: "entrada" as "entrada" | "salida",
     fecha: new Date().toISOString().slice(0, 10),
@@ -81,167 +27,1223 @@ export default function Home() {
     precioUnitario: 0,
     motivo: "",
     productoId: 0,
+    almacenId: 0,
   });
 
-  // Handlers para productos
-  const handleProductoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setProductoForm({ ...productoForm, [e.target.name]: e.target.value });
+  // Estado para la navegación
+  const [activeSection, setActiveSection] = useState("dashboard");
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  // Estados de carga
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+
+  // Cargar datos al montar el componente
+  useEffect(() => {
+    const cargarDatos = async () => {
+      try {
+        setLoading(true);
+        const [almacenesData, productosData, movimientosData] = await Promise.all([
+          getAlmacenes(),
+          getProductos(),
+          getMovimientos()
+        ]);
+        
+        setAlmacenes(almacenesData);
+        setProductos(productosData);
+        setMovimientos(movimientosData);
+      } catch (error) {
+        console.error('Error al cargar datos:', error);
+        alert('Error al cargar los datos. Verifica la conexión a la base de datos.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    cargarDatos();
+  }, []);
+
+  // Handlers para almacenes
+  const handleAlmacenChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    setAlmacenForm({ ...almacenForm, [e.target.name]: e.target.value });
   };
-  const handleProductoSubmit = (e: React.FormEvent) => {
+  
+  const handleAlmacenSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!almacenForm.nombre || !almacenForm.ubicacion) return;
+    
+    try {
+      setSubmitting(true);
+      await addAlmacen(almacenForm);
+      
+      // Recargar almacenes
+      const nuevosAlmacenes = await getAlmacenes();
+      setAlmacenes(nuevosAlmacenes);
+      
+      setAlmacenForm({ nombre: "", ubicacion: "", descripcion: "" });
+      alert('Almacén agregado exitosamente');
+    } catch (error) {
+      console.error('Error al agregar almacén:', error);
+      alert('Error al agregar el almacén');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  // Handlers para productos
+  const handleProductoChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const value = e.target.name === 'almacenId' ? Number(e.target.value) : e.target.value;
+    setProductoForm({ ...productoForm, [e.target.name]: value });
+  };
+  
+  const handleProductoSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!productoForm.codigo || !productoForm.nombre) return;
-    setProductos([
-      ...productos,
-      {
-        id: productos.length + 1,
+    
+    try {
+      setSubmitting(true);
+      await addProudcto({
+        id: 0, // El ID será asignado por la base de datos
         codigo: productoForm.codigo,
         nombre: productoForm.nombre,
         descripcion: productoForm.descripcion,
-      },
-    ]);
-    setProductoForm({ codigo: "", nombre: "", descripcion: "" });
+        almacenId: productoForm.almacenId || undefined,
+      });
+      
+      // Recargar productos
+      const nuevosProductos = await getProductos();
+      setProductos(nuevosProductos);
+      
+      setProductoForm({ codigo: "", nombre: "", descripcion: "", almacenId: 0 });
+      alert('Producto agregado exitosamente');
+    } catch (error) {
+      console.error('Error al agregar producto:', error);
+      alert('Error al agregar el producto');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   // Handlers para movimientos
   const handleMovimientoChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setMovimientoForm({ ...movimientoForm, [e.target.name]: e.target.value });
   };
-  const handleMovimientoSubmit = (e: React.FormEvent) => {
+  
+  const handleMovimientoSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!movimientoForm.productoId || !movimientoForm.cantidad || !movimientoForm.fecha) return;
-    setMovimientos([
-      ...movimientos,
-      {
-        id: movimientos.length + 1,
+    if (!movimientoForm.productoId || !movimientoForm.cantidad || !movimientoForm.fecha || !movimientoForm.almacenId) return;
+    
+    try {
+      setSubmitting(true);
+      await addMovimiento({
         tipo: movimientoForm.tipo,
         fecha: movimientoForm.fecha,
         cantidad: Number(movimientoForm.cantidad),
         precioUnitario: movimientoForm.tipo === "entrada" ? Number(movimientoForm.precioUnitario) : undefined,
         motivo: movimientoForm.motivo,
         productoId: Number(movimientoForm.productoId),
-      },
-    ]);
-    setMovimientoForm({
-      ...movimientoForm,
-      cantidad: 0,
-      precioUnitario: 0,
-      motivo: "",
-    });
+        almacenId: Number(movimientoForm.almacenId),
+      });
+      
+      // Recargar movimientos
+      const nuevosMovimientos = await getMovimientos();
+      setMovimientos(nuevosMovimientos);
+      
+      setMovimientoForm({
+        ...movimientoForm,
+        cantidad: 0,
+        precioUnitario: 0,
+        motivo: "",
+      });
+      alert('Movimiento registrado exitosamente');
+    } catch (error) {
+      console.error('Error al registrar movimiento:', error);
+      alert('Error al registrar el movimiento');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
-  // Producto seleccionado para mostrar Kardex
+  // Estados para Kardex
   const [productoSeleccionado, setProductoSeleccionado] = useState<number | null>(null);
+  const [almacenSeleccionado, setAlmacenSeleccionado] = useState<number | null>(null);
+  const [tipoKardex, setTipoKardex] = useState<'producto' | 'almacen' | 'consolidado'>('producto');
+  
+  // Cálculos de Kardex
   const movimientosFiltrados = movimientos.filter((m) => m.productoId === productoSeleccionado);
-  const kardex = calcularKardex(movimientosFiltrados);
+  const kardex = calcularKardex(movimientosFiltrados, almacenes);
+  const kardexPorAlmacen = almacenSeleccionado ? calcularKardexPorAlmacen(movimientos, almacenSeleccionado, almacenes) : [];
+  const kardexConsolidado = calcularKardexConsolidado(movimientos, productos, almacenes);
 
-  return (
-    <div className="grid items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <h1 className="text-2xl font-bold mb-4">Sistema Kardex (Demo en memoria)</h1>
-      {/* Formulario de productos */}
-      <form onSubmit={handleProductoSubmit} className="mb-8 p-4 border rounded flex flex-col gap-2 w-full max-w-md">
-        <h2 className="font-semibold">Registrar producto</h2>
-        <label className="flex flex-col">
-          Código del producto
-          <input name="codigo" placeholder="Código" value={productoForm.codigo} onChange={handleProductoChange} className="border p-1" required />
-        </label>
-        <label className="flex flex-col">
-          Nombre del producto
-          <input name="nombre" placeholder="Nombre" value={productoForm.nombre} onChange={handleProductoChange} className="border p-1" required />
-        </label>
-        <label className="flex flex-col">
-          Descripción (opcional)
-          <input name="descripcion" placeholder="Descripción" value={productoForm.descripcion} onChange={handleProductoChange} className="border p-1" />
-        </label>
-        <button type="submit" className="bg-blue-600 text-white rounded p-2 mt-2">Agregar producto</button>
-      </form>
+  // Cálculos para métricas
+  const totalAlmacenes = almacenes.length;
+  const totalProductos = productos.length;
+  const totalMovimientos = movimientos.length;
+  const entradas = movimientos.filter(m => m.tipo === "entrada").length;
+  const salidas = movimientos.filter(m => m.tipo === "salida").length;
+  const valorTotalInventario = movimientos
+    .filter(m => m.tipo === "entrada")
+    .reduce((sum, m) => sum + (m.cantidad * (m.precioUnitario ?? 0)), 0);
 
-      {/* Formulario de movimientos */}
-      <form onSubmit={handleMovimientoSubmit} className="mb-8 p-4 border rounded flex flex-col gap-2 w-full max-w-md">
-        <h2 className="font-semibold">Registrar movimiento</h2>
-        <label className="flex flex-col">
-          Producto
-          <select name="productoId" value={movimientoForm.productoId} onChange={handleMovimientoChange} className="border p-1" required>
-            <option value="">Selecciona un producto</option>
-            {productos.map((p) => (
-              <option key={p.id} value={p.id}>{p.nombre} ({p.codigo})</option>
-            ))}
-          </select>
-        </label>
-        <label className="flex flex-col">
-          Tipo de movimiento
-          <select name="tipo" value={movimientoForm.tipo} onChange={handleMovimientoChange} className="border p-1">
-            <option value="entrada">Entrada</option>
-            <option value="salida">Salida</option>
-          </select>
-        </label>
-        <label className="flex flex-col">
-          Fecha del movimiento
-          <input name="fecha" type="date" value={movimientoForm.fecha} onChange={handleMovimientoChange} className="border p-1" required />
-        </label>
-        <label className="flex flex-col">
-          Cantidad
-          <input name="cantidad" type="number" min={1} value={movimientoForm.cantidad} onChange={handleMovimientoChange} className="border p-1" placeholder="Cantidad" required />
-        </label>
-        {movimientoForm.tipo === "entrada" && (
-          <label className="flex flex-col">
-            Precio unitario (solo para entradas)
-            <input name="precioUnitario" type="number" min={0} step={0.01} value={movimientoForm.precioUnitario} onChange={handleMovimientoChange} className="border p-1" placeholder="Precio unitario" required />
-          </label>
-        )}
-        <label className="flex flex-col">
-          Motivo o detalle del movimiento
-          <input name="motivo" placeholder="Motivo" value={movimientoForm.motivo} onChange={handleMovimientoChange} className="border p-1" required />
-        </label>
-        <button type="submit" className="bg-green-600 text-white rounded p-2 mt-2">Agregar movimiento</button>
-      </form>
-
-      {/* Selección de producto para ver Kardex */}
+  // Componente de navegación lateral
+  const Sidebar = () => (
+    <div className={`fixed left-0 top-0 w-72 h-full bg-white text-gray-800 p-6 overflow-y-auto z-50 transform transition-transform duration-300 ease-in-out border-r border-gray-200 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
       <div className="mb-8">
-        <label className="mr-2">Ver Kardex de:</label>
-        <select value={productoSeleccionado ?? ""} onChange={e => setProductoSeleccionado(Number(e.target.value) || null)} className="border p-1">
-          <option value="">Selecciona un producto</option>
-          {productos.map((p) => (
-            <option key={p.id} value={p.id}>{p.nombre} ({p.codigo})</option>
-          ))}
-        </select>
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center">
+            <div className="w-10 h-10 bg-gradient-to-r from-blue-600 to-blue-800 rounded-lg flex items-center justify-center mr-3">
+              <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+              </svg>
+            </div>
+            <h1 className="text-xl font-bold text-gray-800">CoreSuite</h1>
+          </div>
+          <button 
+            onClick={() => setSidebarOpen(false)}
+            className="lg:hidden text-gray-600 hover:text-gray-800"
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        <p className="text-gray-600 text-sm">Sistema de Gestión Empresarial</p>
       </div>
 
-      {/* Tabla Kardex */}
-      {productoSeleccionado && (
-        <div className="overflow-x-auto w-full max-w-3xl">
-          <table className="min-w-full border text-sm">
-            <thead>
-              <tr>
-                <th className="border px-2">Fecha</th>
-                <th className="border px-2">Detalle</th>
-                <th className="border px-2">Entradas</th>
-                <th className="border px-2">Salidas</th>
-                <th className="border px-2">Saldo (Unidades)</th>
-                <th className="border px-2">Saldo (Valor)</th>
-                <th className="border px-2">Costo Promedio</th>
-              </tr>
-            </thead>
-            <tbody>
-              {kardex.map((row, i) => (
-                <tr key={i}>
-                  <td className="border px-2">{row.fecha}</td>
-                  <td className="border px-2">{row.detalle}</td>
-                  <td className="border px-2 text-right">{row.entrada}</td>
-                  <td className="border px-2 text-right">{row.salida}</td>
-                  <td className="border px-2 text-right">{row.saldoCantidad}</td>
-                  <td className="border px-2 text-right">{row.saldoValor.toFixed(2)}</td>
-                  <td className="border px-2 text-right">{row.costoPromedio.toFixed(2)}</td>
-                </tr>
-              ))}
-              {kardex.length === 0 && (
-                <tr>
-                  <td colSpan={7} className="text-center p-4">No hay movimientos para este producto.</td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+      <nav className="space-y-2">
+        <a 
+          href="#" 
+          className={`flex items-center px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 ${activeSection === "dashboard" ? "bg-blue-100 text-blue-700 border border-blue-200" : ""}`}
+          onClick={() => {
+            setActiveSection("dashboard");
+            setSidebarOpen(false);
+          }}
+        >
+          <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 5a2 2 0 012-2h4a2 2 0 012 2v6H8V5z" />
+          </svg>
+          Dashboard
+        </a>
+        
+        <a 
+          href="#" 
+          className={`flex items-center px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 ${activeSection === "almacenes" ? "bg-blue-100 text-blue-700 border border-blue-200" : ""}`}
+          onClick={() => {
+            setActiveSection("almacenes");
+            setSidebarOpen(false);
+          }}
+        >
+          <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+          </svg>
+          Almacenes
+        </a>
+        
+        <a 
+          href="#" 
+          className={`flex items-center px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 ${activeSection === "productos" ? "bg-blue-100 text-blue-700 border border-blue-200" : ""}`}
+          onClick={() => {
+            setActiveSection("productos");
+            setSidebarOpen(false);
+          }}
+        >
+          <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+          </svg>
+          Productos
+        </a>
+        
+        <a 
+          href="#" 
+          className={`flex items-center px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 ${activeSection === "unidades" ? "bg-blue-100 text-blue-700 border border-blue-200" : ""}`}
+          onClick={() => {
+            setActiveSection("unidades");
+            setSidebarOpen(false);
+          }}
+        >
+          <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+          </svg>
+          Unidades
+        </a>
+        
+        <a 
+          href="#" 
+          className={`flex items-center px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 ${activeSection === "trabajadores" ? "bg-blue-100 text-blue-700 border border-blue-200" : ""}`}
+          onClick={() => {
+            setActiveSection("trabajadores");
+            setSidebarOpen(false);
+          }}
+        >
+          <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
+          </svg>
+          Trabajadores
+        </a>
+        
+        <a 
+          href="#" 
+          className={`flex items-center px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 ${activeSection === "ordenes-entrega" ? "bg-blue-100 text-blue-700 border border-blue-200" : ""}`}
+          onClick={() => {
+            setActiveSection("ordenes-entrega");
+            setSidebarOpen(false);
+          }}
+        >
+          <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+          Órdenes de Entrega
+        </a>
+        
+        <a 
+          href="#" 
+          className={`flex items-center px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 ${activeSection === "movimientos" ? "bg-blue-100 text-blue-700 border border-blue-200" : ""}`}
+          onClick={() => {
+            setActiveSection("movimientos");
+            setSidebarOpen(false);
+          }}
+        >
+          <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+          </svg>
+          Movimientos
+        </a>
+        
+        <a 
+          href="#" 
+          className={`flex items-center px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 ${activeSection === "kardex" ? "bg-blue-100 text-blue-700 border border-blue-200" : ""}`}
+          onClick={() => {
+            setActiveSection("kardex");
+            setSidebarOpen(false);
+          }}
+        >
+          <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+          Kardex
+        </a>
+        
+        <a 
+          href="#" 
+          className={`flex items-center px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 ${activeSection === "reportes" ? "bg-blue-100 text-blue-700 border border-blue-200" : ""}`}
+          onClick={() => {
+            setActiveSection("reportes");
+            setSidebarOpen(false);
+          }}
+        >
+          <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+          </svg>
+          Reportes
+        </a>
+      </nav>
+
+      <div className="mt-auto pt-8">
+        <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+          <div className="flex items-center mb-2">
+            <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center mr-3">
+              <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            <span className="text-sm font-medium text-gray-800">Sistema Activo</span>
+          </div>
+          <p className="text-xs text-gray-600">Última actualización: {new Date().toLocaleString('es-ES')}</p>
         </div>
+      </div>
+    </div>
+  );
+
+  // Componente de métricas
+  const MetricCard = ({ title, value, icon, color }: { title: string; value: string | number; icon: React.ReactNode; color: string }) => (
+    <div className="bg-white/95 backdrop-blur-sm rounded-xl p-6 shadow-lg border border-gray-200 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-xs font-medium text-gray-600 uppercase tracking-wide mb-1">{title}</p>
+          <p className="text-2xl font-bold text-gray-800">{value}</p>
+        </div>
+        <div className={`w-12 h-12 ${color} rounded-lg flex items-center justify-center`}>
+          {icon}
+        </div>
+      </div>
+    </div>
+  );
+
+  // Componente de gráfico simple
+  const SimpleChart = ({ data, title }: { data: { label: string; value: number; color: string }[]; title: string }) => (
+    <div className="bg-white/95 backdrop-blur-sm rounded-xl p-6 shadow-lg border border-gray-200">
+      <h3 className="text-lg font-semibold text-gray-800 mb-4">{title}</h3>
+      <div className="space-y-3">
+        {data.map((item, index) => (
+          <div key={index} className="flex items-center">
+            <div className="w-4 h-4 rounded-full mr-3" style={{ backgroundColor: item.color }}></div>
+            <span className="text-sm text-gray-600 flex-1">{item.label}</span>
+            <span className="text-sm font-semibold text-gray-800">{item.value}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+
+  // Renderizado condicional basado en la sección activa
+  const renderContent = () => {
+    switch (activeSection) {
+      case "dashboard":
+        return (
+          <div className="space-y-6">
+            {/* Header del Dashboard */}
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-3xl font-bold text-gray-800">Dashboard</h1>
+                <p className="text-gray-600">Resumen general del sistema de gestión</p>
+              </div>
+              <div className="flex items-center space-x-4">
+                <button 
+                  onClick={() => setActiveSection("reportes")}
+                  className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200 flex items-center"
+                >
+                  <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                  </svg>
+                  Reportes
+                </button>
+                <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200 flex items-center">
+                  <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                  </svg>
+                  Nuevo Registro
+                </button>
+              </div>
+            </div>
+
+            {/* Métricas principales */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <MetricCard
+                title="Total Almacenes"
+                value={totalAlmacenes}
+                icon={
+                  <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                  </svg>
+                }
+                color="bg-purple-500"
+              />
+              <MetricCard
+                title="Total Productos"
+                value={totalProductos}
+                icon={
+                  <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                  </svg>
+                }
+                color="bg-blue-500"
+              />
+              <MetricCard
+                title="Total Movimientos"
+                value={totalMovimientos}
+                icon={
+                  <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+                  </svg>
+                }
+                color="bg-green-500"
+              />
+              <MetricCard
+                title="Valor Inventario"
+                value={`$${valorTotalInventario.toLocaleString()}`}
+                icon={
+                  <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+                  </svg>
+                }
+                color="bg-purple-500"
+              />
+            </div>
+
+            {/* Gráficos y análisis */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <SimpleChart
+                title="Distribución de Movimientos"
+                data={[
+                  { label: "Entradas", value: entradas, color: "#10b981" },
+                  { label: "Salidas", value: salidas, color: "#ef4444" },
+                ]}
+              />
+              <div className="glass-effect rounded-2xl p-6">
+                <h3 className="text-lg font-semibold text-gray-800 mb-4">Actividad Reciente</h3>
+                <div className="space-y-3">
+                  {movimientos.slice(-5).reverse().map((mov) => (
+                    <div key={mov.id} className="flex items-center justify-between p-3 bg-white/50 rounded-lg">
+                      <div className="flex items-center">
+                        <div className={`w-3 h-3 rounded-full mr-3 ${mov.tipo === 'entrada' ? 'bg-green-500' : 'bg-red-500'}`}></div>
+                        <div>
+                          <p className="text-sm font-medium text-gray-800">
+                            {productos.find(p => p.id === mov.productoId)?.nombre || 'Producto'}
+                          </p>
+                          <p className="text-xs text-gray-600">{mov.fecha}</p>
+                        </div>
+                      </div>
+                      <span className={`text-sm font-semibold ${mov.tipo === 'entrada' ? 'text-green-600' : 'text-red-600'}`}>
+                        {mov.tipo === 'entrada' ? '+' : '-'}{mov.cantidad}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+
+      case "unidades":
+        return (
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-3xl font-bold text-gray-800">Gestión de Unidades</h1>
+                <p className="text-gray-600">Administra las unidades organizacionales</p>
+              </div>
+            </div>
+            <div className="bg-white/95 backdrop-blur-sm rounded-xl p-6 shadow-lg border border-gray-200">
+              <p className="text-center text-gray-600 py-8">
+                <a href="/unidades" className="text-blue-600 hover:text-blue-800 underline">
+                  Ir a la página de Unidades
+                </a>
+              </p>
+            </div>
+          </div>
+        );
+
+      case "trabajadores":
+        return (
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-3xl font-bold text-gray-800">Gestión de Trabajadores</h1>
+                <p className="text-gray-600">Administra el personal de la empresa</p>
+              </div>
+            </div>
+            <div className="bg-white/95 backdrop-blur-sm rounded-xl p-6 shadow-lg border border-gray-200">
+              <p className="text-center text-gray-600 py-8">
+                <a href="/trabajadores" className="text-blue-600 hover:text-blue-800 underline">
+                  Ir a la página de Trabajadores
+                </a>
+              </p>
+            </div>
+          </div>
+        );
+
+      case "ordenes-entrega":
+        return (
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-3xl font-bold text-gray-800">Órdenes de Entrega</h1>
+                <p className="text-gray-600">Gestiona las solicitudes de entrega de productos</p>
+              </div>
+            </div>
+            <div className="bg-white/95 backdrop-blur-sm rounded-xl p-6 shadow-lg border border-gray-200">
+              <p className="text-center text-gray-600 py-8">
+                <a href="/ordenes-entrega" className="text-blue-600 hover:text-blue-800 underline">
+                  Ir a la página de Órdenes de Entrega
+                </a>
+              </p>
+            </div>
+          </div>
+        );
+
+      case "almacenes":
+        return (
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-3xl font-bold text-gray-800">Gestión de Almacenes</h1>
+                <p className="text-gray-600">Administra los almacenes de tu empresa</p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              {/* Formulario de almacenes */}
+              <div className="bg-white/95 backdrop-blur-sm rounded-xl p-6 shadow-lg border border-gray-200">
+                <div className="flex items-center mb-6">
+                  <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg flex items-center justify-center mr-3">
+                    <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                    </svg>
+                  </div>
+                  <h2 className="text-xl font-bold text-gray-800">Nuevo Almacén</h2>
+                </div>
+                
+                <form onSubmit={handleAlmacenSubmit} className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Nombre del Almacén
+                    </label>
+                    <input 
+                      name="nombre" 
+                      placeholder="Ej: Almacén Principal" 
+                      value={almacenForm.nombre} 
+                      onChange={handleAlmacenChange} 
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-gray-900 bg-white" 
+                      required 
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Ubicación
+                    </label>
+                    <input 
+                      name="ubicacion" 
+                      placeholder="Ej: Calle Principal #123" 
+                      value={almacenForm.ubicacion} 
+                      onChange={handleAlmacenChange} 
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-gray-900 bg-white" 
+                      required 
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Descripción (opcional)
+                    </label>
+                    <textarea 
+                      name="descripcion" 
+                      placeholder="Descripción detallada del almacén" 
+                      value={almacenForm.descripcion} 
+                      onChange={handleAlmacenChange} 
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-gray-900 bg-white" 
+                    />
+                  </div>
+                  
+                  <button 
+                    type="submit" 
+                    disabled={submitting}
+                    className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white px-4 py-3 rounded-lg font-medium transition-colors duration-200 flex items-center justify-center"
+                  >
+                    {submitting ? (
+                      <>
+                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                        Agregando...
+                      </>
+                    ) : (
+                      <>
+                        <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                        </svg>
+                        Agregar Almacén
+                      </>
+                    )}
+                  </button>
+                </form>
+              </div>
+
+              {/* Lista de almacenes */}
+              <div className="bg-white/95 backdrop-blur-sm rounded-xl p-6 shadow-lg border border-gray-200">
+                <h2 className="text-xl font-bold text-gray-800 mb-6">Almacenes Registrados</h2>
+                <div className="space-y-3 max-h-96 overflow-y-auto">
+                  {almacenes.map((almacen) => (
+                    <div key={almacen.id} className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h3 className="font-semibold text-gray-800">{almacen.nombre}</h3>
+                          <p className="text-sm text-gray-600">Ubicación: {almacen.ubicacion}</p>
+                          {almacen.descripcion && (
+                            <p className="text-sm text-gray-500 mt-1">{almacen.descripcion}</p>
+                          )}
+                        </div>
+                        <div className="text-right">
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                            Activo
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                  {almacenes.length === 0 && (
+                    <div className="text-center py-8 text-gray-500">
+                      <svg className="w-12 h-12 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                      </svg>
+                      <p>No hay almacenes registrados</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+
+      case "productos":
+        return (
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-3xl font-bold text-gray-800">Gestión de Productos</h1>
+                <p className="text-gray-600">Administra el catálogo de productos</p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              {/* Formulario de productos */}
+              <div className="bg-white/95 backdrop-blur-sm rounded-xl p-6 shadow-lg border border-gray-200">
+                <div className="flex items-center mb-6">
+                  <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg flex items-center justify-center mr-3">
+                    <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                    </svg>
+                  </div>
+                  <h2 className="text-xl font-bold text-gray-800">Nuevo Producto</h2>
+                </div>
+                
+                <form onSubmit={handleProductoSubmit} className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Código del producto
+                    </label>
+                    <input 
+                      name="codigo" 
+                      placeholder="Ej: PROD-001" 
+                      value={productoForm.codigo} 
+                      onChange={handleProductoChange} 
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-gray-900 bg-white" 
+                      required 
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Nombre del producto
+                    </label>
+                    <input 
+                      name="nombre" 
+                      placeholder="Nombre del producto" 
+                      value={productoForm.nombre} 
+                      onChange={handleProductoChange} 
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-gray-900 bg-white" 
+                      required 
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Descripción (opcional)
+                    </label>
+                    <input 
+                      name="descripcion" 
+                      placeholder="Descripción detallada" 
+                      value={productoForm.descripcion} 
+                      onChange={handleProductoChange} 
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-gray-900 bg-white" 
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Almacén (opcional)
+                    </label>
+                    <select 
+                      name="almacenId" 
+                      value={productoForm.almacenId} 
+                      onChange={handleProductoChange} 
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-gray-900 bg-white"
+                    >
+                      <option value="0">Sin asignar</option>
+                      {almacenes.map((a) => (
+                        <option key={a.id} value={a.id}>{a.nombre} ({a.ubicacion})</option>
+                      ))}
+                    </select>
+                  </div>
+                  
+                  <button 
+                    type="submit" 
+                    disabled={submitting}
+                    className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white px-4 py-3 rounded-lg font-medium transition-colors duration-200 flex items-center justify-center"
+                  >
+                    {submitting ? (
+                      <>
+                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                        Agregando...
+                      </>
+                    ) : (
+                      <>
+                        <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                        </svg>
+                        Agregar Producto
+                      </>
+                    )}
+                  </button>
+                </form>
+              </div>
+
+              {/* Lista de productos */}
+              <div className="bg-white/95 backdrop-blur-sm rounded-xl p-6 shadow-lg border border-gray-200">
+                <h2 className="text-xl font-bold text-gray-800 mb-6">Productos Registrados</h2>
+                <div className="space-y-3 max-h-96 overflow-y-auto">
+                  {productos.map((producto) => (
+                    <div key={producto.id} className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h3 className="font-semibold text-gray-800">{producto.nombre}</h3>
+                          <p className="text-sm text-gray-600">Código: {producto.codigo}</p>
+                          {producto.descripcion && (
+                            <p className="text-sm text-gray-500 mt-1">{producto.descripcion}</p>
+                          )}
+                          {producto.almacenId && (
+                            <p className="text-sm text-blue-600 mt-1">
+                              Almacén: {almacenes.find(a => a.id === producto.almacenId)?.nombre || 'No encontrado'}
+                            </p>
+                          )}
+                        </div>
+                        <div className="text-right">
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                            Activo
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                  {productos.length === 0 && (
+                    <div className="text-center py-8 text-gray-500">
+                      <svg className="w-12 h-12 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                      </svg>
+                      <p>No hay productos registrados</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+
+      case "movimientos":
+        return (
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-3xl font-bold text-gray-800">Gestión de Movimientos</h1>
+                <p className="text-gray-600">Registra entradas y salidas de inventario</p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              {/* Formulario de movimientos */}
+              <div className="bg-white/95 backdrop-blur-sm rounded-xl p-6 shadow-lg border border-gray-200">
+                <div className="flex items-center mb-6">
+                  <div className="w-10 h-10 bg-gradient-to-r from-green-500 to-green-600 rounded-lg flex items-center justify-center mr-3">
+                    <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+                    </svg>
+                  </div>
+                  <h2 className="text-xl font-bold text-gray-800">Nuevo Movimiento</h2>
+                </div>
+                
+                <form onSubmit={handleMovimientoSubmit} className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Producto
+                    </label>
+                    <select 
+                      name="productoId" 
+                      value={movimientoForm.productoId} 
+                      onChange={handleMovimientoChange} 
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-gray-900 bg-white" 
+                      required
+                    >
+                      <option value="">Selecciona un producto</option>
+                      {productos.map((p) => (
+                        <option key={p.id} value={p.id}>{p.nombre} ({p.codigo})</option>
+                      ))}
+                    </select>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Almacén
+                    </label>
+                    <select 
+                      name="almacenId" 
+                      value={movimientoForm.almacenId} 
+                      onChange={handleMovimientoChange} 
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-gray-900 bg-white"
+                      required
+                    >
+                      <option value="">Selecciona un almacén</option>
+                      {almacenes.map((a) => (
+                        <option key={a.id} value={a.id}>{a.nombre} ({a.ubicacion})</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        Tipo
+                      </label>
+                      <select 
+                        name="tipo" 
+                        value={movimientoForm.tipo} 
+                        onChange={handleMovimientoChange} 
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-gray-900 bg-white"
+                      >
+                        <option value="entrada">Entrada</option>
+                        <option value="salida">Salida</option>
+                      </select>
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        Fecha
+                      </label>
+                      <input 
+                        type="date" 
+                        name="fecha" 
+                        value={movimientoForm.fecha} 
+                        onChange={handleMovimientoChange} 
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-gray-900 bg-white" 
+                        required 
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        Cantidad
+                      </label>
+                      <input 
+                        type="number" 
+                        name="cantidad" 
+                        value={movimientoForm.cantidad} 
+                        onChange={handleMovimientoChange} 
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-gray-900 bg-white" 
+                        required 
+                        min="1"
+                      />
+                    </div>
+                    
+                    {movimientoForm.tipo === "entrada" && (
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                          Precio Unitario
+                        </label>
+                        <input 
+                          type="number" 
+                          name="precioUnitario" 
+                          value={movimientoForm.precioUnitario} 
+                          onChange={handleMovimientoChange} 
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-gray-900 bg-white" 
+                          step="0.01"
+                          min="0"
+                        />
+                      </div>
+                    )}
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Motivo
+                    </label>
+                    <input 
+                      name="motivo" 
+                      placeholder="Motivo del movimiento" 
+                      value={movimientoForm.motivo} 
+                      onChange={handleMovimientoChange} 
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-gray-900 bg-white" 
+                      required 
+                    />
+                  </div>
+                  
+                  <button 
+                    type="submit" 
+                    disabled={submitting}
+                    className="w-full bg-green-600 hover:bg-green-700 disabled:bg-green-400 text-white px-4 py-3 rounded-lg font-medium transition-colors duration-200 flex items-center justify-center"
+                  >
+                    {submitting ? (
+                      <>
+                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                        Registrando...
+                      </>
+                    ) : (
+                      <>
+                        <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                        Registrar Movimiento
+                      </>
+                    )}
+                  </button>
+                </form>
+              </div>
+
+              {/* Lista de movimientos */}
+              <div className="bg-white/95 backdrop-blur-sm rounded-xl p-6 shadow-lg border border-gray-200">
+                <h2 className="text-xl font-bold text-gray-800 mb-6">Movimientos Recientes</h2>
+                <div className="space-y-3 max-h-96 overflow-y-auto">
+                  {movimientos.slice().reverse().map((movimiento) => (
+                    <div key={movimiento.id} className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <div className="flex items-center">
+                            <div className={`w-3 h-3 rounded-full mr-3 ${movimiento.tipo === 'entrada' ? 'bg-green-500' : 'bg-red-500'}`}></div>
+                            <h3 className="font-semibold text-gray-800">
+                              {productos.find(p => p.id === movimiento.productoId)?.nombre || 'Producto'}
+                            </h3>
+                          </div>
+                          <p className="text-sm text-gray-600">
+                            {movimiento.fecha} - {movimiento.motivo}
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            Almacén: {almacenes.find(a => a.id === movimiento.almacenId)?.nombre || 'N/A'}
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <span className={`text-lg font-bold ${movimiento.tipo === 'entrada' ? 'text-green-600' : 'text-red-600'}`}>
+                            {movimiento.tipo === 'entrada' ? '+' : '-'}{movimiento.cantidad}
+                          </span>
+                          {movimiento.precioUnitario && (
+                            <p className="text-sm text-gray-500">${movimiento.precioUnitario}</p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                  {movimientos.length === 0 && (
+                    <div className="text-center py-8 text-gray-500">
+                      <svg className="w-12 h-12 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+                      </svg>
+                      <p>No hay movimientos registrados</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+
+      case "kardex":
+        return (
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-3xl font-bold text-gray-800">Kardex</h1>
+                <p className="text-gray-600">Control de inventario valorizado por producto, almacén y consolidado</p>
+              </div>
+            </div>
+
+            {/* Selector de tipo de Kardex */}
+            <div className="bg-white/95 backdrop-blur-sm rounded-xl p-6 shadow-lg border border-gray-200">
+              <div className="mb-6">
+                <label className="block text-sm font-semibold text-gray-700 mb-3">
+                  Tipo de Kardex
+                </label>
+                <div className="flex flex-wrap gap-3">
+                  <button
+                    onClick={() => setTipoKardex('producto')}
+                    className={`px-4 py-2 rounded-lg font-medium transition-colors duration-200 ${
+                      tipoKardex === 'producto'
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
+                  >
+                    Por Producto
+                  </button>
+                  <button
+                    onClick={() => setTipoKardex('almacen')}
+                    className={`px-4 py-2 rounded-lg font-medium transition-colors duration-200 ${
+                      tipoKardex === 'almacen'
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
+                  >
+                    Por Almacén
+                  </button>
+                  <button
+                    onClick={() => setTipoKardex('consolidado')}
+                    className={`px-4 py-2 rounded-lg font-medium transition-colors duration-200 ${
+                      tipoKardex === 'consolidado'
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
+                  >
+                    Consolidado
+                  </button>
+                </div>
+              </div>
+
+              {/* Contenido según el tipo seleccionado */}
+              {tipoKardex === 'producto' && (
+                <div>
+                  <div className="mb-6">
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Seleccionar Producto
+                    </label>
+                    <select 
+                      value={productoSeleccionado || ""} 
+                      onChange={(e) => setProductoSeleccionado(Number(e.target.value) || null)}
+                      className="w-full max-w-md px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-gray-900 bg-white"
+                    >
+                      <option value="">Selecciona un producto para ver su kardex</option>
+                      {productos.map((p) => (
+                        <option key={p.id} value={p.id}>{p.nombre} ({p.codigo})</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {productoSeleccionado && kardex.length > 0 ? (
+                    <KardexTable data={kardex} />
+                  ) : productoSeleccionado ? (
+                    <div className="text-center py-12 text-gray-500">
+                      <svg className="w-16 h-16 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                      <p className="text-lg">No hay movimientos para este producto</p>
+                      <p className="text-sm">Registra movimientos para ver el kardex</p>
+                    </div>
+                  ) : (
+                    <div className="text-center py-12 text-gray-500">
+                      <svg className="w-16 h-16 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                      <p className="text-lg">Selecciona un producto para ver su kardex</p>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {tipoKardex === 'almacen' && (
+                <div>
+                  <div className="mb-6">
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Seleccionar Almacén
+                    </label>
+                    <select 
+                      value={almacenSeleccionado || ""} 
+                      onChange={(e) => setAlmacenSeleccionado(Number(e.target.value) || null)}
+                      className="w-full max-w-md px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-gray-900 bg-white"
+                    >
+                      <option value="">Selecciona un almacén para ver su kardex</option>
+                      {almacenes.map((a) => (
+                        <option key={a.id} value={a.id}>{a.nombre}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {almacenSeleccionado && kardexPorAlmacen.length > 0 ? (
+                    <KardexTable data={kardexPorAlmacen} />
+                  ) : almacenSeleccionado ? (
+                    <div className="text-center py-12 text-gray-500">
+                      <svg className="w-16 h-16 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                      <p className="text-lg">No hay movimientos para este almacén</p>
+                      <p className="text-sm">Registra movimientos para ver el kardex</p>
+                    </div>
+                  ) : (
+                    <div className="text-center py-12 text-gray-500">
+                      <svg className="w-16 h-16 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                      <p className="text-lg">Selecciona un almacén para ver su kardex</p>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {tipoKardex === 'consolidado' && (
+                <div>
+                  <div className="mb-6">
+                    <h3 className="text-lg font-semibold text-gray-800 mb-2">Kardex Consolidado</h3>
+                    <p className="text-sm text-gray-600">Vista consolidada de inventario por producto y almacén</p>
+                  </div>
+
+                  {kardexConsolidado.length > 0 ? (
+                    <KardexConsolidadoTable data={kardexConsolidado} />
+                  ) : (
+                    <div className="text-center py-12 text-gray-500">
+                      <svg className="w-16 h-16 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                      <p className="text-lg">No hay datos para mostrar</p>
+                      <p className="text-sm">Registra productos y movimientos para ver el kardex consolidado</p>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        );
+
+      case "reportes":
+        return (
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-3xl font-bold text-gray-800">Reportes con Gráficos</h1>
+                <p className="text-gray-600">Análisis visual y exportación de datos</p>
+              </div>
+            </div>
+
+            <ReportCharts 
+              movimientos={movimientos}
+              productos={productos}
+              almacenes={almacenes}
+            />
+          </div>
+        );
+
+      default:
+        return null;
+    }
+  };
+
+  // Mostrar pantalla de carga
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <h2 className="text-xl font-semibold text-gray-800 mb-2">Cargando CoreSuite</h2>
+          <p className="text-gray-600">Inicializando sistema de gestión...</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex min-h-screen">
+      {/* Overlay para móviles */}
+      {sidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
       )}
+      
+      <Sidebar />
+      
+      <main className="flex-1 lg:ml-72 p-4 lg:p-8">
+        {/* Header móvil con botón de menú */}
+        <div className="lg:hidden mb-6">
+          <div className="flex items-center justify-between">
+            <button 
+              onClick={() => setSidebarOpen(true)}
+              className="p-2 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors"
+            >
+              <svg className="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            </button>
+            <h1 className="text-xl font-bold text-gray-800">CoreSuite</h1>
+            <div className="w-10"></div> {/* Espaciador */}
+          </div>
+        </div>
+        
+        {renderContent()}
+      </main>
     </div>
   );
 }

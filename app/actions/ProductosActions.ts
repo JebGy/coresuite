@@ -9,16 +9,24 @@ export async function addProudcto(producto: Producto) {
       codigo: producto.codigo,
       nombre: producto.nombre,
       descripcion: producto.descripcion,
+      almacenId: producto.almacenId || null,
     },
   });
   console.log("Agregado");
 }
 
 export async function getProductos(): Promise<Producto[]> {
-  const productos = await prisma.producto.findMany();
-  // Convertir null a undefined en descripcion para cumplir con el tipo Producto
+  const productos = await prisma.producto.findMany({
+    include: {
+      almacen: true,
+    },
+  });
+  // Convertir null a undefined en descripcion y almacenId para cumplir con el tipo Producto
   return productos.map((p) => ({
-    ...p,
+    id: p.id,
+    codigo: p.codigo,
+    nombre: p.nombre,
     descripcion: p.descripcion === null ? undefined : p.descripcion,
+    almacenId: p.almacenId === null ? undefined : p.almacenId,
   }));
 }
