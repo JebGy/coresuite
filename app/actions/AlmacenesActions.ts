@@ -2,14 +2,22 @@
 
 import { prisma } from "@/lib/prisma";
 import { Almacen } from "@/types";
+import { registrarLog } from "@/lib/logger";
 
-export async function addAlmacen(almacen: Omit<Almacen, 'id'>) {
-  await prisma.almacen.create({
+export async function addAlmacen(almacen: Omit<Almacen, 'id'>, usuarioId?: number) {
+  const nuevoAlmacen = await prisma.almacen.create({
     data: {
       nombre: almacen.nombre,
       ubicacion: almacen.ubicacion,
       descripcion: almacen.descripcion,
     },
+  });
+  await registrarLog({
+    usuarioId: usuarioId,
+    accion: "CREAR",
+    entidad: "Almacen",
+    entidadId: nuevoAlmacen.id,
+    detalles: `Almacén creado: ${nuevoAlmacen.nombre}`,
   });
   console.log("Almacén agregado");
 }
@@ -24,14 +32,21 @@ export async function getAlmacenes(): Promise<Almacen[]> {
   }));
 }
 
-export async function deleteAlmacen(id: number) {
+export async function deleteAlmacen(id: number, usuarioId?: number) {
   await prisma.almacen.delete({
     where: { id },
+  });
+  await registrarLog({
+    usuarioId: usuarioId,
+    accion: "ELIMINAR",
+    entidad: "Almacen",
+    entidadId: id,
+    detalles: `Almacén eliminado`,
   });
   console.log("Almacén eliminado");
 }
 
-export async function updateAlmacen(id: number, almacen: Partial<Almacen>) {
+export async function updateAlmacen(id: number, almacen: Partial<Almacen>, usuarioId?: number) {
   await prisma.almacen.update({
     where: { id },
     data: {
@@ -39,6 +54,13 @@ export async function updateAlmacen(id: number, almacen: Partial<Almacen>) {
       ubicacion: almacen.ubicacion,
       descripcion: almacen.descripcion,
     },
+  });
+  await registrarLog({
+    usuarioId: usuarioId,
+    accion: "ACTUALIZAR",
+    entidad: "Almacen",
+    entidadId: id,
+    detalles: `Almacén actualizado`,
   });
   console.log("Almacén actualizado");
 } 

@@ -6,6 +6,7 @@ import { getOrdenesEntrega, createOrdenEntrega, aprobarOrdenEntrega, rechazarOrd
 import { getTrabajadores } from '@/app/actions/TrabajadoresActions'
 import { getProductos } from '@/app/actions/ProductosActions'
 import { getAlmacenes } from '@/app/actions/AlmacenesActions'
+import { useSession } from "next-auth/react";
 
 export default function OrdenesEntregaPage() {
   const [ordenes, setOrdenes] = useState<OrdenEntrega[]>([])
@@ -22,6 +23,8 @@ export default function OrdenesEntregaPage() {
     motivo: '',
     observaciones: ''
   })
+
+  const { data: session } = useSession();
 
   useEffect(() => {
     loadData()
@@ -61,7 +64,7 @@ export default function OrdenesEntregaPage() {
     }
 
     try {
-      await createOrdenEntrega(formData)
+      await createOrdenEntrega(formData, session?.user?.id ? Number(session.user.id) : undefined)
       alert('Orden de entrega creada correctamente')
       setShowForm(false)
       resetForm()
@@ -76,7 +79,7 @@ export default function OrdenesEntregaPage() {
     if (!confirm('¿Está seguro de que desea aprobar esta orden de entrega?')) return
     
     try {
-      await aprobarOrdenEntrega(id)
+      await aprobarOrdenEntrega(id, session?.user?.id ? Number(session.user.id) : undefined)
       alert('Orden de entrega aprobada correctamente')
       loadData()
     } catch (error) {

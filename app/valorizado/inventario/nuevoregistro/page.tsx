@@ -4,6 +4,7 @@ import { addProudcto, getProductos } from "@/app/actions/ProductosActions";
 import { KardexRow, Movimiento, Producto } from "@/types";
 import { randomInt, randomUUID } from "crypto";
 import React, { useEffect, useState } from "react";
+import { useSession } from "next-auth/react";
 
 // Lógica de Kardex
 function calcularKardex(movimientos: Movimiento[]): KardexRow[] {
@@ -64,6 +65,7 @@ export default function Home() {
     productoId: 0,
     almacenId: 0,
   });
+  const { data: session } = useSession();
 
   //Efectos
   useEffect(() => {
@@ -81,13 +83,13 @@ export default function Home() {
     e.preventDefault();
     if (!productoForm.codigo || !productoForm.nombre) return;
     try {
-      addProudcto({
+      await addProudcto({
         id: 0,
         codigo: productoForm.codigo,
         nombre: productoForm.nombre,
         descripcion: productoForm.descripcion,
         almacenId: productoForm.almacenId || undefined,
-      });
+      }, session?.user?.id ? Number(session.user.id) : undefined);
     } catch (error) {
       alert("Error al guardar el producto");
     }
@@ -119,7 +121,7 @@ export default function Home() {
         tipo: movimientoForm.tipo as "entrada" | "salida",
         motivo: movimientoForm.motivo,
         almacenId: Number(movimientoForm.almacenId),
-      });
+      }, session?.user?.id ? Number(session.user.id) : undefined);
       // Refrescar productos después de agregar movimiento
       getProductos().then((v) => {
         setProductos(v);

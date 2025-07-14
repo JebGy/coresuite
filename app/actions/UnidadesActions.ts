@@ -2,6 +2,7 @@
 
 import { prisma } from '@/lib/prisma'
 import { Unidad } from '@/types'
+import { registrarLog } from "@/lib/logger";
 
 export async function getUnidades(): Promise<Unidad[]> {
   try {
@@ -21,11 +22,18 @@ export async function getUnidades(): Promise<Unidad[]> {
 export async function createUnidad(data: {
   nombre: string
   descripcion?: string
-}): Promise<Unidad> {
+}, usuarioId?: number): Promise<Unidad> {
   try {
     const unidad = await prisma.unidad.create({
       data
     })
+    await registrarLog({
+      usuarioId: usuarioId,
+      accion: "CREAR",
+      entidad: "Unidad",
+      entidadId: unidad.id,
+      detalles: `Unidad creada: ${unidad.nombre}`,
+    });
     
     return unidad
   } catch (error) {
@@ -37,12 +45,19 @@ export async function createUnidad(data: {
 export async function updateUnidad(id: number, data: {
   nombre?: string
   descripcion?: string
-}): Promise<Unidad> {
+}, usuarioId?: number): Promise<Unidad> {
   try {
     const unidad = await prisma.unidad.update({
       where: { id },
       data
     })
+    await registrarLog({
+      usuarioId: usuarioId,
+      accion: "ACTUALIZAR",
+      entidad: "Unidad",
+      entidadId: id,
+      detalles: `Unidad actualizada`,
+    });
     
     return unidad
   } catch (error) {
@@ -51,11 +66,18 @@ export async function updateUnidad(id: number, data: {
   }
 }
 
-export async function deleteUnidad(id: number): Promise<void> {
+export async function deleteUnidad(id: number, usuarioId?: number): Promise<void> {
   try {
     await prisma.unidad.delete({
       where: { id }
     })
+    await registrarLog({
+      usuarioId: usuarioId,
+      accion: "ELIMINAR",
+      entidad: "Unidad",
+      entidadId: id,
+      detalles: `Unidad eliminada`,
+    });
   } catch (error) {
     console.error('Error al eliminar unidad:', error)
     throw new Error('Error al eliminar unidad')

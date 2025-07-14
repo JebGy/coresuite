@@ -177,7 +177,7 @@ export const ReportCharts: React.FC<ReportChartsProps> = ({ movimientos, product
       const imgHeight = (canvas.height * imgWidth) / canvas.width;
       
       pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
-      pdf.save('reporte-coresuite.pdf');
+      pdf.save('reporte-Core Manager.pdf');
     } catch (error) {
       console.error('Error al exportar:', error);
       alert('Error al exportar el reporte');
@@ -198,7 +198,7 @@ export const ReportCharts: React.FC<ReportChartsProps> = ({ movimientos, product
       });
 
       const link = document.createElement('a');
-      link.download = 'reporte-coresuite.png';
+      link.download = 'reporte-Core Manager.png';
       link.href = canvas.toDataURL();
       link.click();
     } catch (error) {
@@ -269,7 +269,7 @@ export const ReportCharts: React.FC<ReportChartsProps> = ({ movimientos, product
       <div id="reporte-container" className="bg-white p-8 rounded-lg shadow-lg space-y-8">
         {/* Título del reporte */}
         <div className="text-center border-b border-gray-200 pb-6">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Reporte CoreSuite</h1>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Reporte Core Manager</h1>
           <p className="text-gray-600">Generado el {new Date().toLocaleDateString('es-ES')}</p>
         </div>
 

@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "CoreSuite - Sistema de Gestión Empresarial",
+  title: "Core Manager - Sistema de Gestión Empresarial",
   description:
     "Plataforma integral de gestión empresarial con control de inventario, kardex y análisis de datos",
   keywords: "gestión empresarial, inventario, kardex, dashboard, análisis",

@@ -2,15 +2,23 @@
 
 import { prisma } from "@/lib/prisma";
 import { Producto } from "@/types";
+import { registrarLog } from "@/lib/logger";
 
-export async function addProudcto(producto: Producto) {
-  await prisma.producto.create({
+export async function addProudcto(producto: Producto, usuarioId?: number) {
+  const nuevoProducto = await prisma.producto.create({
     data: {
       codigo: producto.codigo,
       nombre: producto.nombre,
       descripcion: producto.descripcion,
       almacenId: producto.almacenId || null,
     },
+  });
+  await registrarLog({
+    usuarioId: usuarioId,
+    accion: "CREAR",
+    entidad: "Producto",
+    entidadId: nuevoProducto.id,
+    detalles: `Producto creado: ${nuevoProducto.nombre}`,
   });
   console.log("Agregado");
 }

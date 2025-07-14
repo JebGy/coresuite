@@ -19,7 +19,7 @@ import { addAlmacen, getAlmacenes } from "./actions/AlmacenesActions";
 import { addProudcto, getProductos } from "./actions/ProductosActions";
 import { addMovimiento, getMovimientos } from "./actions/MovimientosActions";
 import { useRouter } from "next/navigation";
-import { useSession } from "next-auth/react";
+import { useSession, signOut } from "next-auth/react";
 
 // Tipos de datos ya importados desde @/types
 
@@ -107,7 +107,7 @@ export default function Dashboard() {
 
     try {
       setSubmitting(true);
-      await addAlmacen(almacenForm);
+      await addAlmacen(almacenForm, session?.user?.id ? Number(session.user.id) : undefined);
 
       // Recargar almacenes
       const nuevosAlmacenes = await getAlmacenes();
@@ -144,7 +144,7 @@ export default function Dashboard() {
         nombre: productoForm.nombre,
         descripcion: productoForm.descripcion,
         almacenId: productoForm.almacenId || undefined,
-      });
+      }, session?.user?.id ? Number(session.user.id) : undefined);
 
       // Recargar productos
       const nuevosProductos = await getProductos();
@@ -195,7 +195,7 @@ export default function Dashboard() {
         motivo: movimientoForm.motivo,
         productoId: Number(movimientoForm.productoId),
         almacenId: Number(movimientoForm.almacenId),
-      });
+      }, session?.user?.id ? Number(session.user.id) : undefined);
 
       // Recargar movimientos
       const nuevosMovimientos = await getMovimientos();
@@ -276,7 +276,7 @@ export default function Dashboard() {
                 />
               </svg>
             </div>
-            <h1 className="text-xl font-bold text-gray-800">CoreSuite</h1>
+            <h1 className="text-xl font-bold text-gray-800">Core Manager</h1>
           </div>
           <button
             onClick={() => setSidebarOpen(false)}
@@ -549,10 +549,37 @@ export default function Dashboard() {
           </svg>
           Reportes
         </button>
+
+        <button
+          className={`flex items-center w-full px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 ${
+            activeSection === "logs"
+              ? "bg-blue-100 text-blue-700 border border-blue-200"
+              : ""
+          }`}
+          onClick={() => {
+            window.location.href = "/logs";
+            setSidebarOpen(false);
+          }}
+        >
+          <svg
+            className="w-5 h-5 mr-3"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M9 17v-2a4 4 0 014-4h3m4 4v6a2 2 0 01-2 2H7a2 2 0 01-2-2V7a2 2 0 012-2h6"
+            />
+          </svg>
+          Logs del sistema
+        </button>
       </nav>
 
       <div className="mt-auto pt-8">
-        <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+        <div className="bg-gray-50 rounded-lg p-4 border border-gray-200 mb-4">
           <div className="flex items-center mb-2">
             <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center mr-3">
               <svg
@@ -577,6 +604,25 @@ export default function Dashboard() {
             Última actualización: {new Date().toLocaleString("es-ES")}
           </p>
         </div>
+        <button
+          onClick={() => signOut({ callbackUrl: "/login" })}
+          className="w-full bg-red-600 hover:bg-red-700 text-white py-2 rounded-lg font-medium transition-colors duration-200 flex items-center justify-center"
+        >
+          <svg
+            className="w-5 h-5 mr-2"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a2 2 0 01-2 2H7a2 2 0 01-2-2V7a2 2 0 012-2h4a2 2 0 012 2v1"
+            />
+          </svg>
+          Cerrar sesión
+        </button>
       </div>
     </div>
   );

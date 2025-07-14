@@ -3,6 +3,8 @@
 import { prisma } from '@/lib/prisma'
 import { Trabajador } from '@/types'
 import { Rol } from '@/types';
+import bcrypt from 'bcryptjs';
+import { registrarLog } from "@/lib/logger";
 
 export async function getTrabajadores(): Promise<Trabajador[]> {
   try {
@@ -40,14 +42,25 @@ export async function createTrabajador(data: {
   telefono: string
   unidadId: number
   rolId: number
-}): Promise<Trabajador> {
+}, usuarioId?: number): Promise<Trabajador> {
   try {
+    const hashedPassword = await bcrypt.hash(data.dni, 10);
     const trabajador = await prisma.trabajador.create({
-      data,
+      data: {
+        ...data,
+        password: hashedPassword // Guardar el hash del DNI
+      },
       include: {
         unidad: true
       }
     })
+    await registrarLog({
+      usuarioId: usuarioId,
+      accion: "CREAR",
+      entidad: "Trabajador",
+      entidadId: trabajador.id,
+      detalles: `Trabajador creado: ${trabajador.nombres} ${trabajador.apellidos}`,
+    });
     return {
       ...trabajador,
       unidad: trabajador.unidad
@@ -73,7 +86,10 @@ export async function updateTrabajador(id: number, data: {
   telefono?: string
   unidadId?: number
   rolId?: number
-}): Promise<Trabajador> {
+}, usuario: any, usuarioId?: number): Promise<Trabajador> {
+  if (!usuario.permisos.puedeEditarUsuarios) {
+    throw new Error('No tienes permiso para editar usuarios');
+  }
   try {
     const trabajador = await prisma.trabajador.update({
       where: { id },
@@ -82,6 +98,13 @@ export async function updateTrabajador(id: number, data: {
         unidad: true
       }
     })
+    await registrarLog({
+      usuarioId: usuarioId,
+      accion: "ACTUALIZAR",
+      entidad: "Trabajador",
+      entidadId: id,
+      detalles: `Trabajador actualizado`,
+    });
     
     return {
       ...trabajador,
@@ -98,11 +121,18 @@ export async function updateTrabajador(id: number, data: {
   }
 }
 
-export async function deleteTrabajador(id: number): Promise<void> {
+export async function deleteTrabajador(id: number, usuarioId?: number): Promise<void> {
   try {
     await prisma.trabajador.delete({
       where: { id }
     })
+    await registrarLog({
+      usuarioId: usuarioId,
+      accion: "ELIMINAR",
+      entidad: "Trabajador",
+      entidadId: id,
+      detalles: `Trabajador eliminado`,
+    });
   } catch (error) {
     console.error('Error al eliminar trabajador:', error)
     throw new Error('Error al eliminar trabajador')

@@ -2,9 +2,10 @@
 
 import { prisma } from "@/lib/prisma";
 import { Movimiento } from "@/types";
+import { registrarLog } from "@/lib/logger";
 
-export async function addMovimiento(movimiento: Omit<Movimiento, 'id'>) {
-  await prisma.movimiento.create({
+export async function addMovimiento(movimiento: Omit<Movimiento, 'id'>, usuarioId?: number) {
+  const nuevoMovimiento = await prisma.movimiento.create({
     data: {
       tipo: movimiento.tipo,
       fecha: new Date(movimiento.fecha),
@@ -14,6 +15,13 @@ export async function addMovimiento(movimiento: Omit<Movimiento, 'id'>) {
       productoId: movimiento.productoId,
       almacenId: movimiento.almacenId,
     },
+  });
+  await registrarLog({
+    usuarioId: usuarioId,
+    accion: "CREAR",
+    entidad: "Movimiento",
+    entidadId: nuevoMovimiento.id,
+    detalles: `Movimiento creado: ${nuevoMovimiento.tipo}`,
   });
   console.log("Movimiento agregado");
 }
@@ -69,6 +77,13 @@ export async function deleteMovimiento(id: number) {
   await prisma.movimiento.delete({
     where: { id },
   });
+  await registrarLog({
+    usuarioId: undefined,
+    accion: "ELIMINAR",
+    entidad: "Movimiento",
+    entidadId: id,
+    detalles: `Movimiento eliminado`,
+  });
   console.log("Movimiento eliminado");
 }
 
@@ -84,6 +99,13 @@ export async function updateMovimiento(id: number, movimiento: Partial<Movimient
       productoId: movimiento.productoId,
       almacenId: movimiento.almacenId,
     },
+  });
+  await registrarLog({
+    usuarioId: undefined,
+    accion: "ACTUALIZAR",
+    entidad: "Movimiento",
+    entidadId: id,
+    detalles: `Movimiento actualizado`,
   });
   console.log("Movimiento actualizado");
 }

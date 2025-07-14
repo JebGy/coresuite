@@ -2,6 +2,7 @@
 
 import { prisma } from '@/lib/prisma'
 import { OrdenEntrega } from '@/types'
+import { registrarLog } from "@/lib/logger";
 
 export async function getOrdenesEntrega(): Promise<OrdenEntrega[]> {
   try {
@@ -40,7 +41,7 @@ export async function createOrdenEntrega(data: {
   trabajadorId: number
   productoId: number
   almacenId: number
-}): Promise<OrdenEntrega> {
+}, usuarioId?: number): Promise<OrdenEntrega> {
   try {
     // Generar número de ticket único
     const numeroTicket = `TKT-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
@@ -61,6 +62,13 @@ export async function createOrdenEntrega(data: {
         almacen: true
       }
     })
+    await registrarLog({
+      usuarioId: usuarioId,
+      accion: "CREAR",
+      entidad: "OrdenEntrega",
+      entidadId: orden.id,
+      detalles: `Orden de entrega creada: Ticket ${orden.numeroTicket}`,
+    });
     
     return {
       ...orden,
@@ -75,7 +83,7 @@ export async function createOrdenEntrega(data: {
   }
 }
 
-export async function aprobarOrdenEntrega(id: number): Promise<OrdenEntrega> {
+export async function aprobarOrdenEntrega(id: number, usuarioId?: number): Promise<OrdenEntrega> {
   try {
     // Obtener la orden
     const orden = await prisma.ordenEntrega.findUnique({
@@ -130,6 +138,13 @@ export async function aprobarOrdenEntrega(id: number): Promise<OrdenEntrega> {
         }
       })
     ])
+    await registrarLog({
+      usuarioId: usuarioId,
+      accion: "ACTUALIZAR",
+      entidad: "OrdenEntrega",
+      entidadId: id,
+      detalles: `Orden de entrega aprobada`,
+    });
     
     return {
       ...ordenActualizada,
@@ -162,6 +177,13 @@ export async function rechazarOrdenEntrega(id: number, motivo: string): Promise<
         almacen: true
       }
     })
+    await registrarLog({
+      usuarioId: null,
+      accion: "ACTUALIZAR",
+      entidad: "OrdenEntrega",
+      entidadId: id,
+      detalles: `Orden de entrega rechazada`,
+    });
     
     return {
       ...orden,

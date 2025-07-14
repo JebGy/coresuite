@@ -50,6 +50,7 @@ model Trabajador {
   rolId       Int
   rol         Rol           @relation(fields: [rolId], references: [id])
   password    String?
+  logs        Log[]         // Relación inversa: logs realizados por este trabajador
 }
 
 model Producto {
@@ -101,4 +102,15 @@ model OrdenEntrega {
   
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
+}
+
+model Log {
+  id        Int      @id @default(autoincrement())
+  usuarioId Int?     // ID del usuario que realizó la acción (opcional)
+  usuario   Trabajador? @relation(fields: [usuarioId], references: [id])
+  accion    String   // Descripción de la acción realizada
+  entidad   String   // Entidad afectada (por ejemplo: "Producto", "Movimiento", etc.)
+  entidadId Int?     // ID de la entidad afectada (opcional)
+  detalles  String?  // Detalles adicionales en texto o JSON
+  fecha     DateTime @default(now())
 }

@@ -2,6 +2,7 @@ import NextAuth from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
+import { registrarLog } from '../../../lib/logger';
 
 // Extender los tipos de NextAuth para incluir campos personalizados
 import { DefaultSession, DefaultUser } from 'next-auth';
@@ -56,6 +57,13 @@ export default NextAuth({
         if (!user.password) {
           // Permitir acceso solo al root inicial (sin contraseña)
           if (user.email === 'root@admin.com') {
+            await registrarLog({
+              usuarioId: user.id,
+              accion: 'LOGIN',
+              entidad: 'Usuario',
+              entidadId: user.id,
+              detalles: 'Inicio de sesión root',
+            });
             return {
               id: user.id.toString(),
               email: user.email,
@@ -70,6 +78,13 @@ export default NextAuth({
         if (!valid) {
           throw new Error('Contraseña incorrecta');
         }
+        await registrarLog({
+          usuarioId: user.id,
+          accion: 'LOGIN',
+          entidad: 'Usuario',
+          entidadId: user.id,
+          detalles: 'Inicio de sesión exitoso',
+        });
         return {
           id: user.id.toString(),
           email: user.email,

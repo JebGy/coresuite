@@ -1,6 +1,6 @@
-# CoreSuite - Sistema de Gestión Empresarial
+# Core Manager - Sistema de Gestión Empresarial
 
-CoreSuite es un sistema completo de gestión empresarial que incluye control de inventario, gestión de almacenes, productos, movimientos y reportes con gráficos.
+Core Manager es un sistema completo de gestión empresarial que incluye control de inventario, gestión de almacenes, productos, movimientos y reportes con gráficos.
 
 ## 🚀 Características
 
@@ -32,7 +32,7 @@ CoreSuite es un sistema completo de gestión empresarial que incluye control de 
 1. **Clonar el repositorio**
    ```bash
    git clone <url-del-repositorio>
-   cd coresuite
+   cd Core Manager
    ```
 
 2. **Instalar dependencias**
@@ -44,7 +44,7 @@ CoreSuite es un sistema completo de gestión empresarial que incluye control de 
    
    Crear un archivo `.env` en la raíz del proyecto:
    ```env
-   DATABASE_URL="postgresql://usuario:contraseña@localhost:5432/coresuite"
+   DATABASE_URL="postgresql://usuario:contraseña@localhost:5432/Core Manager"
    NEXTAUTH_SECRET="tu-clave-secreta-aqui"
    NEXTAUTH_URL="http://localhost:3000"
    NODE_ENV="development"
@@ -52,9 +52,9 @@ CoreSuite es un sistema completo de gestión empresarial que incluye control de 
 
 4. **Configurar PostgreSQL**
    ```sql
-   CREATE DATABASE coresuite;
-   CREATE USER coresuite_user WITH PASSWORD 'tu_contraseña';
-   GRANT ALL PRIVILEGES ON DATABASE coresuite TO coresuite_user;
+   CREATE DATABASE Core Manager;
+   CREATE USER Core Manager_user WITH PASSWORD 'tu_contraseña';
+   GRANT ALL PRIVILEGES ON DATABASE Core Manager TO Core Manager_user;
    ```
 
 5. **Generar el cliente de Prisma y ejecutar migraciones**
@@ -140,7 +140,7 @@ npm run seed         # Ejecutar datos de prueba
 ## 📁 Estructura del Proyecto
 
 ```
-coresuite/
+Core Manager/
 ├── app/
 │   ├── actions/           # Acciones del servidor
 │   ├── components/        # Componentes React
@@ -163,8 +163,8 @@ coresuite/
 
 ### Docker
 ```bash
-docker build -t coresuite .
-docker run -p 3000:3000 coresuite
+docker build -t Core Manager .
+docker run -p 3000:3000 Core Manager
 ```
 
 ## 🤝 Contribución

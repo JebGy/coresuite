@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { Unidad } from '@/types'
 import { getUnidades, createUnidad, updateUnidad, deleteUnidad } from '@/app/actions/UnidadesActions'
+import { useSession } from "next-auth/react";
 
 export default function UnidadesPage() {
   const [unidades, setUnidades] = useState<Unidad[]>([])
@@ -13,6 +14,8 @@ export default function UnidadesPage() {
     nombre: '',
     descripcion: ''
   })
+
+  const { data: session } = useSession();
 
   useEffect(() => {
     loadData()
@@ -40,10 +43,10 @@ export default function UnidadesPage() {
 
     try {
       if (editingUnidad) {
-        await updateUnidad(editingUnidad.id, formData)
+        await updateUnidad(editingUnidad.id, formData, session?.user?.id ? Number(session.user.id) : undefined)
         alert('Unidad actualizada correctamente')
       } else {
-        await createUnidad(formData)
+        await createUnidad(formData, session?.user?.id ? Number(session.user.id) : undefined)
         alert('Unidad creada correctamente')
       }
       

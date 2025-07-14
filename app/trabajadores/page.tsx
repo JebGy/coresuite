@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { Trabajador, Unidad, Rol } from '@/types'
 import { getTrabajadores, createTrabajador, updateTrabajador, deleteTrabajador, getRoles } from '@/app/actions/TrabajadoresActions'
 import { getUnidades } from '@/app/actions/UnidadesActions'
+import { useSession } from "next-auth/react";
 
 export default function TrabajadoresPage() {
   const [trabajadores, setTrabajadores] = useState<Trabajador[]>([])
@@ -21,6 +22,7 @@ export default function TrabajadoresPage() {
   })
   const [roles, setRoles] = useState<Rol[]>([])
   const [selectedRolId, setSelectedRolId] = useState<number | null>(null)
+  const { data: session } = useSession();
 
   useEffect(() => {
     loadData()
@@ -66,10 +68,10 @@ export default function TrabajadoresPage() {
 
     try {
       if (editingTrabajador) {
-        await updateTrabajador(editingTrabajador.id, { ...formData, rolId: selectedRolId })
+        await updateTrabajador(editingTrabajador.id, { ...formData, rolId: selectedRolId }, session?.user, session?.user?.id ? Number(session.user.id) : undefined)
         alert('Trabajador actualizado correctamente')
       } else {
-        await createTrabajador({ ...formData, rolId: selectedRolId })
+        await createTrabajador({ ...formData, rolId: selectedRolId }, session?.user?.id ? Number(session.user.id) : undefined)
         alert('Trabajador creado correctamente')
       }
       
@@ -164,6 +166,7 @@ export default function TrabajadoresPage() {
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   required
                 />
+                <p className="text-xs text-gray-500 mt-1">La contraseña inicial será el mismo DNI.</p>
               </div>
               
               <div>
