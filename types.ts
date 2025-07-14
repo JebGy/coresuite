@@ -90,3 +90,10 @@ export type KardexConsolidado = {
   totalCantidad: number;
   totalValor: number;
 };
+
+export type Rol = {
+  id: number;
+  nombre: string;
+  descripcion?: string;
+  permisos: any;
+};

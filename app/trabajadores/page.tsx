@@ -1,8 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Trabajador, Unidad } from '@/types'
-import { getTrabajadores, createTrabajador, updateTrabajador, deleteTrabajador } from '@/app/actions/TrabajadoresActions'
+import { Trabajador, Unidad, Rol } from '@/types'
+import { getTrabajadores, createTrabajador, updateTrabajador, deleteTrabajador, getRoles } from '@/app/actions/TrabajadoresActions'
 import { getUnidades } from '@/app/actions/UnidadesActions'
 
 export default function TrabajadoresPage() {
@@ -19,9 +19,12 @@ export default function TrabajadoresPage() {
     telefono: '',
     unidadId: 0
   })
+  const [roles, setRoles] = useState<Rol[]>([])
+  const [selectedRolId, setSelectedRolId] = useState<number | null>(null)
 
   useEffect(() => {
     loadData()
+    loadRoles()
   }, [])
 
   const loadData = async () => {
@@ -40,6 +43,15 @@ export default function TrabajadoresPage() {
     }
   }
 
+  const loadRoles = async () => {
+    try {
+      const rolesData = await getRoles()
+      setRoles(rolesData)
+    } catch (error) {
+      alert('Error al cargar los roles')
+    }
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
@@ -47,19 +59,24 @@ export default function TrabajadoresPage() {
       alert('Debe seleccionar una unidad')
       return
     }
+    if (!selectedRolId) {
+      alert('Debe seleccionar un rol')
+      return
+    }
 
     try {
       if (editingTrabajador) {
-        await updateTrabajador(editingTrabajador.id, formData)
+        await updateTrabajador(editingTrabajador.id, { ...formData, rolId: selectedRolId })
         alert('Trabajador actualizado correctamente')
       } else {
-        await createTrabajador(formData)
+        await createTrabajador({ ...formData, rolId: selectedRolId })
         alert('Trabajador creado correctamente')
       }
       
       setShowForm(false)
       setEditingTrabajador(null)
       resetForm()
+      setSelectedRolId(null)
       loadData()
     } catch (error) {
       console.error('Error al guardar trabajador:', error)
@@ -77,6 +94,7 @@ export default function TrabajadoresPage() {
       telefono: trabajador.telefono,
       unidadId: trabajador.unidadId
     })
+    setSelectedRolId((trabajador as any).rolId || null)
     setShowForm(true)
   }
 
@@ -102,6 +120,7 @@ export default function TrabajadoresPage() {
       telefono: '',
       unidadId: 0
     })
+    setSelectedRolId(null)
   }
 
   const cancelForm = () => {
@@ -217,21 +236,38 @@ export default function TrabajadoresPage() {
                   ))}
                 </select>
               </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Rol *
+                </label>
+                <select
+                  value={selectedRolId || ''}
+                  onChange={e => setSelectedRolId(Number(e.target.value))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  required
+                >
+                  <option value="">Seleccione un rol</option>
+                  {roles.map(rol => (
+                    <option key={rol.id} value={rol.id}>{rol.nombre}</option>
+                  ))}
+                </select>
+              </div>
             </div>
-            
-            <div className="flex justify-end space-x-3">
-              <button
-                type="button"
-                onClick={cancelForm}
-                className="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50"
-              >
-                Cancelar
-              </button>
-              <button
-                type="submit"
-                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-              >
+            {/* Mostrar permisos del rol seleccionado */}
+            {selectedRolId && (
+              <div className="bg-gray-50 p-4 rounded mb-2">
+                <strong>Permisos del rol seleccionado:</strong>
+                <pre className="text-xs mt-2 bg-white p-2 rounded overflow-x-auto">
+                  {JSON.stringify(roles.find(r => r.id === selectedRolId)?.permisos, null, 2)}
+                </pre>
+              </div>
+            )}
+            <div className="flex gap-4 mt-4">
+              <button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
                 {editingTrabajador ? 'Actualizar' : 'Crear'}
+              </button>
+              <button type="button" onClick={cancelForm} className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded">
+                Cancelar
               </button>
             </div>
           </form>

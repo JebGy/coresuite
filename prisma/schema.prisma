@@ -21,9 +21,17 @@ model Almacen {
 
 model Unidad {
   id          Int           @id @default(autoincrement())
-  nombre      String
+  nombre      String        @unique
   descripcion String?
   almacenes   Almacen[]
+  trabajadores Trabajador[]
+}
+
+model Rol {
+  id           Int           @id @default(autoincrement())
+  nombre       String        @unique
+  descripcion  String?
+  permisos     Json
   trabajadores Trabajador[]
 }
 
@@ -39,6 +47,9 @@ model Trabajador {
   ordenesEntrega OrdenEntrega[]
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
+  rolId       Int
+  rol         Rol           @relation(fields: [rolId], references: [id])
+  password    String?
 }
 
 model Producto {

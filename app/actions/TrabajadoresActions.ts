@@ -2,22 +2,29 @@
 
 import { prisma } from '@/lib/prisma'
 import { Trabajador } from '@/types'
+import { Rol } from '@/types';
 
 export async function getTrabajadores(): Promise<Trabajador[]> {
   try {
     const trabajadores = await prisma.trabajador.findMany({
       include: {
-        unidad: true
+        unidad: true,
+        rol: true
       },
       orderBy: {
         apellidos: 'asc'
       }
     })
-    
     return trabajadores.map((t: any) => ({
       ...t,
+      unidad: t.unidad
+        ? {
+            ...t.unidad,
+            descripcion: t.unidad.descripcion ?? undefined,
+          }
+        : undefined,
       createdAt: t.createdAt.toISOString(),
-      updatedAt: t.updatedAt.toISOString()
+      updatedAt: t.updatedAt.toISOString(),
     }))
   } catch (error) {
     console.error('Error al obtener trabajadores:', error)
@@ -32,6 +39,7 @@ export async function createTrabajador(data: {
   email: string
   telefono: string
   unidadId: number
+  rolId: number
 }): Promise<Trabajador> {
   try {
     const trabajador = await prisma.trabajador.create({
@@ -40,13 +48,14 @@ export async function createTrabajador(data: {
         unidad: true
       }
     })
-    
     return {
       ...trabajador,
-      unidad: {
-        ...trabajador.unidad,
-        descripcion: trabajador.unidad.descripcion ?? undefined,
-      },
+      unidad: trabajador.unidad
+        ? {
+            ...trabajador.unidad,
+            descripcion: trabajador.unidad.descripcion ?? undefined,
+          }
+        : undefined,
       createdAt: trabajador.createdAt.toISOString(),
       updatedAt: trabajador.updatedAt.toISOString(),
     }
@@ -63,6 +72,7 @@ export async function updateTrabajador(id: number, data: {
   email?: string
   telefono?: string
   unidadId?: number
+  rolId?: number
 }): Promise<Trabajador> {
   try {
     const trabajador = await prisma.trabajador.update({
@@ -122,5 +132,40 @@ export async function getTrabajadorById(id: number): Promise<Trabajador | null> 
   } catch (error) {
     console.error('Error al obtener trabajador:', error)
     throw new Error('Error al obtener trabajador')
+  }
+} 
+
+export async function getRoles(): Promise<Rol[]> {
+  try {
+    const roles = await prisma.rol.findMany();
+    return roles.map((r: any) => ({
+      ...r,
+      descripcion: r.descripcion ?? undefined,
+    }));
+  } catch (error) {
+    console.error('Error al obtener roles:', error);
+    throw new Error('Error al obtener roles');
+  }
+}
+
+export async function updateTrabajadorRol(id: number, rolId: number): Promise<Trabajador> {
+  try {
+    const trabajador = await prisma.trabajador.update({
+      where: { id },
+      data: { rolId },
+      include: { unidad: true }
+    });
+    return {
+      ...trabajador,
+      unidad: {
+        ...trabajador.unidad,
+        descripcion: trabajador.unidad.descripcion ?? undefined,
+      },
+      createdAt: trabajador.createdAt.toISOString(),
+      updatedAt: trabajador.updatedAt.toISOString(),
+    };
+  } catch (error) {
+    console.error('Error al actualizar el rol del trabajador:', error);
+    throw new Error('Error al actualizar el rol del trabajador');
   }
 } 
