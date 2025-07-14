@@ -43,8 +43,12 @@ export async function createTrabajador(data: {
     
     return {
       ...trabajador,
+      unidad: {
+        ...trabajador.unidad,
+        descripcion: trabajador.unidad.descripcion ?? undefined,
+      },
       createdAt: trabajador.createdAt.toISOString(),
-      updatedAt: trabajador.updatedAt.toISOString()
+      updatedAt: trabajador.updatedAt.toISOString(),
     }
   } catch (error) {
     console.error('Error al crear trabajador:', error)
@@ -71,8 +75,12 @@ export async function updateTrabajador(id: number, data: {
     
     return {
       ...trabajador,
+      unidad: {
+        ...trabajador.unidad,
+        descripcion: trabajador.unidad.descripcion ?? undefined,
+      },
       createdAt: trabajador.createdAt.toISOString(),
-      updatedAt: trabajador.updatedAt.toISOString()
+      updatedAt: trabajador.updatedAt.toISOString(),
     }
   } catch (error) {
     console.error('Error al actualizar trabajador:', error)
@@ -104,8 +112,12 @@ export async function getTrabajadorById(id: number): Promise<Trabajador | null> 
     
     return {
       ...trabajador,
+      unidad: {
+        ...trabajador.unidad,
+        descripcion: trabajador.unidad.descripcion ?? undefined,
+      },
       createdAt: trabajador.createdAt.toISOString(),
-      updatedAt: trabajador.updatedAt.toISOString()
+      updatedAt: trabajador.updatedAt.toISOString(),
     }
   } catch (error) {
     console.error('Error al obtener trabajador:', error)
