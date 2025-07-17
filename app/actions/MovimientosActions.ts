@@ -73,12 +73,12 @@ export async function getMovimientosByProducto(productoId: number): Promise<Movi
   }));
 }
 
-export async function deleteMovimiento(id: number) {
+export async function deleteMovimiento(id: number, usuarioId?: number) {
   await prisma.movimiento.delete({
     where: { id },
   });
   await registrarLog({
-    usuarioId: undefined,
+    usuarioId: usuarioId,
     accion: "ELIMINAR",
     entidad: "Movimiento",
     entidadId: id,
@@ -87,7 +87,7 @@ export async function deleteMovimiento(id: number) {
   console.log("Movimiento eliminado");
 }
 
-export async function updateMovimiento(id: number, movimiento: Partial<Movimiento>) {
+export async function updateMovimiento(id: number, movimiento: Partial<Movimiento>, usuarioId?: number) {
   await prisma.movimiento.update({
     where: { id },
     data: {
@@ -101,7 +101,7 @@ export async function updateMovimiento(id: number, movimiento: Partial<Movimient
     },
   });
   await registrarLog({
-    usuarioId: undefined,
+    usuarioId: usuarioId,
     accion: "ACTUALIZAR",
     entidad: "Movimiento",
     entidadId: id,

@@ -159,7 +159,7 @@ export async function aprobarOrdenEntrega(id: number, usuarioId?: number): Promi
   }
 }
 
-export async function rechazarOrdenEntrega(id: number, motivo: string): Promise<OrdenEntrega> {
+export async function rechazarOrdenEntrega(id: number, motivo: string, usuarioId?: number): Promise<OrdenEntrega> {
   try {
     const orden = await prisma.ordenEntrega.update({
       where: { id },
@@ -178,7 +178,7 @@ export async function rechazarOrdenEntrega(id: number, motivo: string): Promise<
       }
     })
     await registrarLog({
-      usuarioId: null,
+      usuarioId: usuarioId,
       accion: "ACTUALIZAR",
       entidad: "OrdenEntrega",
       entidadId: id,

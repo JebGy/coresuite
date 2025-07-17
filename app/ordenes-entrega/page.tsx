@@ -93,7 +93,7 @@ export default function OrdenesEntregaPage() {
     if (!motivo) return
     
     try {
-      await rechazarOrdenEntrega(id, motivo)
+      await rechazarOrdenEntrega(id, motivo, session?.user?.id ? Number(session.user.id) : undefined)
       alert('Orden de entrega rechazada correctamente')
       loadData()
     } catch (error) {
