@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { Unidad } from '@/types'
 import { getUnidades, createUnidad, updateUnidad, deleteUnidad } from '@/app/actions/UnidadesActions'
 import { useSession } from "next-auth/react";
+import { Notificacion } from "../components/Notificacion";
 
 export default function UnidadesPage() {
   const [unidades, setUnidades] = useState<Unidad[]>([])
@@ -14,6 +15,10 @@ export default function UnidadesPage() {
     nombre: '',
     descripcion: ''
   })
+  const [notificacion, setNotificacion] = useState<{
+    mensaje: string;
+    tipo?: 'exito' | 'error' | 'info';
+  } | null>(null);
 
   const { data: session } = useSession();
 
@@ -27,7 +32,7 @@ export default function UnidadesPage() {
       setUnidades(unidadesData)
     } catch (error) {
       console.error('Error al cargar unidades:', error)
-      alert('Error al cargar las unidades')
+      setNotificacion({ mensaje: 'Error al cargar las unidades', tipo: 'error' })
     } finally {
       setLoading(false)
     }
@@ -37,17 +42,17 @@ export default function UnidadesPage() {
     e.preventDefault()
     
     if (!formData.nombre.trim()) {
-      alert('El nombre de la unidad es obligatorio')
+      setNotificacion({ mensaje: 'El nombre de la unidad es obligatorio', tipo: 'error' })
       return
     }
 
     try {
       if (editingUnidad) {
         await updateUnidad(editingUnidad.id, formData, session?.user?.id ? Number(session.user.id) : undefined)
-        alert('Unidad actualizada correctamente')
+        setNotificacion({ mensaje: 'Unidad actualizada correctamente', tipo: 'exito' })
       } else {
         await createUnidad(formData, session?.user?.id ? Number(session.user.id) : undefined)
-        alert('Unidad creada correctamente')
+        setNotificacion({ mensaje: 'Unidad creada correctamente', tipo: 'exito' })
       }
       
       setShowForm(false)
@@ -56,7 +61,7 @@ export default function UnidadesPage() {
       loadData()
     } catch (error) {
       console.error('Error al guardar unidad:', error)
-      alert('Error al guardar la unidad')
+      setNotificacion({ mensaje: 'Error al guardar la unidad', tipo: 'error' })
     }
   }
 
@@ -74,11 +79,11 @@ export default function UnidadesPage() {
     
     try {
       await deleteUnidad(id)
-      alert('Unidad eliminada correctamente')
+      setNotificacion({ mensaje: 'Unidad eliminada correctamente', tipo: 'exito' })
       loadData()
     } catch (error) {
       console.error('Error al eliminar unidad:', error)
-      alert('Error al eliminar la unidad')
+      setNotificacion({ mensaje: 'Error al eliminar la unidad', tipo: 'error' })
     }
   }
 
@@ -205,6 +210,13 @@ export default function UnidadesPage() {
           </tbody>
         </table>
       </div>
+      {notificacion && (
+        <Notificacion
+          mensaje={notificacion.mensaje}
+          tipo={notificacion.tipo}
+          onClose={() => setNotificacion(null)}
+        />
+      )}
     </div>
   )
 } 

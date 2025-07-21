@@ -7,6 +7,7 @@ import { getTrabajadores } from '@/app/actions/TrabajadoresActions'
 import { getProductos } from '@/app/actions/ProductosActions'
 import { getAlmacenes } from '@/app/actions/AlmacenesActions'
 import { useSession } from "next-auth/react";
+import { Notificacion } from "../components/Notificacion";
 
 export default function OrdenesEntregaPage() {
   const [ordenes, setOrdenes] = useState<OrdenEntrega[]>([])
@@ -23,6 +24,10 @@ export default function OrdenesEntregaPage() {
     motivo: '',
     observaciones: ''
   })
+  const [notificacion, setNotificacion] = useState<{
+    mensaje: string;
+    tipo?: 'exito' | 'error' | 'info';
+  } | null>(null);
 
   const { data: session } = useSession();
 
@@ -44,7 +49,7 @@ export default function OrdenesEntregaPage() {
       setAlmacenes(almacenesData)
     } catch (error) {
       console.error('Error al cargar datos:', error)
-      alert('Error al cargar los datos')
+      setNotificacion({ mensaje: 'Error al cargar los datos', tipo: 'error' })
     } finally {
       setLoading(false)
     }
@@ -54,24 +59,24 @@ export default function OrdenesEntregaPage() {
     e.preventDefault()
     
     if (!formData.trabajadorId || !formData.productoId || !formData.almacenId) {
-      alert('Debe completar todos los campos obligatorios')
+      setNotificacion({ mensaje: 'Debe completar todos los campos obligatorios', tipo: 'error' })
       return
     }
 
     if (formData.cantidad <= 0) {
-      alert('La cantidad debe ser mayor a 0')
+      setNotificacion({ mensaje: 'La cantidad debe ser mayor a 0', tipo: 'error' })
       return
     }
 
     try {
       await createOrdenEntrega(formData, session?.user?.id ? Number(session.user.id) : undefined)
-      alert('Orden de entrega creada correctamente')
+      setNotificacion({ mensaje: 'Orden de entrega creada correctamente', tipo: 'exito' })
       setShowForm(false)
       resetForm()
       loadData()
     } catch (error) {
       console.error('Error al crear orden de entrega:', error)
-      alert('Error al crear la orden de entrega')
+      setNotificacion({ mensaje: 'Error al crear la orden de entrega', tipo: 'error' })
     }
   }
 
@@ -80,11 +85,11 @@ export default function OrdenesEntregaPage() {
     
     try {
       await aprobarOrdenEntrega(id, session?.user?.id ? Number(session.user.id) : undefined)
-      alert('Orden de entrega aprobada correctamente')
+      setNotificacion({ mensaje: 'Orden de entrega aprobada correctamente', tipo: 'exito' })
       loadData()
     } catch (error) {
       console.error('Error al aprobar orden:', error)
-      alert(error instanceof Error ? error.message : 'Error al aprobar la orden')
+      setNotificacion({ mensaje: error instanceof Error ? error.message : 'Error al aprobar la orden', tipo: 'error' })
     }
   }
 
@@ -94,11 +99,11 @@ export default function OrdenesEntregaPage() {
     
     try {
       await rechazarOrdenEntrega(id, motivo, session?.user?.id ? Number(session.user.id) : undefined)
-      alert('Orden de entrega rechazada correctamente')
+      setNotificacion({ mensaje: 'Orden de entrega rechazada correctamente', tipo: 'exito' })
       loadData()
     } catch (error) {
       console.error('Error al rechazar orden:', error)
-      alert('Error al rechazar la orden')
+      setNotificacion({ mensaje: 'Error al rechazar la orden', tipo: 'error' })
     }
   }
 
@@ -358,6 +363,13 @@ export default function OrdenesEntregaPage() {
           </tbody>
         </table>
       </div>
+      {notificacion && (
+        <Notificacion
+          mensaje={notificacion.mensaje}
+          tipo={notificacion.tipo}
+          onClose={() => setNotificacion(null)}
+        />
+      )}
     </div>
   )
 } 

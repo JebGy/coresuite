@@ -20,6 +20,7 @@ import { addProudcto, getProductos } from "./actions/ProductosActions";
 import { addMovimiento, getMovimientos } from "./actions/MovimientosActions";
 import { useRouter } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
+import { Notificacion } from "./components/Notificacion";
 
 // Tipos de datos ya importados desde @/types
 
@@ -71,6 +72,12 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
+  // Estado para notificación
+  const [notificacion, setNotificacion] = useState<{
+    mensaje: string;
+    tipo?: 'exito' | 'error' | 'info';
+  } | null>(null);
+
   // Cargar datos al montar el componente
   useEffect(() => {
     const cargarDatos = async () => {
@@ -84,9 +91,7 @@ export default function Dashboard() {
         setMovimientos(movimientosData);
       } catch (error) {
         console.error("Error al cargar datos:", error);
-        alert(
-          "Error al cargar los datos. Verifica la conexión a la base de datos."
-        );
+        setNotificacion({ mensaje: "Error al cargar los datos. Verifica la conexión a la base de datos.", tipo: "error" });
       } finally {
         setLoading(false);
       }
@@ -115,10 +120,10 @@ export default function Dashboard() {
       setAlmacenes(nuevosAlmacenes);
 
       setAlmacenForm({ nombre: "", ubicacion: "", descripcion: "" });
-      alert("Almacén agregado exitosamente");
+      setNotificacion({ mensaje: "Almacén agregado exitosamente", tipo: "exito" });
     } catch (error) {
       console.error("Error al agregar almacén:", error);
-      alert("Error al agregar el almacén");
+      setNotificacion({ mensaje: "Error al agregar el almacén", tipo: "error" });
     } finally {
       setSubmitting(false);
     }
@@ -157,10 +162,10 @@ export default function Dashboard() {
         descripcion: "",
         almacenId: 0,
       });
-      alert("Producto agregado exitosamente");
+      setNotificacion({ mensaje: "Producto agregado exitosamente", tipo: "exito" });
     } catch (error) {
       console.error("Error al agregar producto:", error);
-      alert("Error al agregar el producto");
+      setNotificacion({ mensaje: "Error al agregar el producto", tipo: "error" });
     } finally {
       setSubmitting(false);
     }
@@ -210,10 +215,10 @@ export default function Dashboard() {
         motivo: "",
         factura: "",
       });
-      alert("Movimiento registrado exitosamente");
+      setNotificacion({ mensaje: "Movimiento registrado exitosamente", tipo: "exito" });
     } catch (error) {
       console.error("Error al registrar movimiento:", error);
-      alert("Error al registrar el movimiento");
+      setNotificacion({ mensaje: "Error al registrar el movimiento", tipo: "error" });
     } finally {
       setSubmitting(false);
     }
@@ -1904,6 +1909,13 @@ export default function Dashboard() {
       <Sidebar />
       <span className="col-span-2"></span>
       <div className="col-span-10 grid grid-cols-12 pl-16 pr-8 pt-8">{renderContent()}</div>
+      {notificacion && (
+        <Notificacion
+          mensaje={notificacion.mensaje}
+          tipo={notificacion.tipo}
+          onClose={() => setNotificacion(null)}
+        />
+      )}
     </main>
   );
 }

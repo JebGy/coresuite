@@ -5,6 +5,7 @@ import { Trabajador, Unidad, Rol } from '@/types'
 import { getTrabajadores, createTrabajador, updateTrabajador, deleteTrabajador, getRoles } from '@/app/actions/TrabajadoresActions'
 import { getUnidades } from '@/app/actions/UnidadesActions'
 import { useSession } from "next-auth/react";
+import { Notificacion } from "../components/Notificacion";
 
 export default function TrabajadoresPage() {
   const [trabajadores, setTrabajadores] = useState<Trabajador[]>([])
@@ -23,6 +24,10 @@ export default function TrabajadoresPage() {
   const [roles, setRoles] = useState<Rol[]>([])
   const [selectedRolId, setSelectedRolId] = useState<number | null>(null)
   const { data: session } = useSession();
+  const [notificacion, setNotificacion] = useState<{
+    mensaje: string;
+    tipo?: 'exito' | 'error' | 'info';
+  } | null>(null);
 
   useEffect(() => {
     loadData()
@@ -39,7 +44,7 @@ export default function TrabajadoresPage() {
       setUnidades(unidadesData)
     } catch (error) {
       console.error('Error al cargar datos:', error)
-      alert('Error al cargar los datos')
+      setNotificacion({ mensaje: 'Error al cargar los datos', tipo: 'error' })
     } finally {
       setLoading(false)
     }
@@ -50,7 +55,7 @@ export default function TrabajadoresPage() {
       const rolesData = await getRoles()
       setRoles(rolesData)
     } catch (error) {
-      alert('Error al cargar los roles')
+      setNotificacion({ mensaje: 'Error al cargar los roles', tipo: 'error' })
     }
   }
 
@@ -58,21 +63,21 @@ export default function TrabajadoresPage() {
     e.preventDefault()
     
     if (!formData.unidadId) {
-      alert('Debe seleccionar una unidad')
+      setNotificacion({ mensaje: 'Debe seleccionar una unidad', tipo: 'error' })
       return
     }
     if (!selectedRolId) {
-      alert('Debe seleccionar un rol')
+      setNotificacion({ mensaje: 'Debe seleccionar un rol', tipo: 'error' })
       return
     }
 
     try {
       if (editingTrabajador) {
         await updateTrabajador(editingTrabajador.id, { ...formData, rolId: selectedRolId }, session?.user, session?.user?.id ? Number(session.user.id) : undefined)
-        alert('Trabajador actualizado correctamente')
+        setNotificacion({ mensaje: 'Trabajador actualizado correctamente', tipo: 'exito' })
       } else {
         await createTrabajador({ ...formData, rolId: selectedRolId }, session?.user?.id ? Number(session.user.id) : undefined)
-        alert('Trabajador creado correctamente')
+        setNotificacion({ mensaje: 'Trabajador creado correctamente', tipo: 'exito' })
       }
       
       setShowForm(false)
@@ -82,7 +87,7 @@ export default function TrabajadoresPage() {
       loadData()
     } catch (error) {
       console.error('Error al guardar trabajador:', error)
-      alert('Error al guardar el trabajador')
+      setNotificacion({ mensaje: 'Error al guardar el trabajador', tipo: 'error' })
     }
   }
 
@@ -105,11 +110,11 @@ export default function TrabajadoresPage() {
     
     try {
       await deleteTrabajador(id)
-      alert('Trabajador eliminado correctamente')
+      setNotificacion({ mensaje: 'Trabajador eliminado correctamente', tipo: 'exito' })
       loadData()
     } catch (error) {
       console.error('Error al eliminar trabajador:', error)
-      alert('Error al eliminar el trabajador')
+      setNotificacion({ mensaje: 'Error al eliminar el trabajador', tipo: 'error' })
     }
   }
 
@@ -344,6 +349,13 @@ export default function TrabajadoresPage() {
           </tbody>
         </table>
       </div>
+      {notificacion && (
+        <Notificacion
+          mensaje={notificacion.mensaje}
+          tipo={notificacion.tipo}
+          onClose={() => setNotificacion(null)}
+        />
+      )}
     </div>
   )
 } 

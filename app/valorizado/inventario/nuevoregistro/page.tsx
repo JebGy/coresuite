@@ -5,6 +5,7 @@ import { KardexRow, Movimiento, Producto } from "@/types";
 import { randomInt, randomUUID } from "crypto";
 import React, { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
+import { Notificacion } from "../../../components/Notificacion";
 
 // Lógica de Kardex
 function calcularKardex(movimientos: Movimiento[]): KardexRow[] {
@@ -67,6 +68,10 @@ export default function Home() {
     almacenId: 0,
   });
   const { data: session } = useSession();
+  const [notificacion, setNotificacion] = useState<{
+    mensaje: string;
+    tipo?: 'exito' | 'error' | 'info';
+  } | null>(null);
 
   //Efectos
   useEffect(() => {
@@ -92,7 +97,7 @@ export default function Home() {
         almacenId: productoForm.almacenId || undefined,
       }, session?.user?.id ? Number(session.user.id) : undefined);
     } catch (error) {
-      alert("Error al guardar el producto");
+      setNotificacion({ mensaje: "Error al guardar el producto", tipo: "error" });
     }
   };
 
@@ -135,7 +140,7 @@ export default function Home() {
         motivo: "",
       });
     } catch (error) {
-      alert("Error al guardar el movimiento");
+      setNotificacion({ mensaje: "Error al guardar el movimiento", tipo: "error" });
     }
   };
 
@@ -429,6 +434,13 @@ export default function Home() {
               </table>
             </div>
           </div>
+        )}
+        {notificacion && (
+          <Notificacion
+            mensaje={notificacion.mensaje}
+            tipo={notificacion.tipo}
+            onClose={() => setNotificacion(null)}
+          />
         )}
       </div>
     </div>
