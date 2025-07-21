@@ -12,6 +12,7 @@ export async function addMovimiento(movimiento: Omit<Movimiento, 'id'>, usuarioI
       cantidad: movimiento.cantidad,
       precioUnitario: movimiento.precioUnitario,
       motivo: movimiento.motivo,
+      factura: movimiento.factura, // Nuevo campo
       productoId: movimiento.productoId,
       almacenId: movimiento.almacenId,
     },

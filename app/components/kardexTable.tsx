@@ -17,6 +17,7 @@ export const KardexTable: React.FC<Props> = ({ data }) => (
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Almacén</th>
             <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Entradas</th>
             <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Salidas</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Factura</th>
             <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Saldo (Unidades)</th>
             <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Saldo (Valor)</th>
             <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Costo Promedio</th>
@@ -32,20 +33,23 @@ export const KardexTable: React.FC<Props> = ({ data }) => (
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">{row.entrada}</td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">{row.salida}</td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                {row.entrada > 0 && row.factura ? row.factura : '-'}
+              </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
                 {row.saldoCantidad}
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
-                ${row.saldoValor.toFixed(2)}
+                S/ {row.saldoValor.toFixed(2)}
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
-                ${row.costoPromedio.toFixed(2)}
+                S/ {row.costoPromedio.toFixed(2)}
               </td>
             </tr>
           ))}
           {data.length === 0 && (
             <tr>
-              <td colSpan={8} className="px-6 py-8 text-center text-sm text-gray-500">
+              <td colSpan={9} className="px-6 py-8 text-center text-sm text-gray-500">
                 No hay datos para mostrar.
               </td>
             </tr>

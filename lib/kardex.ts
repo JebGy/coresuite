@@ -24,6 +24,7 @@ export function calcularKardex(movimientos: Movimiento[], almacenes: Almacen[] =
         costoPromedio,
         almacenId: mov.almacenId,
         almacenNombre: almacen?.nombre,
+        factura: mov.factura,
       });
     } else {
       const valorSalida = mov.cantidad * costoPromedio;
@@ -39,6 +40,7 @@ export function calcularKardex(movimientos: Movimiento[], almacenes: Almacen[] =
         costoPromedio,
         almacenId: mov.almacenId,
         almacenNombre: almacen?.nombre,
+        factura: undefined,
       });
     }
   });

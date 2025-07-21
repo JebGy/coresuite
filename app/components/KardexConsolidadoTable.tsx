@@ -66,7 +66,7 @@ export const KardexConsolidadoTable: React.FC<Props> = ({ data }) => {
                     {producto.totalCantidad}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right font-semibold">
-                    ${producto.totalValor.toFixed(2)}
+                    S/ {producto.totalValor.toFixed(2)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">
                     {producto.almacenes.length} almacén{producto.almacenes.length !== 1 ? 'es' : ''}
@@ -108,10 +108,10 @@ export const KardexConsolidadoTable: React.FC<Props> = ({ data }) => {
                                       {almacen.saldoCantidad}
                                     </td>
                                     <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900 text-right">
-                                      ${almacen.saldoValor.toFixed(2)}
+                                      S/ {almacen.saldoValor.toFixed(2)}
                                     </td>
                                     <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900 text-right">
-                                      ${almacen.costoPromedio.toFixed(2)}
+                                      S/ {almacen.costoPromedio.toFixed(2)}
                                     </td>
                                   </tr>
                                 ))}

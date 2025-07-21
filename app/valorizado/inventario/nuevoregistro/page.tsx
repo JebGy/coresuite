@@ -62,6 +62,7 @@ export default function Home() {
     cantidad: 0,
     precioUnitario: 0,
     motivo: "",
+    factura: "",
     productoId: 0,
     almacenId: 0,
   });
@@ -120,6 +121,7 @@ export default function Home() {
         fecha: movimientoForm.fecha,
         tipo: movimientoForm.tipo as "entrada" | "salida",
         motivo: movimientoForm.motivo,
+        factura: movimientoForm.tipo === "entrada" ? movimientoForm.factura : undefined,
         almacenId: Number(movimientoForm.almacenId),
       }, session?.user?.id ? Number(session.user.id) : undefined);
       // Refrescar productos después de agregar movimiento
@@ -318,6 +320,21 @@ export default function Home() {
                     />
                   </div>
                 )}
+                {movimientoForm.tipo === "entrada" && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Factura (opcional)
+                    </label>
+                    <input
+                      name="factura"
+                      type="text"
+                      value={movimientoForm.factura}
+                      onChange={handleMovimientoChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 bg-white"
+                      placeholder="Número de factura"
+                    />
+                  </div>
+                )}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Motivo o detalle del movimiento
@@ -394,10 +411,10 @@ export default function Home() {
                         {row.saldoCantidad}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
-                        ${row.saldoValor.toFixed(2)}
+                        S/ {row.saldoValor.toFixed(2)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
-                        ${row.costoPromedio.toFixed(2)}
+                        S/ {row.costoPromedio.toFixed(2)}
                       </td>
                     </tr>
                   ))}

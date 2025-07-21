@@ -59,6 +59,7 @@ export type Movimiento = {
   cantidad: number;
   precioUnitario?: number;
   motivo: string;
+  factura?: string;
   productoId: number;
   almacenId: number;
   ordenEntregaId?: number;
@@ -74,6 +75,7 @@ export type KardexRow = {
     costoPromedio: number;
     almacenId?: number;
     almacenNombre?: string;
+    factura?: string;
   };
 
 export type KardexConsolidado = {

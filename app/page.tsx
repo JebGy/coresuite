@@ -47,6 +47,7 @@ export default function Dashboard() {
     cantidad: 0,
     precioUnitario: 0,
     motivo: "",
+    factura: "",
     productoId: 0,
     almacenId: 0,
   });
@@ -193,6 +194,7 @@ export default function Dashboard() {
             ? Number(movimientoForm.precioUnitario)
             : undefined,
         motivo: movimientoForm.motivo,
+        factura: movimientoForm.tipo === "entrada" ? movimientoForm.factura : undefined,
         productoId: Number(movimientoForm.productoId),
         almacenId: Number(movimientoForm.almacenId),
       }, session?.user?.id ? Number(session.user.id) : undefined);
@@ -206,6 +208,7 @@ export default function Dashboard() {
         cantidad: 0,
         precioUnitario: 0,
         motivo: "",
+        factura: "",
       });
       alert("Movimiento registrado exitosamente");
     } catch (error) {
@@ -800,7 +803,7 @@ export default function Dashboard() {
               />
               <MetricCard
                 title="Valor Inventario"
-                value={`$${valorTotalInventario.toLocaleString()}`}
+                value={`S/ ${valorTotalInventario.toLocaleString()}`}
                 icon={
                   <svg
                     className="w-5 h-5 text-white"
@@ -1365,7 +1368,16 @@ export default function Dashboard() {
                     <select
                       name="productoId"
                       value={movimientoForm.productoId}
-                      onChange={handleMovimientoChange}
+                      onChange={e => {
+                        handleMovimientoChange(e);
+                        // Buscar el producto seleccionado y asignar su almacenId automáticamente
+                        const prod = productos.find(p => p.id === Number(e.target.value));
+                        setMovimientoForm(prev => ({
+                          ...prev,
+                          productoId: Number(e.target.value),
+                          almacenId: prod?.almacenId || 0
+                        }));
+                      }}
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-gray-900 bg-white"
                       required
                     >
@@ -1382,20 +1394,14 @@ export default function Dashboard() {
                     <label className="block text-sm font-semibold text-gray-700 mb-2">
                       Almacén
                     </label>
-                    <select
-                      name="almacenId"
-                      value={movimientoForm.almacenId}
-                      onChange={handleMovimientoChange}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-gray-900 bg-white"
-                      required
-                    >
-                      <option value="">Selecciona un almacén</option>
-                      {almacenes.map((a) => (
-                        <option key={a.id} value={a.id}>
-                          {a.nombre} ({a.ubicacion})
-                        </option>
-                      ))}
-                    </select>
+                    <div className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-100 text-gray-900">
+                      {(() => {
+                        const prod = productos.find(p => p.id === movimientoForm.productoId);
+                        if (!prod) return "Selecciona un producto";
+                        const almacen = almacenes.find(a => a.id === prod.almacenId);
+                        return almacen ? `${almacen.nombre} (${almacen.ubicacion})` : "Sin almacén asignado";
+                      })()}
+                    </div>
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
@@ -1477,6 +1483,22 @@ export default function Dashboard() {
                     />
                   </div>
 
+                  {movimientoForm.tipo === "entrada" && (
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        Factura (opcional)
+                      </label>
+                      <input
+                        type="text"
+                        name="factura"
+                        value={movimientoForm.factura}
+                        onChange={handleMovimientoChange}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-gray-900 bg-white"
+                        placeholder="Número de factura"
+                      />
+                    </div>
+                  )}
+
                   <button
                     type="submit"
                     disabled={submitting}
@@ -1541,6 +1563,9 @@ export default function Dashboard() {
                             </div>
                             <p className="text-sm text-gray-600">
                               {movimiento.fecha} - {movimiento.motivo}
+                              {movimiento.factura && movimiento.tipo === "entrada" && (
+                                <span className="ml-2 text-xs text-blue-600">Factura: {movimiento.factura}</span>
+                              )}
                             </p>
                             <p className="text-xs text-gray-500">
                               Almacén:{" "}
@@ -1562,7 +1587,7 @@ export default function Dashboard() {
                             </span>
                             {movimiento.precioUnitario && (
                               <p className="text-sm text-gray-500">
-                                ${movimiento.precioUnitario}
+                                S/ {movimiento.precioUnitario}
                               </p>
                             )}
                           </div>

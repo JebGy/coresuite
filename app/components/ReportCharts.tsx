@@ -121,7 +121,7 @@ export const ReportCharts: React.FC<ReportChartsProps> = ({ movimientos, product
       labels: valorPorAlmacen.map(a => a.nombre),
       datasets: [
         {
-          label: 'Valor del Inventario ($)',
+          label: 'Valor del Inventario (S/)',
           data: valorPorAlmacen.map(a => a.valor),
           backgroundColor: 'rgba(245, 158, 11, 0.8)',
           borderColor: 'rgba(245, 158, 11, 1)',
@@ -288,9 +288,9 @@ export const ReportCharts: React.FC<ReportChartsProps> = ({ movimientos, product
             <p className="text-2xl font-bold text-purple-900">{movimientos.length}</p>
           </div>
           <div className="bg-orange-50 p-4 rounded-lg border border-orange-200">
-            <h3 className="text-sm font-medium text-orange-800">Valor Inventario</h3>
+            <h3 className="text-sm font-medium text-orange-800">Valor Inventario (S/)</h3>
             <p className="text-2xl font-bold text-orange-900">
-              ${movimientos
+              S/ {movimientos
                 .filter(m => m.tipo === 'entrada')
                 .reduce((sum, m) => sum + (m.cantidad * (m.precioUnitario || 0)), 0)
                 .toLocaleString()}
@@ -366,7 +366,7 @@ export const ReportCharts: React.FC<ReportChartsProps> = ({ movimientos, product
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{almacen.nombre}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{almacen.ubicacion}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">{movs.length}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">${valor.toLocaleString()}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">S/ {valor.toLocaleString()}</td>
                     </tr>
                   );
                 })}

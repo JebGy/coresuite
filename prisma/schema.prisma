@@ -71,6 +71,7 @@ model Movimiento {
   cantidad     Int
   precioUnitario Float?  // Solo para entradas
   motivo       String
+  factura      String?   // Factura relacionada (solo para entradas)
   producto     Producto  @relation(fields: [productoId], references: [id])
   productoId   Int
   almacen      Almacen   @relation(fields: [almacenId], references: [id])
