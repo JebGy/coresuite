@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { ReportCharts } from "./components/ReportCharts";
 import { KardexTable } from "./components/kardexTable";
 import { KardexConsolidadoTable } from "./components/KardexConsolidadoTable";
@@ -77,6 +77,13 @@ export default function Dashboard() {
     mensaje: string;
     tipo?: 'exito' | 'error' | 'info';
   } | null>(null);
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [importando, setImportando] = useState(false);
+  const [exportando, setExportando] = useState(false);
+  const [descargandoPlantilla, setDescargandoPlantilla] = useState(false);
+  // Estado para resultados de importación
+  const [resultadoImportacion, setResultadoImportacion] = useState<null | { results: any; errors: any }>(null);
 
   // Cargar datos al montar el componente
   useEffect(() => {
@@ -258,6 +265,80 @@ export default function Dashboard() {
   const valorTotalInventario = movimientos
     .filter((m) => m.tipo === "entrada")
     .reduce((sum, m) => sum + m.cantidad * (m.precioUnitario ?? 0), 0);
+
+  // Función para importar datos
+  const handleImportar = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!fileInputRef.current?.files?.[0]) return;
+    setImportando(true);
+    setResultadoImportacion(null);
+    try {
+      const res = await fetch("/api/import-export", {
+        method: "POST",
+        body: fileInputRef.current.files[0],
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setNotificacion({ mensaje: "Importación exitosa", tipo: "exito" });
+        setResultadoImportacion({ results: data.results, errors: data.errors });
+      } else {
+        let mensaje = "Error al importar datos";
+        try {
+          const data = await res.json();
+          if (data.error) mensaje = data.error;
+        } catch {}
+        setNotificacion({ mensaje, tipo: "error" });
+      }
+    } catch (err) {
+      setNotificacion({ mensaje: "Error de red al importar", tipo: "error" });
+    } finally {
+      setImportando(false);
+    }
+  };
+
+  // Función para exportar datos
+  const handleExportar = async () => {
+    setExportando(true);
+    try {
+      const res = await fetch("/api/import-export");
+      if (!res.ok) throw new Error("Error al exportar");
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "exportacion_completa.xlsx";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      setNotificacion({ mensaje: "Error al exportar datos", tipo: "error" });
+    } finally {
+      setExportando(false);
+    }
+  };
+
+  // Función para descargar plantilla
+  const handleDescargarPlantilla = async () => {
+    setDescargandoPlantilla(true);
+    try {
+      const res = await fetch("/api/import-export?template");
+      if (!res.ok) throw new Error("Error al descargar plantilla");
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "plantilla_importacion.xlsx";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      setNotificacion({ mensaje: "Error al descargar plantilla", tipo: "error" });
+    } finally {
+      setDescargandoPlantilla(false);
+    }
+  };
 
   // Componente de navegación lateral
   const Sidebar = () => (
@@ -583,6 +664,33 @@ export default function Dashboard() {
             />
           </svg>
           Logs del sistema
+        </button>
+
+        <button
+          className={`flex items-center w-full px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 ${
+            activeSection === "import-export"
+              ? "bg-blue-100 text-blue-700 border border-blue-200"
+              : ""
+          }`}
+          onClick={() => {
+            setActiveSection("import-export");
+            setSidebarOpen(false);
+          }}
+        >
+          <svg
+            className="w-5 h-5 mr-3"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M12 4v16m8-8H4"
+            />
+          </svg>
+          Importar/Exportar
         </button>
       </nav>
 
@@ -1879,6 +1987,68 @@ export default function Dashboard() {
               productos={productos}
               almacenes={almacenes}
             />
+          </div>
+        );
+
+      case "import-export":
+        return (
+          <div className="space-y-6 col-span-full">
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-3xl font-bold text-gray-800">Importar/Exportar</h1>
+                <p className="text-gray-600">
+                  Importa datos desde un archivo Excel o exporta toda la información del sistema.
+                </p>
+              </div>
+            </div>
+            <div className="bg-white/95 backdrop-blur-sm rounded-xl p-6 shadow-lg border border-gray-200 flex flex-col gap-6">
+              <div>
+                <h2 className="text-xl font-semibold mb-2">Importar datos</h2>
+                <form onSubmit={handleImportar}>
+                  <input ref={fileInputRef} type="file" accept=".xlsx,.xls" className="mb-4" />
+                  <button type="submit" disabled={importando} className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200 mr-2">
+                    {importando ? "Importando..." : "Importar"}
+                  </button>
+                  <div className="mt-2 text-sm text-gray-600 bg-blue-50 border border-blue-200 rounded p-2">
+                    Para importar datos correctamente, utiliza como plantilla el archivo generado por la exportación. Así tendrás todos los campos y el formato exacto que espera el sistema.
+                  </div>
+                </form>
+                {/* Mostrar resumen y errores de importación */}
+                {resultadoImportacion && (
+                  <div className="mt-6">
+                    <h3 className="text-lg font-bold text-gray-800 mb-2">Resumen de la importación</h3>
+                    <div className="mb-4">
+                      {Object.entries(resultadoImportacion.results || {}).map(([hoja, res]: any) => (
+                        <div key={hoja} className="mb-2">
+                          <span className="font-semibold text-blue-700">{hoja.charAt(0).toUpperCase() + hoja.slice(1)}:</span> {res.ok} registros importados, {res.fail} errores
+                        </div>
+                      ))}
+                    </div>
+                    {resultadoImportacion.errors && Object.keys(resultadoImportacion.errors).length > 0 && (
+                      <div className="bg-red-50 border border-red-200 rounded p-4">
+                        <h4 className="font-semibold text-red-700 mb-2">Errores detectados:</h4>
+                        {Object.entries(resultadoImportacion.errors).map(([hoja, errores]: any) => (
+                          <div key={hoja} className="mb-2">
+                            <span className="font-semibold text-red-600">{hoja.charAt(0).toUpperCase() + hoja.slice(1)}:</span>
+                            <ul className="list-disc list-inside text-sm text-red-700 mt-1">
+                              {(errores as string[]).map((err, idx) => (
+                                <li key={idx}>{err}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+              <div>
+                <h2 className="text-xl font-semibold mb-2">Exportar datos</h2>
+                <button disabled={exportando} className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200" onClick={handleExportar}>
+                  {exportando ? "Exportando..." : "Exportar todo a Excel"}
+                </button>
+              </div>
+            </div>
           </div>
         );
 
