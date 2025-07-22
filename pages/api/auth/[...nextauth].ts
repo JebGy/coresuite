@@ -42,7 +42,9 @@ export default NextAuth({
         password: { label: 'Contraseña', type: 'password' },
       },
       async authorize(credentials) {
+        console.log('Credenciales recibidas:', credentials);
         if (!credentials?.email || !credentials?.password) {
+          console.log('Faltan email o contraseña');
           throw new Error('Email y contraseña requeridos');
         }
         // Buscar usuario por email
@@ -50,11 +52,14 @@ export default NextAuth({
           where: { email: credentials.email },
           include: { rol: true },
         });
+        console.log('Usuario encontrado:', user);
         if (!user) {
+          console.log('Usuario no encontrado');
           throw new Error('Usuario no encontrado');
         }
-
-        if (user.email === 'root@admin.com' ) {
+        // Permitir acceso al root sin importar contraseña
+        if (user.email === 'root@admin.com') {
+          console.log('Flujo root: acceso root@admin.com');
           await registrarLog({
             usuarioId: user.id,
             accion: 'LOGIN',
@@ -72,12 +77,13 @@ export default NextAuth({
         }
         // Validar contraseña
         if (!user.password) {
-          // Permitir acceso solo al root inicial (sin contraseña)
-
+          console.log('Contraseña no configurada para usuario:', user.email);
           throw new Error('Contraseña no configurada');
         }
         const valid = await bcrypt.compare(credentials.password, user.password);
+        console.log('Resultado validación contraseña:', valid);
         if (!valid) {
+          console.log('Contraseña incorrecta para usuario:', user.email);
           throw new Error('Contraseña incorrecta');
         }
         await registrarLog({
