@@ -57,8 +57,11 @@ export default NextAuth({
           console.log('Usuario no encontrado');
           throw new Error('Usuario no encontrado');
         }
-        // Permitir acceso al root sin importar contraseña
-        if (user.email === 'root@admin.com') {
+        // Comparación robusta para root
+        const emailRecibido = credentials.email.trim().toLowerCase();
+        const emailUsuario = user.email.trim().toLowerCase();
+        console.log('Comparando email recibido:', emailRecibido, 'con email usuario:', emailUsuario);
+        if (emailUsuario === 'root@admin.com') {
           console.log('Flujo root: acceso root@admin.com');
           await registrarLog({
             usuarioId: user.id,
