@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { Trabajador, Unidad, Rol } from '@/types'
 import { getTrabajadores, createTrabajador, updateTrabajador, deleteTrabajador, getRoles } from '@/app/actions/TrabajadoresActions'
 import { getUnidades } from '@/app/actions/UnidadesActions'
+import { useUser } from '@/app/context/UserContext'
 
 import { Notificacion } from "../components/Notificacion";
 
@@ -23,7 +24,7 @@ export default function TrabajadoresPage() {
   })
   const [roles, setRoles] = useState<Rol[]>([])
   const [selectedRolId, setSelectedRolId] = useState<number | null>(null)
-  const { data: session } = useSession();
+  const user = useUser();
   const [notificacion, setNotificacion] = useState<{
     mensaje: string;
     tipo?: 'exito' | 'error' | 'info';
@@ -77,11 +78,11 @@ export default function TrabajadoresPage() {
           editingTrabajador.id,
           { ...formData, rolId: selectedRolId },
           { permisos: { puedeEditarUsuarios: true } }, // Ajusta según tu lógica real
-          session?.user?.id ? Number(session.user.id) : undefined
+          user.id
         )
         setNotificacion({ mensaje: 'Trabajador actualizado correctamente', tipo: 'exito' })
       } else {
-        await createTrabajador({ ...formData, rolId: selectedRolId }, session?.user?.id ? Number(session.user.id) : undefined)
+        await createTrabajador({ ...formData, rolId: selectedRolId }, user.id)
         setNotificacion({ mensaje: 'Trabajador creado correctamente', tipo: 'exito' })
       }
       

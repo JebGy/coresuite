@@ -3,6 +3,7 @@ import { addMovimiento } from "@/app/actions/MovimientosActions";
 import { addProudcto, getProductos } from "@/app/actions/ProductosActions";
 import { KardexRow, Movimiento, Producto } from "@/types";
 import React, { useEffect, useState } from "react";
+import { useUser } from '@/app/context/UserContext';
 
 import { Notificacion } from "../../../components/Notificacion";
 import * as XLSX from 'xlsx';
@@ -67,7 +68,7 @@ export default function Home() {
     productoId: 0,
     almacenId: 0,
   });
-  const { data: session } = useSession();
+  const user = useUser();
   const [notificacion, setNotificacion] = useState<{
     mensaje: string;
     tipo?: 'exito' | 'error' | 'info';
@@ -95,7 +96,7 @@ export default function Home() {
         nombre: productoForm.nombre,
         descripcion: productoForm.descripcion,
         almacenId: productoForm.almacenId || undefined,
-      }, session?.user?.id ? Number(session.user.id) : undefined);
+      }, user.id);
     } catch (error) {
       setNotificacion({ mensaje: "Error al guardar el producto", tipo: "error" });
     }
@@ -128,7 +129,7 @@ export default function Home() {
         motivo: movimientoForm.motivo,
         factura: movimientoForm.tipo === "entrada" ? movimientoForm.factura : undefined,
         almacenId: Number(movimientoForm.almacenId),
-      }, session?.user?.id ? Number(session.user.id) : undefined);
+      }, user.id);
       // Refrescar productos después de agregar movimiento
       getProductos().then((v) => {
         setProductos(v);

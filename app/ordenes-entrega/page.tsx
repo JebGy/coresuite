@@ -6,7 +6,7 @@ import { getOrdenesEntrega, createOrdenEntrega, aprobarOrdenEntrega, rechazarOrd
 import { getTrabajadores } from '@/app/actions/TrabajadoresActions'
 import { getProductos } from '@/app/actions/ProductosActions'
 import { getAlmacenes } from '@/app/actions/AlmacenesActions'
-
+import { useUser } from '@/app/context/UserContext'
 import { Notificacion } from "../components/Notificacion";
 
 export default function OrdenesEntregaPage() {
@@ -29,7 +29,7 @@ export default function OrdenesEntregaPage() {
     tipo?: 'exito' | 'error' | 'info';
   } | null>(null);
 
-  const { data: session } = useSession();
+  const user = useUser();
 
   useEffect(() => {
     loadData()
@@ -69,7 +69,7 @@ export default function OrdenesEntregaPage() {
     }
 
     try {
-      await createOrdenEntrega(formData, session?.user?.id ? Number(session.user.id) : undefined)
+      await createOrdenEntrega(formData, user.id)
       setNotificacion({ mensaje: 'Orden de entrega creada correctamente', tipo: 'exito' })
       setShowForm(false)
       resetForm()
@@ -84,7 +84,7 @@ export default function OrdenesEntregaPage() {
     if (!confirm('¿Está seguro de que desea aprobar esta orden de entrega?')) return
     
     try {
-      await aprobarOrdenEntrega(id, session?.user?.id ? Number(session.user.id) : undefined)
+      await aprobarOrdenEntrega(id, user.id)
       setNotificacion({ mensaje: 'Orden de entrega aprobada correctamente', tipo: 'exito' })
       loadData()
     } catch (error) {
@@ -98,7 +98,7 @@ export default function OrdenesEntregaPage() {
     if (!motivo) return
     
     try {
-      await rechazarOrdenEntrega(id, motivo, session?.user?.id ? Number(session.user.id) : undefined)
+      await rechazarOrdenEntrega(id, motivo, user.id)
       setNotificacion({ mensaje: 'Orden de entrega rechazada correctamente', tipo: 'exito' })
       loadData()
     } catch (error) {

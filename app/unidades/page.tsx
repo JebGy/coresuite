@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { Unidad } from '@/types'
 import { getUnidades, createUnidad, updateUnidad, deleteUnidad } from '@/app/actions/UnidadesActions'
-
+import { useUser } from '@/app/context/UserContext'
 import { Notificacion } from "../components/Notificacion";
 
 export default function UnidadesPage() {
@@ -20,7 +20,7 @@ export default function UnidadesPage() {
     tipo?: 'exito' | 'error' | 'info';
   } | null>(null);
 
-  const { data: session } = useSession();
+  const user = useUser();
 
   useEffect(() => {
     loadData()
@@ -48,10 +48,10 @@ export default function UnidadesPage() {
 
     try {
       if (editingUnidad) {
-        await updateUnidad(editingUnidad.id, formData, session?.user?.id ? Number(session.user.id) : undefined)
+        await updateUnidad(editingUnidad.id, formData, user.id)
         setNotificacion({ mensaje: 'Unidad actualizada correctamente', tipo: 'exito' })
       } else {
-        await createUnidad(formData, session?.user?.id ? Number(session.user.id) : undefined)
+        await createUnidad(formData, user.id)
         setNotificacion({ mensaje: 'Unidad creada correctamente', tipo: 'exito' })
       }
       
