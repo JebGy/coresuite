@@ -56,9 +56,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           }
           try {
             await prisma.unidad.upsert({
-              where: { id: unidad.id || 0 },
-              update: { nombre: unidad.nombre, descripcion: unidad.descripcion },
-              create: { nombre: unidad.nombre, descripcion: unidad.descripcion },
+              where: { id: typeof unidad.id === "number" && !isNaN(unidad.id) ? unidad.id : -1 },
+              update: { 
+                nombre: String(unidad.nombre), 
+                descripcion: unidad.descripcion ? String(unidad.descripcion) : null 
+              },
+              create: { 
+                nombre: String(unidad.nombre), 
+                descripcion: unidad.descripcion ? String(unidad.descripcion) : null 
+              },
             });
             ok++;
           } catch (e) {
@@ -83,9 +89,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           }
           try {
             await prisma.almacen.upsert({
-              where: { id: almacen.id || 0 },
-              update: { nombre: almacen.nombre, ubicacion: almacen.ubicacion, descripcion: almacen.descripcion, unidadId: almacen.unidadId ? Number(almacen.unidadId) : undefined },
-              create: { nombre: almacen.nombre, ubicacion: almacen.ubicacion, descripcion: almacen.descripcion, unidadId: almacen.unidadId ? Number(almacen.unidadId) : undefined },
+              where: { id: typeof almacen.id === "number" && !isNaN(almacen.id) ? almacen.id : -1 },
+              update: { nombre: String(almacen.nombre), ubicacion: String(almacen.ubicacion), descripcion: String(almacen.descripcion), unidadId: almacen.unidadId ? Number(almacen.unidadId) : undefined },
+              create: { nombre: String(almacen.nombre), ubicacion: String(almacen.ubicacion), descripcion: String(almacen.descripcion), unidadId: almacen.unidadId ? Number(almacen.unidadId) : undefined },
             });
             ok++;
           } catch (e) {
@@ -110,9 +116,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           }
           try {
             await prisma.rol.upsert({
-              where: { id: rol.id || 0 },
-              update: { nombre: rol.nombre, descripcion: rol.descripcion, permisos: rol.permisos ? JSON.parse(rol.permisos) : {} },
-              create: { nombre: rol.nombre, descripcion: rol.descripcion, permisos: rol.permisos ? JSON.parse(rol.permisos) : {} },
+              where: { id: typeof rol.id === "number" && !isNaN(rol.id) ? rol.id : -1 },
+              update: { nombre: String(rol.nombre), descripcion: String(rol.descripcion), permisos: rol.permisos ? JSON.parse(String(rol.permisos)) : {} },
+              create: { nombre: String(rol.nombre), descripcion: String(rol.descripcion), permisos: rol.permisos ? JSON.parse(String(rol.permisos)) : {} },
             });
             ok++;
           } catch (e) {
@@ -137,17 +143,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           }
           try {
             const trabajadorData: any = {
-              dni: t.dni,
-              nombres: t.nombres,
-              apellidos: t.apellidos,
-              email: t.email,
+              dni: String(t.dni),
+              nombres: String(t.nombres),
+              apellidos: String(t.apellidos),
+              email: String(t.email),
               telefono: t.telefono !== undefined && t.telefono !== null ? String(t.telefono) : undefined,
               password: t.password,
             };
             if (typeof t.unidadId === 'number' && !isNaN(Number(t.unidadId))) trabajadorData.unidadId = Number(t.unidadId);
             if (typeof t.rolId === 'number' && !isNaN(Number(t.rolId))) trabajadorData.rolId = Number(t.rolId);
             await prisma.trabajador.upsert({
-              where: { id: t.id || 0 },
+              where: { id: typeof t.id === "number" && !isNaN(t.id) ? t.id : -1 },
               update: trabajadorData,
               create: trabajadorData,
             });
@@ -174,9 +180,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           }
           try {
             await prisma.producto.upsert({
-              where: { id: p.id || 0 },
-              update: { codigo: p.codigo, nombre: p.nombre, descripcion: p.descripcion, almacenId: p.almacenId ? Number(p.almacenId) : undefined },
-              create: { codigo: p.codigo, nombre: p.nombre, descripcion: p.descripcion, almacenId: p.almacenId ? Number(p.almacenId) : undefined },
+              where: { id: typeof p.id === "number" && !isNaN(p.id) ? p.id : -1 },
+              update: { codigo: String(p.codigo), nombre: String(p.nombre), descripcion: String(p.descripcion), almacenId: p.almacenId ? Number(p.almacenId) : undefined },
+              create: { codigo: String(p.codigo), nombre: String(p.nombre), descripcion: String(p.descripcion), almacenId: p.almacenId ? Number(p.almacenId) : undefined },
             });
             ok++;
           } catch (e) {
@@ -201,18 +207,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           }
           try {
             const movimientoData: any = {
-              tipo: m.tipo,
-              fecha: new Date(m.fecha),
+              tipo: String(m.tipo),
+              fecha: new Date(String(m.fecha)),
               cantidad: Number(m.cantidad),
               precioUnitario: m.precioUnitario ? Number(m.precioUnitario) : undefined,
-              motivo: m.motivo,
-              factura: m.factura,
+              motivo: String(m.motivo),
+              factura: String(m.factura),
             };
             if (typeof m.productoId === 'number' && !isNaN(Number(m.productoId))) movimientoData.productoId = Number(m.productoId);
             if (typeof m.almacenId === 'number' && !isNaN(Number(m.almacenId))) movimientoData.almacenId = Number(m.almacenId);
             if (typeof m.ordenEntregaId === 'number' && !isNaN(Number(m.ordenEntregaId))) movimientoData.ordenEntregaId = Number(m.ordenEntregaId);
             await prisma.movimiento.upsert({
-              where: { id: m.id || 0 },
+              where: { id: typeof m.id === "number" && !isNaN(m.id) ? m.id : -1 },
               update: movimientoData,
               create: movimientoData,
             });
@@ -239,19 +245,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           }
           try {
             const ordenData: any = {
-              numeroTicket: o.numeroTicket,
-              fechaSolicitud: o.fechaSolicitud ? new Date(o.fechaSolicitud) : undefined,
-              fechaAprobacion: o.fechaAprobacion ? new Date(o.fechaAprobacion) : undefined,
-              estado: o.estado,
+              numeroTicket: String(o.numeroTicket),
+              fechaSolicitud: o.fechaSolicitud ? new Date(String(o.fechaSolicitud)) : undefined,
+              fechaAprobacion: o.fechaAprobacion ? new Date(String(o.fechaAprobacion)) : undefined,
+              estado: String(o.estado),
               cantidad: Number(o.cantidad),
-              motivo: o.motivo,
-              observaciones: o.observaciones,
+              motivo: String(o.motivo),
+              observaciones: String(o.observaciones),
             };
             if (typeof o.trabajadorId === 'number' && !isNaN(Number(o.trabajadorId))) ordenData.trabajadorId = Number(o.trabajadorId);
             if (typeof o.productoId === 'number' && !isNaN(Number(o.productoId))) ordenData.productoId = Number(o.productoId);
             if (typeof o.almacenId === 'number' && !isNaN(Number(o.almacenId))) ordenData.almacenId = Number(o.almacenId);
             await prisma.ordenEntrega.upsert({
-              where: { id: o.id || 0 },
+              where: { id: typeof o.id === "number" && !isNaN(o.id) ? o.id : -1 },
               update: ordenData,
               create: ordenData,
             });
