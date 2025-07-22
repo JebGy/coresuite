@@ -72,6 +72,7 @@ export async function createOrdenEntrega(data: {
     
     return {
       ...orden,
+      estado: orden.estado as "pendiente" | "aprobada" | "rechazada" | "entregada",
       fechaSolicitud: orden.fechaSolicitud.toISOString(),
       fechaAprobacion: orden.fechaAprobacion?.toISOString(),
       createdAt: orden.createdAt.toISOString(),
@@ -109,7 +110,7 @@ export async function aprobarOrdenEntrega(id: number, usuarioId?: number): Promi
     }
     
     // Actualizar orden y crear movimiento
-    const [ordenActualizada, movimiento] = await prisma.$transaction([
+    const [ordenActualizada] = await prisma.$transaction([
       prisma.ordenEntrega.update({
         where: { id },
         data: {
@@ -148,6 +149,7 @@ export async function aprobarOrdenEntrega(id: number, usuarioId?: number): Promi
     
     return {
       ...ordenActualizada,
+      estado: ordenActualizada.estado as "pendiente" | "aprobada" | "rechazada" | "entregada",
       fechaSolicitud: ordenActualizada.fechaSolicitud.toISOString(),
       fechaAprobacion: ordenActualizada.fechaAprobacion?.toISOString(),
       createdAt: ordenActualizada.createdAt.toISOString(),
@@ -187,6 +189,7 @@ export async function rechazarOrdenEntrega(id: number, motivo: string, usuarioId
     
     return {
       ...orden,
+      estado: orden.estado as "pendiente" | "aprobada" | "rechazada" | "entregada",
       fechaSolicitud: orden.fechaSolicitud.toISOString(),
       fechaAprobacion: orden.fechaAprobacion?.toISOString(),
       createdAt: orden.createdAt.toISOString(),
@@ -217,6 +220,7 @@ export async function getOrdenEntregaById(id: number): Promise<OrdenEntrega | nu
     
     return {
       ...orden,
+      estado: orden.estado as "pendiente" | "aprobada" | "rechazada" | "entregada",
       fechaSolicitud: orden.fechaSolicitud.toISOString(),
       fechaAprobacion: orden.fechaAprobacion?.toISOString(),
       createdAt: orden.createdAt.toISOString(),

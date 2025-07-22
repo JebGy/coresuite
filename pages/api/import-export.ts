@@ -47,7 +47,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       if (unidadesSheet) {
         const unidades = XLSX.utils.sheet_to_json(unidadesSheet);
         let ok = 0, fail = 0;
-        for (const [i, unidad] of (unidades as any[]).entries()) {
+        for (const [i, unidad] of (unidades as Record<string, unknown>[]).entries()) {
           if (!unidad.nombre) {
             errors.unidades = errors.unidades || [];
             errors.unidades.push(`Fila ${i + 2}: Falta el nombre`);
@@ -74,7 +74,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       if (almacenesSheet) {
         const almacenes = XLSX.utils.sheet_to_json(almacenesSheet);
         let ok = 0, fail = 0;
-        for (const [i, almacen] of (almacenes as any[]).entries()) {
+        for (const [i, almacen] of (almacenes as Record<string, unknown>[]).entries()) {
           if (!almacen.nombre) {
             errors.almacenes = errors.almacenes || [];
             errors.almacenes.push(`Fila ${i + 2}: Falta el nombre`);
@@ -101,7 +101,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       if (rolesSheet) {
         const roles = XLSX.utils.sheet_to_json(rolesSheet);
         let ok = 0, fail = 0;
-        for (const [i, rol] of (roles as any[]).entries()) {
+        for (const [i, rol] of (roles as Record<string, unknown>[]).entries()) {
           if (!rol.nombre) {
             errors.roles = errors.roles || [];
             errors.roles.push(`Fila ${i + 2}: Falta el nombre`);
@@ -128,7 +128,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       if (trabajadoresSheet) {
         const trabajadores = XLSX.utils.sheet_to_json(trabajadoresSheet);
         let ok = 0, fail = 0;
-        for (const [i, t] of (trabajadores as any[]).entries()) {
+        for (const [i, t] of (trabajadores as Record<string, unknown>[]).entries()) {
           if (!t.dni || !t.nombres || !t.apellidos || !t.email) {
             errors.trabajadores = errors.trabajadores || [];
             errors.trabajadores.push(`Fila ${i + 2}: Faltan campos obligatorios (dni, nombres, apellidos, email)`);
@@ -165,7 +165,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       if (productosSheet) {
         const productos = XLSX.utils.sheet_to_json(productosSheet);
         let ok = 0, fail = 0;
-        for (const [i, p] of (productos as any[]).entries()) {
+        for (const [i, p] of (productos as Record<string, unknown>[]).entries()) {
           if (!p.codigo || !p.nombre) {
             errors.productos = errors.productos || [];
             errors.productos.push(`Fila ${i + 2}: Faltan campos obligatorios (codigo, nombre)`);
@@ -192,7 +192,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       if (movimientosSheet) {
         const movimientos = XLSX.utils.sheet_to_json(movimientosSheet);
         let ok = 0, fail = 0;
-        for (const [i, m] of (movimientos as any[]).entries()) {
+        for (const [i, m] of (movimientos as Record<string, unknown>[]).entries()) {
           if (!m.tipo || !m.fecha || !m.cantidad || !m.productoId || !m.almacenId) {
             errors.movimientos = errors.movimientos || [];
             errors.movimientos.push(`Fila ${i + 2}: Faltan campos obligatorios (tipo, fecha, cantidad, productoId, almacenId)`);
@@ -230,7 +230,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       if (ordenesSheet) {
         const ordenes = XLSX.utils.sheet_to_json(ordenesSheet);
         let ok = 0, fail = 0;
-        for (const [i, o] of (ordenes as any[]).entries()) {
+        for (const [i, o] of (ordenes as Record<string, unknown>[]).entries()) {
           if (!o.numeroTicket || !o.estado || !o.cantidad || !o.trabajadorId || !o.productoId || !o.almacenId) {
             errors.ordenesEntrega = errors.ordenesEntrega || [];
             errors.ordenesEntrega.push(`Fila ${i + 2}: Faltan campos obligatorios (numeroTicket, estado, cantidad, trabajadorId, productoId, almacenId)`);

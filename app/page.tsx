@@ -12,8 +12,6 @@ import {
   Almacen,
   Producto,
   Movimiento,
-  KardexRow,
-  KardexConsolidado,
 } from "@/types";
 import { addAlmacen, getAlmacenes } from "./actions/AlmacenesActions";
 import { addProudcto, getProductos } from "./actions/ProductosActions";
@@ -70,7 +68,6 @@ export default function Dashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   // Estados de carga
-  const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
   // Estado para notificación
@@ -82,7 +79,6 @@ export default function Dashboard() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [importando, setImportando] = useState(false);
   const [exportando, setExportando] = useState(false);
-  const [descargandoPlantilla, setDescargandoPlantilla] = useState(false);
   // Estado para resultados de importación
   const [resultadoImportacion, setResultadoImportacion] = useState<null | { results: any; errors: any }>(null);
 
@@ -90,7 +86,6 @@ export default function Dashboard() {
   useEffect(() => {
     const cargarDatos = async () => {
       try {
-        setLoading(true);
         const [almacenesData, productosData, movimientosData] =
           await Promise.all([getAlmacenes(), getProductos(), getMovimientos()]);
 
@@ -100,8 +95,6 @@ export default function Dashboard() {
       } catch (error) {
         console.error("Error al cargar datos:", error);
         setNotificacion({ mensaje: "Error al cargar los datos. Verifica la conexión a la base de datos.", tipo: "error" });
-      } finally {
-        setLoading(false);
       }
     };
 
@@ -316,28 +309,6 @@ export default function Dashboard() {
       setNotificacion({ mensaje: "Error al exportar datos", tipo: "error" });
     } finally {
       setExportando(false);
-    }
-  };
-
-  // Función para descargar plantilla
-  const handleDescargarPlantilla = async () => {
-    setDescargandoPlantilla(true);
-    try {
-      const res = await fetch("/api/import-export?template");
-      if (!res.ok) throw new Error("Error al descargar plantilla");
-      const blob = await res.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "plantilla_importacion.xlsx";
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      window.URL.revokeObjectURL(url);
-    } catch (err) {
-      setNotificacion({ mensaje: "Error al descargar plantilla", tipo: "error" });
-    } finally {
-      setDescargandoPlantilla(false);
     }
   };
 

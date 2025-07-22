@@ -15,7 +15,7 @@ export default async function handler(
         data: { codigo, nombre, descripcion },
       });
       res.status(201).json(producto);
-    } catch (error) {
+    } catch {
       res.status(500).json({ error: "Error al crear producto" });
     }
   }

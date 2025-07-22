@@ -13,7 +13,7 @@ import {
   LineElement,
   Filler,
 } from 'chart.js';
-import { Bar, Doughnut, Line } from 'react-chartjs-2';
+import { Bar, Doughnut } from 'react-chartjs-2';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import * as XLSX from 'xlsx';
@@ -286,7 +286,7 @@ export const ReportCharts: React.FC<ReportChartsProps> = ({ movimientos, product
               const movs = movimientos.filter(m => m.productoId === producto.id);
               let totalCantidad = 0;
               let totalValor = 0;
-              let almacenesSet = new Set();
+              const almacenesSet = new Set();
               movs.forEach(m => {
                 if (m.tipo === 'entrada') totalCantidad += m.cantidad;
                 else totalCantidad -= m.cantidad;

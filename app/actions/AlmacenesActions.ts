@@ -29,6 +29,7 @@ export async function getAlmacenes(): Promise<Almacen[]> {
     ...a,
     ubicacion: a.ubicacion === null ? undefined : a.ubicacion,
     descripcion: a.descripcion === null ? undefined : a.descripcion,
+    unidadId: a.unidadId === null ? undefined : a.unidadId,
   }));
 }
 

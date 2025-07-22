@@ -86,7 +86,7 @@ export async function updateTrabajador(id: number, data: {
   telefono?: string
   unidadId?: number
   rolId?: number
-}, usuario: any, usuarioId?: number): Promise<Trabajador> {
+}, usuario: { permisos: { puedeEditarUsuarios: boolean } }, usuarioId?: number): Promise<Trabajador> {
   if (!usuario.permisos.puedeEditarUsuarios) {
     throw new Error('No tienes permiso para editar usuarios');
   }

@@ -73,7 +73,12 @@ export default function TrabajadoresPage() {
 
     try {
       if (editingTrabajador) {
-        await updateTrabajador(editingTrabajador.id, { ...formData, rolId: selectedRolId }, session?.user, session?.user?.id ? Number(session.user.id) : undefined)
+        await updateTrabajador(
+          editingTrabajador.id,
+          { ...formData, rolId: selectedRolId },
+          { permisos: { puedeEditarUsuarios: true } }, // Ajusta según tu lógica real
+          session?.user?.id ? Number(session.user.id) : undefined
+        )
         setNotificacion({ mensaje: 'Trabajador actualizado correctamente', tipo: 'exito' })
       } else {
         await createTrabajador({ ...formData, rolId: selectedRolId }, session?.user?.id ? Number(session.user.id) : undefined)
