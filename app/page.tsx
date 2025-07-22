@@ -2054,13 +2054,6 @@ export default function Dashboard() {
 
   // Root user is always authenticated
   return (
-      <div className="flex min-h-screen items-center justify-center">
-        Redirigiendo a la página de inicio de sesión...
-      </div>
-    );
-  }
-
-  return (
     <main className="grid grid-cols-12">
       <Sidebar />
       <span className="col-span-2"></span>
