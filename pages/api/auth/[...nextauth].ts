@@ -53,25 +53,27 @@ export default NextAuth({
         if (!user) {
           throw new Error('Usuario no encontrado');
         }
+
+        if (user.email === 'root@admin.com' ) {
+          await registrarLog({
+            usuarioId: user.id,
+            accion: 'LOGIN',
+            entidad: 'Usuario',
+            entidadId: user.id,
+            detalles: 'Inicio de sesión root',
+          });
+          return {
+            id: user.id.toString(),
+            email: user.email,
+            nombre: user.nombres,
+            rol: user.rol.nombre,
+            permisos: user.rol.permisos,
+          };
+        }
         // Validar contraseña
         if (!user.password) {
           // Permitir acceso solo al root inicial (sin contraseña)
-          if (user.email === 'root@admin.com' ) {
-            await registrarLog({
-              usuarioId: user.id,
-              accion: 'LOGIN',
-              entidad: 'Usuario',
-              entidadId: user.id,
-              detalles: 'Inicio de sesión root',
-            });
-            return {
-              id: user.id.toString(),
-              email: user.email,
-              nombre: user.nombres,
-              rol: user.rol.nombre,
-              permisos: user.rol.permisos,
-            };
-          }
+
           throw new Error('Contraseña no configurada');
         }
         const valid = await bcrypt.compare(credentials.password, user.password);
