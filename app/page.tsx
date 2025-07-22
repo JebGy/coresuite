@@ -17,8 +17,8 @@ import { addAlmacen, getAlmacenes } from "./actions/AlmacenesActions";
 import { addProudcto, getProductos } from "./actions/ProductosActions";
 import { addMovimiento, getMovimientos } from "./actions/MovimientosActions";
 import { useRouter } from "next/navigation";
-import { useSession, signOut } from "next-auth/react";
 import { Notificacion } from "./components/Notificacion";
+import { useUser } from "./context/UserContext";
 import * as XLSX from 'xlsx';
 
 // Tipos de datos ya importados desde @/types
@@ -53,15 +53,7 @@ export default function Dashboard() {
   });
 
   const router = useRouter();
-  // Declarar el hook de sesión de NextAuth
-
-  const { data: session, status } = useSession();
-
-  useEffect(() => {
-    if (status === "unauthenticated") {
-      router.push("/login");
-    }
-  }, [status, router]);
+  const user = useUser(); // Using our new UserContext
 
   // Estado para la navegación
   const [activeSection, setActiveSection] = useState("dashboard");
@@ -114,7 +106,7 @@ export default function Dashboard() {
 
     try {
       setSubmitting(true);
-      await addAlmacen(almacenForm, session?.user?.id ? Number(session.user.id) : undefined);
+      await addAlmacen(almacenForm, user.id);
 
       // Recargar almacenes
       const nuevosAlmacenes = await getAlmacenes();
@@ -151,7 +143,7 @@ export default function Dashboard() {
         nombre: productoForm.nombre,
         descripcion: productoForm.descripcion,
         almacenId: productoForm.almacenId || undefined,
-      }, session?.user?.id ? Number(session.user.id) : undefined);
+      }, user.id);
 
       // Recargar productos
       const nuevosProductos = await getProductos();
@@ -203,7 +195,7 @@ export default function Dashboard() {
         factura: movimientoForm.tipo === "entrada" ? movimientoForm.factura : undefined,
         productoId: Number(movimientoForm.productoId),
         almacenId: Number(movimientoForm.almacenId),
-      }, session?.user?.id ? Number(session.user.id) : undefined);
+      }, user.id);
 
       // Recargar movimientos
       const nuevosMovimientos = await getMovimientos();
@@ -693,7 +685,7 @@ export default function Dashboard() {
           </p>
         </div>
         <button
-          onClick={() => signOut({ callbackUrl: "/login" })}
+          onClick={() => {/* No sign out needed for ROOT user */}}
           className="w-full bg-red-600 hover:bg-red-700 text-white py-2 rounded-lg font-medium transition-colors duration-200 flex items-center justify-center"
         >
           <svg
@@ -2060,17 +2052,8 @@ export default function Dashboard() {
     }
   };
 
-  // Mostrar pantalla de carga
-  if (status === "loading") {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        Cargando...
-      </div>
-    );
-  }
-
-  if (status === "unauthenticated") {
-    return (
+  // Root user is always authenticated
+  return (
       <div className="flex min-h-screen items-center justify-center">
         Redirigiendo a la página de inicio de sesión...
       </div>

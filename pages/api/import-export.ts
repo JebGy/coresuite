@@ -1,8 +1,6 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import * as XLSX from "xlsx";
 import { prisma } from "../../lib/prisma";
-import { getServerSession } from "next-auth/next";
-import authOptions from "./auth/[...nextauth]";
 
 export const config = {
   api: {
@@ -29,12 +27,6 @@ async function parseExcelFile(req: NextApiRequest): Promise<XLSX.WorkBook> {
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  // Proteger endpoint: solo autenticados
-  const session = await getServerSession(req, res, authOptions);
-  if (!session) {
-    return res.status(401).json({ error: "No autorizado" });
-  }
-
   if (req.method === "POST") {
     // Importar datos desde Excel
     try {
