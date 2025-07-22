@@ -73,8 +73,16 @@ export async function createTrabajador(data: {
       updatedAt: trabajador.updatedAt.toISOString(),
     }
   } catch (error) {
-    console.error('Error al crear trabajador:', error)
-    throw new Error('Error al crear trabajador')
+    console.error('Error al crear trabajador:', error);
+    if (error instanceof Error) {
+      if (error.message.includes('Unique constraint')) {
+        throw new Error('Ya existe un trabajador con ese DNI o correo electrónico');
+      } else if (error.message.includes('Foreign key constraint')) {
+        throw new Error('La unidad o rol especificado no existe');
+      }
+      throw new Error(`Error al crear trabajador: ${error.message}`);
+    }
+    throw new Error('Error inesperado al crear trabajador');
   }
 }
 
