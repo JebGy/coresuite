@@ -45,8 +45,12 @@ export default function OrdenesEntregaPage() {
       ])
       setOrdenes(ordenesData)
       setTrabajadores(trabajadoresData)
-      setProductos(productosData)
-      setAlmacenes(almacenesData)
+      if(productosData.success && productosData.data) {
+        setProductos(productosData.data)
+      }
+      if(almacenesData.success && almacenesData.data) {
+        setAlmacenes(almacenesData.data)
+      }
     } catch (error) {
       console.error('Error al cargar datos:', error)
       setNotificacion({ mensaje: 'Error al cargar los datos', tipo: 'error' })
