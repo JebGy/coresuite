@@ -12,11 +12,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       where: { productoId: Number(productoId) },
       orderBy: { fecha: 'asc' }
     });
+    // Solución: Convertir null a undefined para 'precioUnitario' y 'factura', y null a undefined para 'ordenEntregaId'
     const movimientos: Movimiento[] = movimientosRaw.map((m) => ({
-      ...m,
-      fecha: m.fecha.toISOString().slice(0, 10),
+      id: m.id,
       tipo: m.tipo as "entrada" | "salida",
+      fecha: m.fecha.toISOString().slice(0, 10),
+      cantidad: m.cantidad,
       precioUnitario: m.precioUnitario === null ? undefined : m.precioUnitario,
+      motivo: m.motivo,
+      factura: m.factura === null ? undefined : m.factura,
+      productoId: m.productoId,
+      almacenId: m.almacenId,
+      ordenEntregaId: m.ordenEntregaId === null ? undefined : m.ordenEntregaId,
     }));
     // Calcula el Kardex
     const kardex = calcularKardex(movimientos );
