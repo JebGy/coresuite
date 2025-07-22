@@ -16,6 +16,7 @@ import {
 import { Bar, Doughnut, Line } from 'react-chartjs-2';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
+import * as XLSX from 'xlsx';
 
 ChartJS.register(
   CategoryScale,
@@ -41,12 +42,16 @@ export const ReportCharts: React.FC<ReportChartsProps> = ({ movimientos, product
   const movimientosPorMes = React.useMemo(() => {
     const meses = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
     const datos = new Array(12).fill(0);
-    
+    const añoActual = new Date().getFullYear();
+
     movimientos.forEach(mov => {
-      const mes = new Date(mov.fecha).getMonth();
-      datos[mes]++;
+      const fecha = new Date(mov.fecha);
+      if (!isNaN(fecha.getTime()) && fecha.getFullYear() === añoActual) {
+        const mes = fecha.getMonth();
+        datos[mes]++;
+      }
     });
-    
+
     return {
       labels: meses,
       datasets: [
@@ -131,32 +136,7 @@ export const ReportCharts: React.FC<ReportChartsProps> = ({ movimientos, product
     };
   }, [movimientos, almacenes]);
 
-  const tendenciaMovimientos = React.useMemo(() => {
-    const ultimos7Dias = Array.from({ length: 7 }, (_, i) => {
-      const fecha = new Date();
-      fecha.setDate(fecha.getDate() - i);
-      return fecha.toISOString().slice(0, 10);
-    }).reverse();
-
-    const datos = ultimos7Dias.map(fecha => {
-      const movs = movimientos.filter(m => m.fecha === fecha);
-      return movs.length;
-    });
-
-    return {
-      labels: ultimos7Dias.map(fecha => new Date(fecha).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' })),
-      datasets: [
-        {
-          label: 'Movimientos',
-          data: datos,
-          borderColor: '#3b82f6',
-          backgroundColor: '#dbeafe',
-          fill: true,
-          tension: 0.4,
-        },
-      ],
-    };
-  }, [movimientos]);
+  // Eliminar tendenciaMovimientos
 
   // Función para exportar reporte
   const exportarReporte = async () => {
@@ -249,8 +229,9 @@ export const ReportCharts: React.FC<ReportChartsProps> = ({ movimientos, product
           onClick={exportarReporte}
           className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition duration-200"
         >
+          {/* Ícono PDF */}
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
           </svg>
           Exportar PDF
         </button>
@@ -258,10 +239,127 @@ export const ReportCharts: React.FC<ReportChartsProps> = ({ movimientos, product
           onClick={exportarImagen}
           className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition duration-200"
         >
+          {/* Ícono Imagen */}
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            <rect width="18" height="14" x="3" y="5" rx="2" strokeWidth="2" />
+            <circle cx="8.5" cy="10.5" r="1.5" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 19l-5-5a2 2 0 00-2.828 0L7 19" />
           </svg>
           Exportar Imagen
+        </button>
+        <button
+          onClick={() => {
+            // Calcular stock por producto
+            const stockPorProducto = productos.map(producto => {
+              const movs = movimientos.filter(m => m.productoId === producto.id);
+              let stock = 0;
+              movs.forEach(m => {
+                if (m.tipo === 'entrada') stock += m.cantidad;
+                else stock -= m.cantidad;
+              });
+              return {
+                'Código': producto.codigo,
+                'Nombre': producto.nombre,
+                'Descripción': producto.descripcion || '',
+                'Almacén': almacenes.find(a => a.id === producto.almacenId)?.nombre || '',
+                'Stock': stock
+              };
+            });
+            const ws = XLSX.utils.json_to_sheet(stockPorProducto);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Stock Productos');
+            XLSX.writeFile(wb, 'stock_productos.xlsx');
+          }}
+          className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition duration-200"
+        >
+          {/* Ícono Excel */}
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <rect x="3" y="4" width="18" height="16" rx="2" strokeWidth="2" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 9l4 6m0 0l4-6" />
+          </svg>
+          Exportar Stock Excel
+        </button>
+        <button
+          onClick={() => {
+            // Kardex Consolidado: Producto, Código, Total Cantidad, Total Valor, Almacenes
+            const kardexConsolidado = productos.map(producto => {
+              const movs = movimientos.filter(m => m.productoId === producto.id);
+              let totalCantidad = 0;
+              let totalValor = 0;
+              let almacenesSet = new Set();
+              movs.forEach(m => {
+                if (m.tipo === 'entrada') totalCantidad += m.cantidad;
+                else totalCantidad -= m.cantidad;
+                totalValor += (m.cantidad * (m.precioUnitario || 0)) * (m.tipo === 'entrada' ? 1 : -1);
+                almacenesSet.add(m.almacenId);
+              });
+              return {
+                'Producto': producto.nombre,
+                'Código': producto.codigo,
+                'Total Cantidad': totalCantidad,
+                'Total Valor': totalValor,
+                'Almacenes': almacenesSet.size
+              };
+            });
+            const ws = XLSX.utils.json_to_sheet(kardexConsolidado);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Kardex Consolidado');
+            XLSX.writeFile(wb, 'kardex_consolidado.xlsx');
+          }}
+          className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition duration-200"
+        >
+          {/* Ícono Tabla */}
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <rect x="3" y="5" width="18" height="14" rx="2" strokeWidth="2" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M9 21V5M15 21V5" />
+          </svg>
+          Exportar Kardex Consolidado Excel
+        </button>
+        <button
+          onClick={() => {
+            // Inventario Valorizado: Producto, Código, Almacén, Stock, Valor, Costo Promedio
+            const valorizado: any[] = [];
+            productos.forEach(producto => {
+              almacenes.forEach(almacen => {
+                const movs = movimientos.filter(m => m.productoId === producto.id && m.almacenId === almacen.id);
+                let stock = 0;
+                let valor = 0;
+                let costoPromedio = 0;
+                movs.forEach(m => {
+                  if (m.tipo === 'entrada') {
+                    stock += m.cantidad;
+                    valor += m.cantidad * (m.precioUnitario || 0);
+                  } else {
+                    stock -= m.cantidad;
+                    valor -= m.cantidad * costoPromedio;
+                  }
+                  costoPromedio = stock ? valor / stock : 0;
+                });
+                if (movs.length > 0) {
+                  valorizado.push({
+                    'Producto': producto.nombre,
+                    'Código': producto.codigo,
+                    'Almacén': almacen.nombre,
+                    'Stock': stock,
+                    'Valor': valor,
+                    'Costo Promedio': costoPromedio
+                  });
+                }
+              });
+            });
+            const ws = XLSX.utils.json_to_sheet(valorizado);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Inventario Valorizado');
+            XLSX.writeFile(wb, 'inventario_valorizado.xlsx');
+          }}
+          className="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition duration-200"
+        >
+          {/* Ícono Dinero/Gráfico */}
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <rect x="3" y="5" width="18" height="14" rx="2" strokeWidth="2" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 13v3m4-6v6m4-9v9" />
+          </svg>
+          Exportar Inventario Valorizado Excel
         </button>
       </div>
 
@@ -334,13 +432,6 @@ export const ReportCharts: React.FC<ReportChartsProps> = ({ movimientos, product
         </div>
 
         {/* Tendencia de movimientos */}
-        <div className="bg-gray-50 p-6 rounded-lg">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Tendencia de Movimientos (Últimos 7 días)</h3>
-          <div className="h-64">
-            <Line data={tendenciaMovimientos} options={chartOptions} />
-          </div>
-        </div>
-
         {/* Tabla de resumen */}
         <div className="bg-gray-50 p-6 rounded-lg">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Resumen de Almacenes</h3>

@@ -6,6 +6,7 @@ import { randomInt, randomUUID } from "crypto";
 import React, { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { Notificacion } from "../../../components/Notificacion";
+import * as XLSX from 'xlsx';
 
 // Lógica de Kardex
 function calcularKardex(movimientos: Movimiento[]): KardexRow[] {
@@ -432,6 +433,28 @@ export default function Home() {
                   )}
                 </tbody>
               </table>
+            </div>
+            <div className="flex justify-end items-center px-6 pt-4 pb-2">
+              <button
+                onClick={() => {
+                  const exportData = kardex.map(row => ({
+                    'Fecha': row.fecha,
+                    'Detalle': row.detalle,
+                    'Entradas': row.entrada,
+                    'Salidas': row.salida,
+                    'Saldo (Unidades)': row.saldoCantidad,
+                    'Saldo (Valor)': row.saldoValor,
+                    'Costo Promedio': row.costoPromedio
+                  }));
+                  const ws = XLSX.utils.json_to_sheet(exportData);
+                  const wb = XLSX.utils.book_new();
+                  XLSX.utils.book_append_sheet(wb, ws, 'Kardex');
+                  XLSX.writeFile(wb, 'kardex_producto.xlsx');
+                }}
+                className="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded shadow"
+              >
+                Exportar a Excel
+              </button>
             </div>
           </div>
         )}

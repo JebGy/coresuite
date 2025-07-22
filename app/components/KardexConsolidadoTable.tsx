@@ -1,6 +1,7 @@
 "use client";
 import React from 'react';
 import { KardexConsolidado } from '@/types';
+import * as XLSX from 'xlsx';
 
 interface Props {
   data: KardexConsolidado[];
@@ -19,8 +20,32 @@ export const KardexConsolidadoTable: React.FC<Props> = ({ data }) => {
     setExpandedProductos(newExpanded);
   };
 
+  // Función para exportar a Excel
+  const exportToExcel = () => {
+    // Preparar los datos para exportar (solo la tabla principal)
+    const exportData = data.map(producto => ({
+      'Producto': producto.productoNombre,
+      'Código': producto.productoCodigo,
+      'Total Cantidad': producto.totalCantidad,
+      'Total Valor': producto.totalValor,
+      'Almacenes': producto.almacenes.length
+    }));
+    const ws = XLSX.utils.json_to_sheet(exportData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Kardex Consolidado');
+    XLSX.writeFile(wb, 'kardex_consolidado.xlsx');
+  };
+
   return (
     <div className="bg-white rounded-lg shadow-lg overflow-hidden">
+      <div className="flex justify-end items-center px-4 pt-4 pb-2">
+        <button
+          onClick={exportToExcel}
+          className="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded shadow"
+        >
+          Exportar a Excel
+        </button>
+      </div>
       <div className="overflow-x-auto">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">

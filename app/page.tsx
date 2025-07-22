@@ -21,6 +21,7 @@ import { addMovimiento, getMovimientos } from "./actions/MovimientosActions";
 import { useRouter } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
 import { Notificacion } from "./components/Notificacion";
+import * as XLSX from 'xlsx';
 
 // Tipos de datos ya importados desde @/types
 
@@ -1429,6 +1430,37 @@ export default function Dashboard() {
                       <p>No hay productos registrados</p>
                     </div>
                   )}
+                </div>
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-xl font-bold text-gray-800">Productos Registrados</h2>
+                  <button
+                    onClick={() => {
+                      // Calcular stock por producto (si hay movimientos disponibles)
+                      const stockPorProducto = productos.map(producto => {
+                        // Filtrar movimientos de este producto
+                        const movs = movimientos.filter(m => m.productoId === producto.id);
+                        let stock = 0;
+                        movs.forEach(m => {
+                          if (m.tipo === 'entrada') stock += m.cantidad;
+                          else stock -= m.cantidad;
+                        });
+                        return {
+                          'Código': producto.codigo,
+                          'Nombre': producto.nombre,
+                          'Descripción': producto.descripcion || '',
+                          'Almacén': almacenes.find(a => a.id === producto.almacenId)?.nombre || '',
+                          'Stock': stock
+                        };
+                      });
+                      const ws = XLSX.utils.json_to_sheet(stockPorProducto);
+                      const wb = XLSX.utils.book_new();
+                      XLSX.utils.book_append_sheet(wb, ws, 'Stock Productos');
+                      XLSX.writeFile(wb, 'stock_productos.xlsx');
+                    }}
+                    className="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded shadow"
+                  >
+                    Exportar a Excel
+                  </button>
                 </div>
               </div>
             </div>
