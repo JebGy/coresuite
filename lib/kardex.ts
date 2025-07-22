@@ -1,4 +1,4 @@
-import { KardexRow, Movimiento, Almacen, KardexConsolidado } from "@/types";
+import { KardexRow, Movimiento, Almacen, KardexConsolidado, Producto } from "@/types";
 
 export function calcularKardex(movimientos: Movimiento[], almacenes: Almacen[] = []): KardexRow[] {
   let saldoCantidad = 0;
@@ -59,10 +59,15 @@ export function calcularKardexPorAlmacen(
 
 export function calcularKardexConsolidado(
   movimientos: Movimiento[], 
-  productos: any[], 
+  productos: Producto[] | null | undefined, 
   almacenes: Almacen[]
 ): KardexConsolidado[] {
   const consolidado: KardexConsolidado[] = [];
+  
+  // Return empty array if productos is not a valid array
+  if (!Array.isArray(productos)) {
+    return [];
+  }
 
   // Agrupar movimientos por producto
   const movimientosPorProducto = new Map<number, Movimiento[]>();

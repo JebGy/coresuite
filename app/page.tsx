@@ -8,18 +8,14 @@ import {
   calcularKardexPorAlmacen,
   calcularKardexConsolidado,
 } from "@/lib/kardex";
-import {
-  Almacen,
-  Producto,
-  Movimiento,
-} from "@/types";
+import { Almacen, Producto, Movimiento } from "@/types";
 import { addAlmacen, getAlmacenes } from "./actions/AlmacenesActions";
 import { addProudcto, getProductos } from "./actions/ProductosActions";
 import { addMovimiento, getMovimientos } from "./actions/MovimientosActions";
 import { useRouter } from "next/navigation";
 import { Notificacion } from "./components/Notificacion";
 import { useUser } from "./context/UserContext";
-import * as XLSX from 'xlsx';
+import * as XLSX from "xlsx";
 
 // Tipos de datos ya importados desde @/types
 
@@ -30,13 +26,15 @@ export default function Dashboard() {
   const [almacenes, setAlmacenes] = useState<Almacen[]>([]);
   const [productos, setProductos] = useState<Producto[]>([]);
   const [movimientos, setMovimientos] = useState<Movimiento[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [currentPage, setCurrentPage] = useState(0);
+  const itemsPerPage = 10; // Número de items por página
   const [almacenForm, setAlmacenForm] = useState({
     nombre: "",
     ubicacion: "",
     descripcion: "",
   });
   const [productoForm, setProductoForm] = useState({
-    codigo: "",
     nombre: "",
     descripcion: "",
     almacenId: 0,
@@ -65,14 +63,17 @@ export default function Dashboard() {
   // Estado para notificación
   const [notificacion, setNotificacion] = useState<{
     mensaje: string;
-    tipo?: 'exito' | 'error' | 'info';
+    tipo?: "exito" | "error" | "info";
   } | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [importando, setImportando] = useState(false);
   const [exportando, setExportando] = useState(false);
   // Estado para resultados de importación
-  const [resultadoImportacion, setResultadoImportacion] = useState<null | { results: any; errors: any }>(null);
+  const [resultadoImportacion, setResultadoImportacion] = useState<null | {
+    results: any;
+    errors: any;
+  }>(null);
 
   // Cargar datos al montar el componente
   useEffect(() => {
@@ -81,12 +82,23 @@ export default function Dashboard() {
         const [almacenesData, productosData, movimientosData] =
           await Promise.all([getAlmacenes(), getProductos(), getMovimientos()]);
 
-        setAlmacenes(almacenesData);
-        setProductos(productosData);
+        if (
+          almacenesData.success &&
+          almacenesData.data &&
+          productosData.success &&
+          productosData.data
+        ) {
+          setAlmacenes(almacenesData.data);
+          setProductos(productosData.data);
+        }
         setMovimientos(movimientosData);
       } catch (error) {
         console.error("Error al cargar datos:", error);
-        setNotificacion({ mensaje: "Error al cargar los datos. Verifica la conexión a la base de datos.", tipo: "error" });
+        setNotificacion({
+          mensaje:
+            "Error al cargar los datos. Verifica la conexión a la base de datos.",
+          tipo: "error",
+        });
       }
     };
 
@@ -110,13 +122,21 @@ export default function Dashboard() {
 
       // Recargar almacenes
       const nuevosAlmacenes = await getAlmacenes();
-      setAlmacenes(nuevosAlmacenes);
+      if (nuevosAlmacenes.success && nuevosAlmacenes.data) {
+        setAlmacenes(nuevosAlmacenes.data);
+      }
 
       setAlmacenForm({ nombre: "", ubicacion: "", descripcion: "" });
-      setNotificacion({ mensaje: "Almacén agregado exitosamente", tipo: "exito" });
+      setNotificacion({
+        mensaje: "Almacén agregado exitosamente",
+        tipo: "exito",
+      });
     } catch (error) {
       console.error("Error al agregar almacén:", error);
-      setNotificacion({ mensaje: "Error al agregar el almacén", tipo: "error" });
+      setNotificacion({
+        mensaje: "Error al agregar el almacén",
+        tipo: "error",
+      });
     } finally {
       setSubmitting(false);
     }
@@ -133,32 +153,49 @@ export default function Dashboard() {
 
   const handleProductoSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!productoForm.codigo || !productoForm.nombre) return;
+    if (!productoForm.nombre || !productoForm.almacenId) {
+      setNotificacion({
+        mensaje:
+          "Por favor ingrese el nombre del producto y seleccione un almacén",
+        tipo: "error",
+      });
+      return;
+    }
 
     try {
       setSubmitting(true);
-      await addProudcto({
-        id: 0, // El ID será asignado por la base de datos
-        codigo: productoForm.codigo,
-        nombre: productoForm.nombre,
-        descripcion: productoForm.descripcion,
-        almacenId: productoForm.almacenId || undefined,
-      }, user.id);
+      await addProudcto(
+        {
+          id: 0, // El ID será asignado por la base de datos
+          codigo: "", // El código será generado automáticamente
+          nombre: productoForm.nombre,
+          descripcion: productoForm.descripcion,
+          almacenId: productoForm.almacenId || undefined,
+        },
+        user.id
+      );
 
       // Recargar productos
       const nuevosProductos = await getProductos();
-      setProductos(nuevosProductos);
+      if (nuevosProductos.success && nuevosProductos.data) {
+        setProductos(nuevosProductos.data);
+      }
 
       setProductoForm({
-        codigo: "",
         nombre: "",
         descripcion: "",
         almacenId: 0,
       });
-      setNotificacion({ mensaje: "Producto agregado exitosamente", tipo: "exito" });
+      setNotificacion({
+        mensaje: "Producto agregado exitosamente",
+        tipo: "exito",
+      });
     } catch (error) {
       console.error("Error al agregar producto:", error);
-      setNotificacion({ mensaje: "Error al agregar el producto", tipo: "error" });
+      setNotificacion({
+        mensaje: "Error al agregar el producto",
+        tipo: "error",
+      });
     } finally {
       setSubmitting(false);
     }
@@ -183,19 +220,25 @@ export default function Dashboard() {
 
     try {
       setSubmitting(true);
-      await addMovimiento({
-        tipo: movimientoForm.tipo,
-        fecha: movimientoForm.fecha,
-        cantidad: Number(movimientoForm.cantidad),
-        precioUnitario:
-          movimientoForm.tipo === "entrada"
-            ? Number(movimientoForm.precioUnitario)
-            : undefined,
-        motivo: movimientoForm.motivo,
-        factura: movimientoForm.tipo === "entrada" ? movimientoForm.factura : undefined,
-        productoId: Number(movimientoForm.productoId),
-        almacenId: Number(movimientoForm.almacenId),
-      }, user.id);
+      await addMovimiento(
+        {
+          tipo: movimientoForm.tipo,
+          fecha: movimientoForm.fecha,
+          cantidad: Number(movimientoForm.cantidad),
+          precioUnitario:
+            movimientoForm.tipo === "entrada"
+              ? Number(movimientoForm.precioUnitario)
+              : undefined,
+          motivo: movimientoForm.motivo,
+          factura:
+            movimientoForm.tipo === "entrada"
+              ? movimientoForm.factura
+              : undefined,
+          productoId: Number(movimientoForm.productoId),
+          almacenId: Number(movimientoForm.almacenId),
+        },
+        user.id
+      );
 
       // Recargar movimientos
       const nuevosMovimientos = await getMovimientos();
@@ -208,10 +251,16 @@ export default function Dashboard() {
         motivo: "",
         factura: "",
       });
-      setNotificacion({ mensaje: "Movimiento registrado exitosamente", tipo: "exito" });
+      setNotificacion({
+        mensaje: "Movimiento registrado exitosamente",
+        tipo: "exito",
+      });
     } catch (error) {
       console.error("Error al registrar movimiento:", error);
-      setNotificacion({ mensaje: "Error al registrar el movimiento", tipo: "error" });
+      setNotificacion({
+        mensaje: "Error al registrar el movimiento",
+        tipo: "error",
+      });
     } finally {
       setSubmitting(false);
     }
@@ -497,6 +546,33 @@ export default function Dashboard() {
 
         <button
           className={`flex items-center w-full px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 ${
+            activeSection === "traslados"
+              ? "bg-blue-100 text-blue-700 border border-blue-200"
+              : ""
+          }`}
+          onClick={() => {
+            router.push("/traslados");
+            setSidebarOpen(false);
+          }}
+        >
+          <svg
+            className="w-5 h-5 mr-3"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"
+            />
+          </svg>
+          Traslados
+        </button>
+
+        <button
+          className={`flex items-center w-full px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 ${
             activeSection === "ordenes-entrega"
               ? "bg-blue-100 text-blue-700 border border-blue-200"
               : ""
@@ -685,7 +761,9 @@ export default function Dashboard() {
           </p>
         </div>
         <button
-          onClick={() => {/* No sign out needed for ROOT user */}}
+          onClick={() => {
+            /* No sign out needed for ROOT user */
+          }}
           className="w-full bg-red-600 hover:bg-red-700 text-white py-2 rounded-lg font-medium transition-colors duration-200 flex items-center justify-center"
         >
           <svg
@@ -1204,6 +1282,18 @@ export default function Dashboard() {
         );
 
       case "productos":
+        // Filtrar productos basado en la búsqueda
+        const filteredProducts = productos.filter(
+          (producto) =>
+            producto.codigo
+              ?.toLowerCase()
+              .includes(searchQuery.toLowerCase()) ||
+            producto.nombre.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            producto.descripcion
+              ?.toLowerCase()
+              .includes(searchQuery.toLowerCase())
+        );
+
         return (
           <div className="space-y-6 col-span-full">
             <div className="flex items-center justify-between">
@@ -1242,20 +1332,6 @@ export default function Dashboard() {
                 </div>
 
                 <form onSubmit={handleProductoSubmit} className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Código del producto
-                    </label>
-                    <input
-                      name="codigo"
-                      placeholder="Ej: PROD-001"
-                      value={productoForm.codigo}
-                      onChange={handleProductoChange}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-gray-900 bg-white"
-                      required
-                    />
-                  </div>
-
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">
                       Nombre del producto
@@ -1394,36 +1470,156 @@ export default function Dashboard() {
                     </div>
                   )}
                 </div>
-                <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-xl font-bold text-gray-800">Productos Registrados</h2>
-                  <button
-                    onClick={() => {
-                      // Calcular stock por producto (si hay movimientos disponibles)
-                      const stockPorProducto = productos.map(producto => {
-                        // Filtrar movimientos de este producto
-                        const movs = movimientos.filter(m => m.productoId === producto.id);
-                        let stock = 0;
-                        movs.forEach(m => {
-                          if (m.tipo === 'entrada') stock += m.cantidad;
-                          else stock -= m.cantidad;
-                        });
-                        return {
-                          'Código': producto.codigo,
-                          'Nombre': producto.nombre,
-                          'Descripción': producto.descripcion || '',
-                          'Almacén': almacenes.find(a => a.id === producto.almacenId)?.nombre || '',
-                          'Stock': stock
-                        };
-                      });
-                      const ws = XLSX.utils.json_to_sheet(stockPorProducto);
-                      const wb = XLSX.utils.book_new();
-                      XLSX.utils.book_append_sheet(wb, ws, 'Stock Productos');
-                      XLSX.writeFile(wb, 'stock_productos.xlsx');
-                    }}
-                    className="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded shadow"
-                  >
-                    Exportar a Excel
-                  </button>
+              </div>
+
+              {/* Buscador de productos */}
+              <div className="bg-white col-span-full rounded-lg p-6 shadow-sm border border-gray-200">
+                <div className="mb-6">
+                  <div className="relative">
+                    <input
+                      type="text"
+                      placeholder="Buscar por código, nombre o descripción..."
+                      className="w-full px-4 py-2 pl-10 pr-4 text-gray-700 bg-white border border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/30"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                    />
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <svg
+                        className="w-5 h-5 text-gray-400"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                        />
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Lista de productos */}
+                <div className="overflow-x-auto">
+                  <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th
+                          scope="col"
+                          className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                        >
+                          Código
+                        </th>
+                        <th
+                          scope="col"
+                          className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                        >
+                          Nombre
+                        </th>
+                        <th
+                          scope="col"
+                          className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                        >
+                          Descripción
+                        </th>
+                        <th
+                          scope="col"
+                          className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                        >
+                          Almacén
+                        </th>
+                        <th
+                          scope="col"
+                          className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                        >
+                          Estado
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      {filteredProducts
+                        .slice(currentPage * itemsPerPage, (currentPage + 1) * itemsPerPage)
+                        .map((producto) => (
+                        <tr key={producto.id}>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                            {producto.codigo}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {producto.nombre}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {producto.descripcion || "-"}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {almacenes.find((a) => a.id === producto.almacenId)
+                              ?.nombre || "-"}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                              Activo
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                  
+                  {/* Paginación */}
+                  <div className="mt-4 flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3 sm:px-6">
+                    <div className="flex flex-1 justify-between sm:hidden">
+                      <button
+                        onClick={() => setCurrentPage(prev => Math.max(0, prev - 1))}
+                        disabled={currentPage === 0}
+                        className="relative inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                      >
+                        Anterior
+                      </button>
+                      <button
+                        onClick={() => setCurrentPage(prev => prev + 1)}
+                        disabled={(currentPage + 1) * itemsPerPage >= filteredProducts.length}
+                        className="relative ml-3 inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                      >
+                        Siguiente
+                      </button>
+                    </div>
+                    <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
+                      <div>
+                        <p className="text-sm text-gray-700">
+                          Mostrando <span className="font-medium">{currentPage * itemsPerPage + 1}</span> a{' '}
+                          <span className="font-medium">
+                            {Math.min((currentPage + 1) * itemsPerPage, filteredProducts.length)}
+                          </span>{' '}
+                          de <span className="font-medium">{filteredProducts.length}</span> resultados
+                        </p>
+                      </div>
+                      <div>
+                        <nav className="isolate inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
+                          <button
+                            onClick={() => setCurrentPage(prev => Math.max(0, prev - 1))}
+                            disabled={currentPage === 0}
+                            className="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50"
+                          >
+                            <span className="sr-only">Anterior</span>
+                            <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                              <path fillRule="evenodd" d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z" clipRule="evenodd" />
+                            </svg>
+                          </button>
+                          <button
+                            onClick={() => setCurrentPage(prev => prev + 1)}
+                            disabled={(currentPage + 1) * itemsPerPage >= filteredProducts.length}
+                            className="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50"
+                          >
+                            <span className="sr-only">Siguiente</span>
+                            <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                              <path fillRule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clipRule="evenodd" />
+                            </svg>
+                          </button>
+                        </nav>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -1476,14 +1672,16 @@ export default function Dashboard() {
                     <select
                       name="productoId"
                       value={movimientoForm.productoId}
-                      onChange={e => {
+                      onChange={(e) => {
                         handleMovimientoChange(e);
                         // Buscar el producto seleccionado y asignar su almacenId automáticamente
-                        const prod = productos.find(p => p.id === Number(e.target.value));
-                        setMovimientoForm(prev => ({
+                        const prod = productos.find(
+                          (p) => p.id === Number(e.target.value)
+                        );
+                        setMovimientoForm((prev) => ({
                           ...prev,
                           productoId: Number(e.target.value),
-                          almacenId: prod?.almacenId || 0
+                          almacenId: prod?.almacenId || 0,
                         }));
                       }}
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-gray-900 bg-white"
@@ -1504,10 +1702,16 @@ export default function Dashboard() {
                     </label>
                     <div className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-100 text-gray-900">
                       {(() => {
-                        const prod = productos.find(p => p.id === movimientoForm.productoId);
+                        const prod = productos.find(
+                          (p) => p.id === movimientoForm.productoId
+                        );
                         if (!prod) return "Selecciona un producto";
-                        const almacen = almacenes.find(a => a.id === prod.almacenId);
-                        return almacen ? `${almacen.nombre} (${almacen.ubicacion})` : "Sin almacén asignado";
+                        const almacen = almacenes.find(
+                          (a) => a.id === prod.almacenId
+                        );
+                        return almacen
+                          ? `${almacen.nombre} (${almacen.ubicacion})`
+                          : "Sin almacén asignado";
                       })()}
                     </div>
                   </div>
@@ -1671,9 +1875,12 @@ export default function Dashboard() {
                             </div>
                             <p className="text-sm text-gray-600">
                               {movimiento.fecha} - {movimiento.motivo}
-                              {movimiento.factura && movimiento.tipo === "entrada" && (
-                                <span className="ml-2 text-xs text-blue-600">Factura: {movimiento.factura}</span>
-                              )}
+                              {movimiento.factura &&
+                                movimiento.tipo === "entrada" && (
+                                  <span className="ml-2 text-xs text-blue-600">
+                                    Factura: {movimiento.factura}
+                                  </span>
+                                )}
                             </p>
                             <p className="text-xs text-gray-500">
                               Almacén:{" "}
@@ -1990,9 +2197,12 @@ export default function Dashboard() {
           <div className="space-y-6 col-span-full">
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-3xl font-bold text-gray-800">Importar/Exportar</h1>
+                <h1 className="text-3xl font-bold text-gray-800">
+                  Importar/Exportar
+                </h1>
                 <p className="text-gray-600">
-                  Importa datos desde un archivo Excel o exporta toda la información del sistema.
+                  Importa datos desde un archivo Excel o exporta toda la
+                  información del sistema.
                 </p>
               </div>
             </div>
@@ -2000,46 +2210,76 @@ export default function Dashboard() {
               <div>
                 <h2 className="text-xl font-semibold mb-2">Importar datos</h2>
                 <form onSubmit={handleImportar}>
-                  <input ref={fileInputRef} type="file" accept=".xlsx,.xls" className="mb-4" />
-                  <button type="submit" disabled={importando} className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200 mr-2">
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept=".xlsx,.xls"
+                    className="mb-4"
+                  />
+                  <button
+                    type="submit"
+                    disabled={importando}
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200 mr-2"
+                  >
                     {importando ? "Importando..." : "Importar"}
                   </button>
                   <div className="mt-2 text-sm text-gray-600 bg-blue-50 border border-blue-200 rounded p-2">
-                    Para importar datos correctamente, utiliza como plantilla el archivo generado por la exportación. Así tendrás todos los campos y el formato exacto que espera el sistema.
+                    Para importar datos correctamente, utiliza como plantilla el
+                    archivo generado por la exportación. Así tendrás todos los
+                    campos y el formato exacto que espera el sistema.
                   </div>
                 </form>
                 {/* Mostrar resumen y errores de importación */}
                 {resultadoImportacion && (
                   <div className="mt-6">
-                    <h3 className="text-lg font-bold text-gray-800 mb-2">Resumen de la importación</h3>
+                    <h3 className="text-lg font-bold text-gray-800 mb-2">
+                      Resumen de la importación
+                    </h3>
                     <div className="mb-4">
-                      {Object.entries(resultadoImportacion.results || {}).map(([hoja, res]: any) => (
-                        <div key={hoja} className="mb-2">
-                          <span className="font-semibold text-blue-700">{hoja.charAt(0).toUpperCase() + hoja.slice(1)}:</span> {res.ok} registros importados, {res.fail} errores
-                        </div>
-                      ))}
-                    </div>
-                    {resultadoImportacion.errors && Object.keys(resultadoImportacion.errors).length > 0 && (
-                      <div className="bg-red-50 border border-red-200 rounded p-4">
-                        <h4 className="font-semibold text-red-700 mb-2">Errores detectados:</h4>
-                        {Object.entries(resultadoImportacion.errors).map(([hoja, errores]: any) => (
+                      {Object.entries(resultadoImportacion.results || {}).map(
+                        ([hoja, res]: any) => (
                           <div key={hoja} className="mb-2">
-                            <span className="font-semibold text-red-600">{hoja.charAt(0).toUpperCase() + hoja.slice(1)}:</span>
-                            <ul className="list-disc list-inside text-sm text-red-700 mt-1">
-                              {(errores as string[]).map((err, idx) => (
-                                <li key={idx}>{err}</li>
-                              ))}
-                            </ul>
+                            <span className="font-semibold text-blue-700">
+                              {hoja.charAt(0).toUpperCase() + hoja.slice(1)}:
+                            </span>{" "}
+                            {res.ok} registros importados, {res.fail} errores
                           </div>
-                        ))}
-                      </div>
-                    )}
+                        )
+                      )}
+                    </div>
+                    {resultadoImportacion.errors &&
+                      Object.keys(resultadoImportacion.errors).length > 0 && (
+                        <div className="bg-red-50 border border-red-200 rounded p-4">
+                          <h4 className="font-semibold text-red-700 mb-2">
+                            Errores detectados:
+                          </h4>
+                          {Object.entries(resultadoImportacion.errors).map(
+                            ([hoja, errores]: any) => (
+                              <div key={hoja} className="mb-2">
+                                <span className="font-semibold text-red-600">
+                                  {hoja.charAt(0).toUpperCase() + hoja.slice(1)}
+                                  :
+                                </span>
+                                <ul className="list-disc list-inside text-sm text-red-700 mt-1">
+                                  {(errores as string[]).map((err, idx) => (
+                                    <li key={idx}>{err}</li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )
+                          )}
+                        </div>
+                      )}
                   </div>
                 )}
               </div>
               <div>
                 <h2 className="text-xl font-semibold mb-2">Exportar datos</h2>
-                <button disabled={exportando} className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200" onClick={handleExportar}>
+                <button
+                  disabled={exportando}
+                  className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200"
+                  onClick={handleExportar}
+                >
                   {exportando ? "Exportando..." : "Exportar todo a Excel"}
                 </button>
               </div>
@@ -2057,7 +2297,9 @@ export default function Dashboard() {
     <main className="grid grid-cols-12">
       <Sidebar />
       <span className="col-span-2"></span>
-      <div className="col-span-10 grid grid-cols-12 pl-16 pr-8 pt-8">{renderContent()}</div>
+      <div className="col-span-10 grid grid-cols-12 pl-16 pr-8 pt-8">
+        {renderContent()}
+      </div>
       {notificacion && (
         <Notificacion
           mensaje={notificacion.mensaje}

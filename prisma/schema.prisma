@@ -1,118 +1,137 @@
-datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL")
-}
-
 generator client {
   provider = "prisma-client-js"
 }
 
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
 model Almacen {
-  id          Int           @id @default(autoincrement())
-  nombre      String
-  ubicacion   String?
-  descripcion String?
-  unidadId    Int?          // Unidad a la que pertenece el almacén
-  unidad      Unidad?       @relation(fields: [unidadId], references: [id])
-  productos   Producto[]    // Productos que pertenecen a este almacén
-  movimientos Movimiento[]
+  id             Int            @id @default(autoincrement())
+  nombre         String
+  ubicacion      String?
+  descripcion    String?
+  unidadId       Int?
+  unidad         Unidad?        @relation(fields: [unidadId], references: [id])
+  movimientos    Movimiento[]
   ordenesEntrega OrdenEntrega[]
+  productos      Producto[]
+  trasladosOrigen  Traslado[]   @relation("TrasladoOrigen")
+  trasladosDestino Traslado[]   @relation("TrasladoDestino")
 }
 
 model Unidad {
-  id          Int           @id @default(autoincrement())
-  nombre      String        @unique
-  descripcion String?
-  almacenes   Almacen[]
+  id           Int          @id @default(autoincrement())
+  nombre       String       @unique
+  descripcion  String?
+  almacenes    Almacen[]
   trabajadores Trabajador[]
 }
 
 model Rol {
-  id           Int           @id @default(autoincrement())
-  nombre       String        @unique
+  id           Int          @id @default(autoincrement())
+  nombre       String       @unique
   descripcion  String?
   permisos     Json
   trabajadores Trabajador[]
 }
 
 model Trabajador {
-  id          Int           @id @default(autoincrement())
-  dni         String        @unique
-  nombres     String
-  apellidos   String
-  email       String        @unique
-  telefono    String
-  unidadId    Int
-  unidad      Unidad        @relation(fields: [unidadId], references: [id])
+  id             Int            @id @default(autoincrement())
+  dni            String         @unique
+  nombres        String
+  apellidos      String
+  email          String         @unique
+  telefono       String
+  unidadId       Int
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  rolId          Int
+  password       String?
+  logs           Log[]
   ordenesEntrega OrdenEntrega[]
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
-  rolId       Int
-  rol         Rol           @relation(fields: [rolId], references: [id])
-  password    String?
-  logs        Log[]         // Relación inversa: logs realizados por este trabajador
+  traslados      Traslado[]
+  rol            Rol            @relation(fields: [rolId], references: [id])
+  unidad         Unidad         @relation(fields: [unidadId], references: [id])
 }
 
 model Producto {
-  id          Int           @id @default(autoincrement())
-  codigo      String        @unique
-  nombre      String
-  descripcion String?
-  almacenId   Int?          // Almacén al que pertenece el producto
-  almacen     Almacen?      @relation(fields: [almacenId], references: [id])
-  movimientos Movimiento[]
+  id             Int            @id @default(autoincrement())
+  codigo         String         @unique
+  nombre         String
+  descripcion    String?
+  almacenId      Int?
+  movimientos    Movimiento[]
   ordenesEntrega OrdenEntrega[]
+  traslados      Traslado[]
+  almacen        Almacen?       @relation(fields: [almacenId], references: [id])
 }
 
 model Movimiento {
-  id           Int       @id @default(autoincrement())
-  tipo         String    // 'entrada' o 'salida'
-  fecha        DateTime
-  cantidad     Int
-  precioUnitario Float?  // Solo para entradas
-  motivo       String
-  factura      String?   // Factura relacionada (solo para entradas)
-  producto     Producto  @relation(fields: [productoId], references: [id])
-  productoId   Int
-  almacen      Almacen   @relation(fields: [almacenId], references: [id])
-  almacenId    Int
-  ordenEntregaId Int?    // Si es una salida por orden de entrega
-  ordenEntrega OrdenEntrega? @relation(fields: [ordenEntregaId], references: [id])
+  id             Int           @id @default(autoincrement())
+  tipo           String
+  fecha          DateTime
+  cantidad       Int
+  precioUnitario Float?
+  motivo         String
+  productoId     Int
+  almacenId      Int
+  ordenEntregaId Int?
+  factura        String?
+  almacen        Almacen       @relation(fields: [almacenId], references: [id])
+  ordenEntrega   OrdenEntrega? @relation(fields: [ordenEntregaId], references: [id])
+  producto       Producto      @relation(fields: [productoId], references: [id])
 }
 
 model OrdenEntrega {
-  id          Int           @id @default(autoincrement())
-  numeroTicket String       @unique
-  fechaSolicitud DateTime   @default(now())
+  id              Int          @id @default(autoincrement())
+  numeroTicket    String       @unique
+  fechaSolicitud  DateTime     @default(now())
   fechaAprobacion DateTime?
-  estado      String        // 'pendiente', 'aprobada', 'rechazada', 'entregada'
-  cantidad    Int
-  motivo      String
-  observaciones String?
-  
-  // Relaciones
-  trabajador  Trabajador    @relation(fields: [trabajadorId], references: [id])
-  trabajadorId Int
-  producto    Producto      @relation(fields: [productoId], references: [id])
-  productoId  Int
-  almacen     Almacen       @relation(fields: [almacenId], references: [id])
-  almacenId   Int
-  
-  // Movimiento generado al aprobar
-  movimientos Movimiento[]
-  
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
+  estado          String
+  cantidad        Int
+  motivo          String
+  observaciones   String?
+  trabajadorId    Int
+  productoId      Int
+  almacenId       Int
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+  movimientos     Movimiento[]
+  almacen         Almacen      @relation(fields: [almacenId], references: [id])
+  producto        Producto     @relation(fields: [productoId], references: [id])
+  trabajador      Trabajador   @relation(fields: [trabajadorId], references: [id])
+}
+
+model Traslado {
+  id              Int       @id @default(autoincrement())
+  numeroGuia      String    @unique
+  fechaSolicitud  DateTime  @default(now())
+  fechaAprobacion DateTime?
+  estado          String    // "PENDIENTE", "APROBADO", "RECHAZADO", "COMPLETADO"
+  cantidad        Int
+  observaciones   String?
+  productoId      Int
+  almacenOrigenId Int
+  almacenDestinoId Int
+  trabajadorId    Int
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  producto        Producto  @relation(fields: [productoId], references: [id])
+  almacenOrigen   Almacen   @relation("TrasladoOrigen", fields: [almacenOrigenId], references: [id])
+  almacenDestino  Almacen   @relation("TrasladoDestino", fields: [almacenDestinoId], references: [id])
+  trabajador      Trabajador @relation(fields: [trabajadorId], references: [id])
 }
 
 model Log {
-  id        Int      @id @default(autoincrement())
-  usuarioId Int?     // ID del usuario que realizó la acción (opcional)
+  id        Int         @id @default(autoincrement())
+  usuarioId Int?
+  accion    String
+  entidad   String
+  entidadId Int?
+  detalles  String?
+  fecha     DateTime    @default(now())
   usuario   Trabajador? @relation(fields: [usuarioId], references: [id])
-  accion    String   // Descripción de la acción realizada
-  entidad   String   // Entidad afectada (por ejemplo: "Producto", "Movimiento", etc.)
-  entidadId Int?     // ID de la entidad afectada (opcional)
-  detalles  String?  // Detalles adicionales en texto o JSON
-  fecha     DateTime @default(now())
 }

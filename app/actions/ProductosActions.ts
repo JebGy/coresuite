@@ -1,13 +1,46 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
-import { Producto } from "@/types";
+import { ApiResponse, Producto } from "@/types";
 import { registrarLog } from "@/lib/logger";
 
 export async function addProudcto(producto: Producto, usuarioId?: number) {
+  // Get the warehouse to generate the prefix
+  const almacen = await prisma.almacen.findUnique({
+    where: { id: producto.almacenId || 0 },
+  });
+
+  if (!almacen) {
+    throw new Error('Almacén no encontrado');
+  }
+
+  // Get the last product code for this warehouse to generate the correlative
+  const lastProduct = await prisma.producto.findFirst({
+    where: {
+      almacenId: producto.almacenId,
+      codigo: {
+        startsWith: almacen.nombre.substring(0, 3).toUpperCase(),
+      },
+    },
+    orderBy: {
+      codigo: 'desc',
+    },
+  });
+
+  // Generate the new code
+  const prefix = almacen.nombre.substring(0, 3).toUpperCase();
+  let correlative = 1;
+  
+  if (lastProduct) {
+    const lastCorrelative = parseInt(lastProduct.codigo.split('-')[1]);
+    correlative = lastCorrelative + 1;
+  }
+
+  const newCode = `${prefix}-${correlative.toString().padStart(5, '0')}`;
+
   const nuevoProducto = await prisma.producto.create({
     data: {
-      codigo: producto.codigo,
+      codigo: newCode,
       nombre: producto.nombre,
       descripcion: producto.descripcion,
       almacenId: producto.almacenId || null,
@@ -23,18 +56,31 @@ export async function addProudcto(producto: Producto, usuarioId?: number) {
   console.log("Agregado");
 }
 
-export async function getProductos(): Promise<Producto[]> {
-  const productos = await prisma.producto.findMany({
-    include: {
-      almacen: true,
-    },
-  });
-  // Convertir null a undefined en descripcion y almacenId para cumplir con el tipo Producto
-  return productos.map((p) => ({
-    id: p.id,
-    codigo: p.codigo,
-    nombre: p.nombre,
-    descripcion: p.descripcion === null ? undefined : p.descripcion,
-    almacenId: p.almacenId === null ? undefined : p.almacenId,
-  }));
+export async function getProductos(): Promise<ApiResponse<Producto[]>> {
+  try {
+    const productos = await prisma.producto.findMany({
+      include: {
+        almacen: true,
+      },
+    });
+    
+    const formattedProductos = productos.map((p) => ({
+      id: p.id,
+      codigo: p.codigo,
+      nombre: p.nombre,
+      descripcion: p.descripcion === null ? undefined : p.descripcion,
+      almacenId: p.almacenId === null ? undefined : p.almacenId,
+    }));
+
+    return {
+      success: true,
+      data: formattedProductos
+    };
+  } catch (error) {
+    console.error('Error al obtener productos:', error);
+    return {
+      success: false,
+      error: 'Error al obtener los productos'
+    };
+  }
 }

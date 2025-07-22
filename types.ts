@@ -20,6 +20,33 @@ export type Unidad = {
   descripcion?: string;
 };
 
+export type ApiResponse<T> = {
+  success: boolean;
+  data?: T;
+  error?: string;
+};
+
+export type Traslado = {
+  id: number;
+  numeroGuia: string;
+  producto: {
+    id: number;
+    nombre: string;
+  };
+  almacenOrigen: {
+    id: number;
+    nombre: string;
+  };
+  almacenDestino: {
+    id: number;
+    nombre: string;
+  };
+  cantidad: number;
+  estado: 'PENDIENTE' | 'APROBADO' | 'RECHAZADO' | 'COMPLETADO';
+  observaciones?: string;
+  trabajadorId: number;
+};
+
 export type Trabajador = {
   id: number;
   dni: string;

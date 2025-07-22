@@ -53,7 +53,6 @@ export default function Home() {
   const [productos, setProductos] = useState<Producto[]>([]);
   const [movimientos, setMovimientos] = useState<Movimiento[]>([]);
   const [productoForm, setProductoForm] = useState({
-    codigo: "",
     nombre: "",
     descripcion: "",
     almacenId: 0,
@@ -88,11 +87,14 @@ export default function Home() {
   };
   const handleProductoSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!productoForm.codigo || !productoForm.nombre) return;
+    if (!productoForm.nombre || !productoForm.almacenId) {
+      setNotificacion({ mensaje: "Por favor ingrese el nombre del producto y seleccione un almacén", tipo: "error" });
+      return;
+    }
     try {
       await addProudcto({
         id: 0,
-        codigo: productoForm.codigo,
+        codigo: "", // El código será generado automáticamente
         nombre: productoForm.nombre,
         descripcion: productoForm.descripcion,
         almacenId: productoForm.almacenId || undefined,
@@ -167,19 +169,6 @@ export default function Home() {
             <div className="bg-gray-50 rounded-lg p-6 border border-gray-200">
               <h2 className="text-xl font-semibold text-gray-900 mb-4">Registrar Producto</h2>
               <form onSubmit={handleProductoSubmit} className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Código del producto
-                  </label>
-                  <input
-                    name="codigo"
-                    placeholder="Código"
-                    value={productoForm.codigo}
-                    onChange={handleProductoChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 bg-white"
-                    required
-                  />
-                </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Nombre del producto

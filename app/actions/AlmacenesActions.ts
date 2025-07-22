@@ -1,7 +1,7 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
-import { Almacen } from "@/types";
+import { ApiResponse, Almacen } from "@/types";
 import { registrarLog } from "@/lib/logger";
 
 export async function addAlmacen(almacen: Omit<Almacen, 'id'>, usuarioId?: number) {
@@ -22,15 +22,28 @@ export async function addAlmacen(almacen: Omit<Almacen, 'id'>, usuarioId?: numbe
   console.log("Almacén agregado");
 }
 
-export async function getAlmacenes(): Promise<Almacen[]> {
-  const almacenes = await prisma.almacen.findMany();
-  // Convertir null a undefined en campos opcionales para cumplir con el tipo Almacen
-  return almacenes.map((a) => ({
-    ...a,
-    ubicacion: a.ubicacion === null ? undefined : a.ubicacion,
-    descripcion: a.descripcion === null ? undefined : a.descripcion,
-    unidadId: a.unidadId === null ? undefined : a.unidadId,
-  }));
+export async function getAlmacenes(): Promise<ApiResponse<Almacen[]>> {
+  try {
+    const almacenes = await prisma.almacen.findMany();
+    // Convertir null a undefined en campos opcionales para cumplir con el tipo Almacen
+    const formattedAlmacenes = almacenes.map((a) => ({
+      ...a,
+      ubicacion: a.ubicacion === null ? undefined : a.ubicacion,
+      descripcion: a.descripcion === null ? undefined : a.descripcion,
+      unidadId: a.unidadId === null ? undefined : a.unidadId,
+    }));
+    
+    return {
+      success: true,
+      data: formattedAlmacenes
+    };
+  } catch (error) {
+    console.error('Error al obtener almacenes:', error);
+    return {
+      success: false,
+      error: 'Error al obtener los almacenes'
+    };
+  }
 }
 
 export async function deleteAlmacen(id: number, usuarioId?: number) {
