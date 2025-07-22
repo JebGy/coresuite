@@ -3,10 +3,10 @@ import { addMovimiento } from "@/app/actions/MovimientosActions";
 import { addProudcto, getProductos } from "@/app/actions/ProductosActions";
 import { KardexRow, Movimiento, Producto } from "@/types";
 import React, { useEffect, useState } from "react";
-import { useUser } from '@/app/context/UserContext';
+import { useUser } from "@/app/context/UserContext";
 
 import { Notificacion } from "../../../components/Notificacion";
-import * as XLSX from 'xlsx';
+import * as XLSX from "xlsx";
 
 // Lógica de Kardex
 function calcularKardex(movimientos: Movimiento[]): KardexRow[] {
@@ -70,37 +70,50 @@ export default function Home() {
   const user = useUser();
   const [notificacion, setNotificacion] = useState<{
     mensaje: string;
-    tipo?: 'exito' | 'error' | 'info';
+    tipo?: "exito" | "error" | "info";
   } | null>(null);
 
   //Efectos
   useEffect(() => {
     getProductos().then((v) => {
-      setProductos(v);
+      setProductos(v.data!);
     });
   }, []);
 
   // Handlers para productos
-  const handleProductoChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const value = e.target.name === 'almacenId' ? Number(e.target.value) : e.target.value;
+  const handleProductoChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
+    const value =
+      e.target.name === "almacenId" ? Number(e.target.value) : e.target.value;
     setProductoForm({ ...productoForm, [e.target.name]: value });
   };
   const handleProductoSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!productoForm.nombre || !productoForm.almacenId) {
-      setNotificacion({ mensaje: "Por favor ingrese el nombre del producto y seleccione un almacén", tipo: "error" });
+      setNotificacion({
+        mensaje:
+          "Por favor ingrese el nombre del producto y seleccione un almacén",
+        tipo: "error",
+      });
       return;
     }
     try {
-      await addProudcto({
-        id: 0,
-        codigo: "", // El código será generado automáticamente
-        nombre: productoForm.nombre,
-        descripcion: productoForm.descripcion,
-        almacenId: productoForm.almacenId || undefined,
-      }, user.id);
+      await addProudcto(
+        {
+          id: 0,
+          codigo: "", // El código será generado automáticamente
+          nombre: productoForm.nombre,
+          descripcion: productoForm.descripcion,
+          almacenId: productoForm.almacenId || undefined,
+        },
+        user.id
+      );
     } catch (error) {
-      setNotificacion({ mensaje: "Error al guardar el producto", tipo: "error" });
+      setNotificacion({
+        mensaje: "Error al guardar el producto",
+        tipo: "error",
+      });
     }
   };
 
@@ -119,22 +132,28 @@ export default function Home() {
     )
       return;
     try {
-      await addMovimiento({
-        cantidad: Number(movimientoForm.cantidad),
-        precioUnitario:
-          movimientoForm.tipo === "entrada"
-            ? Number(movimientoForm.precioUnitario)
-            : undefined,
-        productoId: Number(movimientoForm.productoId),
-        fecha: movimientoForm.fecha,
-        tipo: movimientoForm.tipo as "entrada" | "salida",
-        motivo: movimientoForm.motivo,
-        factura: movimientoForm.tipo === "entrada" ? movimientoForm.factura : undefined,
-        almacenId: Number(movimientoForm.almacenId),
-      }, user.id);
+      await addMovimiento(
+        {
+          cantidad: Number(movimientoForm.cantidad),
+          precioUnitario:
+            movimientoForm.tipo === "entrada"
+              ? Number(movimientoForm.precioUnitario)
+              : undefined,
+          productoId: Number(movimientoForm.productoId),
+          fecha: movimientoForm.fecha,
+          tipo: movimientoForm.tipo as "entrada" | "salida",
+          motivo: movimientoForm.motivo,
+          factura:
+            movimientoForm.tipo === "entrada"
+              ? movimientoForm.factura
+              : undefined,
+          almacenId: Number(movimientoForm.almacenId),
+        },
+        user.id
+      );
       // Refrescar productos después de agregar movimiento
       getProductos().then((v) => {
-        setProductos(v);
+        setProductos(v.data!);
       });
       setMovimientoForm({
         ...movimientoForm,
@@ -143,7 +162,10 @@ export default function Home() {
         motivo: "",
       });
     } catch (error) {
-      setNotificacion({ mensaje: "Error al guardar el movimiento", tipo: "error" });
+      setNotificacion({
+        mensaje: "Error al guardar el movimiento",
+        tipo: "error",
+      });
     }
   };
 
@@ -163,11 +185,13 @@ export default function Home() {
           <h1 className="text-3xl font-bold text-gray-900 mb-6 text-center">
             Sistema Kardex - Nuevo Registro
           </h1>
-          
+
           <div className="grid md:grid-cols-2 gap-8">
             {/* Formulario de productos */}
             <div className="bg-gray-50 rounded-lg p-6 border border-gray-200">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">Registrar Producto</h2>
+              <h2 className="text-xl font-semibold text-gray-900 mb-4">
+                Registrar Producto
+              </h2>
               <form onSubmit={handleProductoSubmit} className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -219,7 +243,9 @@ export default function Home() {
 
             {/* Formulario de movimientos */}
             <div className="bg-gray-50 rounded-lg p-6 border border-gray-200">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">Registrar Movimiento</h2>
+              <h2 className="text-xl font-semibold text-gray-900 mb-4">
+                Registrar Movimiento
+              </h2>
               <form onSubmit={handleMovimientoSubmit} className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -356,9 +382,13 @@ export default function Home() {
 
         {/* Selección de producto para ver Kardex */}
         <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">Visualizar Kardex</h2>
+          <h2 className="text-xl font-semibold text-gray-900 mb-4">
+            Visualizar Kardex
+          </h2>
           <div className="flex items-center space-x-4">
-            <label className="text-sm font-medium text-gray-700">Ver Kardex de:</label>
+            <label className="text-sm font-medium text-gray-700">
+              Ver Kardex de:
+            </label>
             <select
               value={productoSeleccionado ?? ""}
               onChange={(e) =>
@@ -380,28 +410,52 @@ export default function Home() {
         {productoSeleccionado && (
           <div className="bg-white rounded-lg shadow-lg overflow-hidden">
             <div className="px-6 py-4 border-b border-gray-200">
-              <h3 className="text-lg font-semibold text-gray-900">Kardex del Producto</h3>
+              <h3 className="text-lg font-semibold text-gray-900">
+                Kardex del Producto
+              </h3>
             </div>
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Detalle</th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Entradas</th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Salidas</th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Saldo (Unidades)</th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Saldo (Valor)</th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Costo Promedio</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Fecha
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Detalle
+                    </th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Entradas
+                    </th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Salidas
+                    </th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Saldo (Unidades)
+                    </th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Saldo (Valor)
+                    </th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Costo Promedio
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {kardex.map((row, i) => (
                     <tr key={i} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{row.fecha}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{row.detalle}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">{row.entrada}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">{row.salida}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {row.fecha}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {row.detalle}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
+                        {row.entrada}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
+                        {row.salida}
+                      </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
                         {row.saldoCantidad}
                       </td>
@@ -415,7 +469,10 @@ export default function Home() {
                   ))}
                   {kardex.length === 0 && (
                     <tr>
-                      <td colSpan={7} className="px-6 py-8 text-center text-sm text-gray-500">
+                      <td
+                        colSpan={7}
+                        className="px-6 py-8 text-center text-sm text-gray-500"
+                      >
                         No hay movimientos para este producto.
                       </td>
                     </tr>
@@ -426,19 +483,19 @@ export default function Home() {
             <div className="flex justify-end items-center px-6 pt-4 pb-2">
               <button
                 onClick={() => {
-                  const exportData = kardex.map(row => ({
-                    'Fecha': row.fecha,
-                    'Detalle': row.detalle,
-                    'Entradas': row.entrada,
-                    'Salidas': row.salida,
-                    'Saldo (Unidades)': row.saldoCantidad,
-                    'Saldo (Valor)': row.saldoValor,
-                    'Costo Promedio': row.costoPromedio
+                  const exportData = kardex.map((row) => ({
+                    Fecha: row.fecha,
+                    Detalle: row.detalle,
+                    Entradas: row.entrada,
+                    Salidas: row.salida,
+                    "Saldo (Unidades)": row.saldoCantidad,
+                    "Saldo (Valor)": row.saldoValor,
+                    "Costo Promedio": row.costoPromedio,
                   }));
                   const ws = XLSX.utils.json_to_sheet(exportData);
                   const wb = XLSX.utils.book_new();
-                  XLSX.utils.book_append_sheet(wb, ws, 'Kardex');
-                  XLSX.writeFile(wb, 'kardex_producto.xlsx');
+                  XLSX.utils.book_append_sheet(wb, ws, "Kardex");
+                  XLSX.writeFile(wb, "kardex_producto.xlsx");
                 }}
                 className="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded shadow"
               >
