@@ -56,7 +56,7 @@ export default NextAuth({
         // Validar contraseña
         if (!user.password) {
           // Permitir acceso solo al root inicial (sin contraseña)
-          if (user.email === 'root@admin.com' && user.password) {
+          if (user.email === 'root@admin.com' ) {
             await registrarLog({
               usuarioId: user.id,
               accion: 'LOGIN',
