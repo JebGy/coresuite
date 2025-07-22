@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { Trabajador, Unidad, Rol } from '@/types'
 import { getTrabajadores, createTrabajador, updateTrabajador, deleteTrabajador, getRoles } from '@/app/actions/TrabajadoresActions'
 import { getUnidades } from '@/app/actions/UnidadesActions'
-import { useSession } from "next-auth/react";
+
 import { Notificacion } from "../components/Notificacion";
 
 export default function TrabajadoresPage() {

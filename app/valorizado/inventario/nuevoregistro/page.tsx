@@ -3,7 +3,7 @@ import { addMovimiento } from "@/app/actions/MovimientosActions";
 import { addProudcto, getProductos } from "@/app/actions/ProductosActions";
 import { KardexRow, Movimiento, Producto } from "@/types";
 import React, { useEffect, useState } from "react";
-import { useSession } from "next-auth/react";
+
 import { Notificacion } from "../../../components/Notificacion";
 import * as XLSX from 'xlsx';
 

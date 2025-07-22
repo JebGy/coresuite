@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { Unidad } from '@/types'
 import { getUnidades, createUnidad, updateUnidad, deleteUnidad } from '@/app/actions/UnidadesActions'
-import { useSession } from "next-auth/react";
+
 import { Notificacion } from "../components/Notificacion";
 
 export default function UnidadesPage() {
