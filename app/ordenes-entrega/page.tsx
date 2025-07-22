@@ -1,115 +1,144 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react'
-import { OrdenEntrega, Trabajador, Producto, Almacen } from '@/types'
-import { getOrdenesEntrega, createOrdenEntrega, aprobarOrdenEntrega, rechazarOrdenEntrega } from '@/app/actions/OrdenesEntregaActions'
-import { getTrabajadores } from '@/app/actions/TrabajadoresActions'
-import { getProductos } from '@/app/actions/ProductosActions'
-import { getAlmacenes } from '@/app/actions/AlmacenesActions'
-import { useUser } from '@/app/context/UserContext'
+import { useState, useEffect } from "react";
+import { OrdenEntrega, Trabajador, Producto, Almacen } from "@/types";
+import {
+  getOrdenesEntrega,
+  createOrdenEntrega,
+  aprobarOrdenEntrega,
+  rechazarOrdenEntrega,
+} from "@/app/actions/OrdenesEntregaActions";
+import { getTrabajadores } from "@/app/actions/TrabajadoresActions";
+import { getProductos } from "@/app/actions/ProductosActions";
+import { getAlmacenes } from "@/app/actions/AlmacenesActions";
+import { useUser } from "@/app/context/UserContext";
 import { Notificacion } from "../components/Notificacion";
 
 export default function OrdenesEntregaPage() {
-  const [ordenes, setOrdenes] = useState<OrdenEntrega[]>([])
-  const [trabajadores, setTrabajadores] = useState<Trabajador[]>([])
-  const [productos, setProductos] = useState<Producto[]>([])
-  const [almacenes, setAlmacenes] = useState<Almacen[]>([])
-  const [loading, setLoading] = useState(true)
-  const [showForm, setShowForm] = useState(false)
+  const [ordenes, setOrdenes] = useState<OrdenEntrega[]>([]);
+  const [trabajadores, setTrabajadores] = useState<Trabajador[]>([]);
+  const [productos, setProductos] = useState<Producto[]>([]);
+  const [almacenes, setAlmacenes] = useState<Almacen[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({
     trabajadorId: 0,
     productoId: 0,
     almacenId: 0,
     cantidad: 1,
-    motivo: '',
-    observaciones: ''
-  })
+    motivo: "",
+    observaciones: "",
+  });
   const [notificacion, setNotificacion] = useState<{
     mensaje: string;
-    tipo?: 'exito' | 'error' | 'info';
+    tipo?: "exito" | "error" | "info";
   } | null>(null);
 
   const user = useUser();
 
   useEffect(() => {
-    loadData()
-  }, [])
+    loadData();
+  }, []);
 
   const loadData = async () => {
     try {
-      const [ordenesData, trabajadoresData, productosData, almacenesData] = await Promise.all([
-        getOrdenesEntrega(),
-        getTrabajadores(),
-        getProductos(),
-        getAlmacenes()
-      ])
-      setOrdenes(ordenesData)
-      setTrabajadores(trabajadoresData)
-      if(productosData.success && productosData.data) {
-        setProductos(productosData.data)
+      const [ordenesData, trabajadoresData, productosData, almacenesData] =
+        await Promise.all([
+          getOrdenesEntrega(),
+          getTrabajadores(),
+          getProductos(),
+          getAlmacenes(),
+        ]);
+      setOrdenes(ordenesData);
+      setTrabajadores(trabajadoresData);
+      if (productosData.success && productosData.data) {
+        setProductos(productosData.data);
       }
-      if(almacenesData.success && almacenesData.data) {
-        setAlmacenes(almacenesData.data)
+      if (almacenesData.success && almacenesData.data) {
+        setAlmacenes(almacenesData.data);
       }
     } catch (error) {
-      console.error('Error al cargar datos:', error)
-      setNotificacion({ mensaje: 'Error al cargar los datos', tipo: 'error' })
+      console.error("Error al cargar datos:", error);
+      setNotificacion({ mensaje: "Error al cargar los datos", tipo: "error" });
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    
+    e.preventDefault();
+
     if (!formData.trabajadorId || !formData.productoId || !formData.almacenId) {
-      setNotificacion({ mensaje: 'Debe completar todos los campos obligatorios', tipo: 'error' })
-      return
+      setNotificacion({
+        mensaje: "Debe completar todos los campos obligatorios",
+        tipo: "error",
+      });
+      return;
     }
 
     if (formData.cantidad <= 0) {
-      setNotificacion({ mensaje: 'La cantidad debe ser mayor a 0', tipo: 'error' })
-      return
+      setNotificacion({
+        mensaje: "La cantidad debe ser mayor a 0",
+        tipo: "error",
+      });
+      return;
     }
 
     try {
-      await createOrdenEntrega(formData, user.id)
-      setNotificacion({ mensaje: 'Orden de entrega creada correctamente', tipo: 'exito' })
-      setShowForm(false)
-      resetForm()
-      loadData()
+      await createOrdenEntrega(formData, user.id);
+      setNotificacion({
+        mensaje: "Orden de entrega creada correctamente",
+        tipo: "exito",
+      });
+      setShowForm(false);
+      resetForm();
+      loadData();
     } catch (error) {
-      console.error('Error al crear orden de entrega:', error)
-      setNotificacion({ mensaje: 'Error al crear la orden de entrega', tipo: 'error' })
+      console.error("Error al crear orden de entrega:", error);
+      setNotificacion({
+        mensaje: "Error al crear la orden de entrega",
+        tipo: "error",
+      });
     }
-  }
+  };
 
   const handleAprobar = async (id: number) => {
-    if (!confirm('¿Está seguro de que desea aprobar esta orden de entrega?')) return
-    
+    if (!confirm("¿Está seguro de que desea aprobar esta orden de entrega?"))
+      return;
+
     try {
-      await aprobarOrdenEntrega(id, user.id)
-      setNotificacion({ mensaje: 'Orden de entrega aprobada correctamente', tipo: 'exito' })
-      loadData()
+      await aprobarOrdenEntrega(id, user.id);
+      setNotificacion({
+        mensaje: "Orden de entrega aprobada correctamente",
+        tipo: "exito",
+      });
+      loadData();
     } catch (error) {
-      console.error('Error al aprobar orden:', error)
-      setNotificacion({ mensaje: error instanceof Error ? error.message : 'Error al aprobar la orden', tipo: 'error' })
+      console.error("Error al aprobar orden:", error);
+      setNotificacion({
+        mensaje:
+          error instanceof Error ? error.message : "Error al aprobar la orden",
+        tipo: "error",
+      });
     }
-  }
+  };
 
   const handleRechazar = async (id: number) => {
-    const motivo = prompt('Ingrese el motivo del rechazo:')
-    if (!motivo) return
-    
+    const motivo = prompt("Ingrese el motivo del rechazo:");
+    if (!motivo) return;
+
     try {
-      await rechazarOrdenEntrega(id, motivo, user.id)
-      setNotificacion({ mensaje: 'Orden de entrega rechazada correctamente', tipo: 'exito' })
-      loadData()
+      await rechazarOrdenEntrega(id, motivo, user.id);
+      setNotificacion({
+        mensaje: "Orden de entrega rechazada correctamente",
+        tipo: "exito",
+      });
+      loadData();
     } catch (error) {
-      console.error('Error al rechazar orden:', error)
-      setNotificacion({ mensaje: 'Error al rechazar la orden', tipo: 'error' })
+      console.error("Error al rechazar orden:", error);
+      setNotificacion({ mensaje: "Error al rechazar la orden", tipo: "error" });
     }
-  }
+  };
 
   const resetForm = () => {
     setFormData({
@@ -117,33 +146,35 @@ export default function OrdenesEntregaPage() {
       productoId: 0,
       almacenId: 0,
       cantidad: 1,
-      motivo: '',
-      observaciones: ''
-    })
-  }
+      motivo: "",
+      observaciones: "",
+    });
+  };
 
   const cancelForm = () => {
-    setShowForm(false)
-    resetForm()
-  }
+    setShowForm(false);
+    resetForm();
+  };
 
   const getEstadoColor = (estado: string) => {
     switch (estado) {
-      case 'pendiente':
-        return 'bg-yellow-100 text-yellow-800'
-      case 'aprobada':
-        return 'bg-green-100 text-green-800'
-      case 'rechazada':
-        return 'bg-red-100 text-red-800'
-      case 'entregada':
-        return 'bg-blue-100 text-blue-800'
+      case "pendiente":
+        return "bg-yellow-100 text-yellow-800";
+      case "aprobada":
+        return "bg-green-100 text-green-800";
+      case "rechazada":
+        return "bg-red-100 text-red-800";
+      case "entregada":
+        return "bg-blue-100 text-blue-800";
       default:
-        return 'bg-gray-100 text-gray-800'
+        return "bg-gray-100 text-gray-800";
     }
-  }
+  };
 
   if (loading) {
-    return <div className="flex justify-center items-center h-64">Cargando...</div>
+    return (
+      <div className="flex justify-center items-center h-64">Cargando...</div>
+    );
   }
 
   return (
@@ -161,7 +192,7 @@ export default function OrdenesEntregaPage() {
       {showForm && (
         <div className="bg-white p-6 rounded-lg shadow-md mb-6">
           <h2 className="text-xl font-semibold mb-4">Nueva Orden de Entrega</h2>
-          
+
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
@@ -170,19 +201,25 @@ export default function OrdenesEntregaPage() {
                 </label>
                 <select
                   value={formData.trabajadorId}
-                  onChange={(e) => setFormData({...formData, trabajadorId: parseInt(e.target.value)})}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      trabajadorId: parseInt(e.target.value),
+                    })
+                  }
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   required
                 >
                   <option value={0}>Seleccionar trabajador</option>
-                  {trabajadores.map(trabajador => (
+                  {trabajadores.map((trabajador) => (
                     <option key={trabajador.id} value={trabajador.id}>
-                      {trabajador.apellidos}, {trabajador.nombres} - {trabajador.unidad?.nombre}
+                      {trabajador.apellidos}, {trabajador.nombres} -{" "}
+                      {trabajador.unidad?.nombre}
                     </option>
                   ))}
                 </select>
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Producto *
@@ -191,7 +228,7 @@ export default function OrdenesEntregaPage() {
                   value={formData.productoId}
                   onChange={(e) => {
                     const productoId = parseInt(e.target.value);
-                    const producto = productos.find(p => p.id === productoId);
+                    const producto = productos.find((p) => p.id === productoId);
                     setFormData({
                       ...formData,
                       productoId,
@@ -202,14 +239,14 @@ export default function OrdenesEntregaPage() {
                   required
                 >
                   <option value={0}>Seleccionar producto</option>
-                  {productos.map(producto => (
+                  {productos.map((producto) => (
                     <option key={producto.id} value={producto.id}>
                       {producto.codigo} - {producto.nombre}
                     </option>
                   ))}
                 </select>
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Almacén *
@@ -217,16 +254,20 @@ export default function OrdenesEntregaPage() {
                 <input
                   type="text"
                   value={(() => {
-                    const prod = productos.find(p => p.id === formData.productoId);
-                    const almacen = almacenes.find(a => a.id === (prod?.almacenId || 0));
-                    return almacen ? almacen.nombre : '';
+                    const prod = productos.find(
+                      (p) => p.id === formData.productoId
+                    );
+                    const almacen = almacenes.find(
+                      (a) => a.id === (prod?.almacenId || 0)
+                    );
+                    return almacen ? almacen.nombre : "";
                   })()}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 text-gray-900"
                   readOnly
                   required
                 />
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Cantidad *
@@ -235,13 +276,18 @@ export default function OrdenesEntregaPage() {
                   type="number"
                   min="1"
                   value={formData.cantidad}
-                  onChange={(e) => setFormData({...formData, cantidad: parseInt(e.target.value)})}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      cantidad: parseInt(e.target.value),
+                    })
+                  }
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   required
                 />
               </div>
             </div>
-            
+
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Motivo *
@@ -249,24 +295,28 @@ export default function OrdenesEntregaPage() {
               <input
                 type="text"
                 value={formData.motivo}
-                onChange={(e) => setFormData({...formData, motivo: e.target.value})}
+                onChange={(e) =>
+                  setFormData({ ...formData, motivo: e.target.value })
+                }
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 required
               />
             </div>
-            
+
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Observaciones
               </label>
               <textarea
                 value={formData.observaciones}
-                onChange={(e) => setFormData({...formData, observaciones: e.target.value})}
+                onChange={(e) =>
+                  setFormData({ ...formData, observaciones: e.target.value })
+                }
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 rows={3}
               />
             </div>
-            
+
             <div className="flex justify-end space-x-3">
               <button
                 type="button"
@@ -325,7 +375,9 @@ export default function OrdenesEntregaPage() {
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                   {orden.trabajador?.apellidos}, {orden.trabajador?.nombres}
                   <br />
-                  <span className="text-xs text-gray-500">{orden.trabajador?.unidad?.nombre}</span>
+                  <span className="text-xs text-gray-500">
+                    {orden.trabajador?.unidad?.nombre}
+                  </span>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                   {orden.producto?.codigo} - {orden.producto?.nombre}
@@ -334,12 +386,16 @@ export default function OrdenesEntregaPage() {
                   {orden.cantidad}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getEstadoColor(orden.estado)}`}>
+                  <span
+                    className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getEstadoColor(
+                      orden.estado
+                    )}`}
+                  >
                     {orden.estado}
                   </span>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                  {orden.estado === 'pendiente' && (
+                  {orden.estado === "pendiente" && (
                     <>
                       <button
                         onClick={() => handleAprobar(orden.id)}
@@ -355,10 +411,10 @@ export default function OrdenesEntregaPage() {
                       </button>
                     </>
                   )}
-                  {orden.estado === 'aprobada' && (
+                  {orden.estado === "aprobada" && (
                     <span className="text-green-600">Aprobada</span>
                   )}
-                  {orden.estado === 'rechazada' && (
+                  {orden.estado === "rechazada" && (
                     <span className="text-red-600">Rechazada</span>
                   )}
                 </td>
@@ -375,5 +431,5 @@ export default function OrdenesEntregaPage() {
         />
       )}
     </div>
-  )
-} 
+  );
+}
