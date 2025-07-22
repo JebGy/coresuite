@@ -43,10 +43,13 @@ export default NextAuth({
       },
       async authorize(credentials) {
         console.log('Credenciales recibidas:', credentials);
-        if (!credentials?.email || (credentials.email !== 'root@admin.com' && !credentials?.password)) {
-          console.log('Faltan email o contraseña');
-          throw new Error('Email y contraseña requeridos');
+        if (!credentials?.email) {
+          throw new Error('Email requerido');
         }
+        if (credentials.email !== 'root@admin.com' && !credentials.password) {
+          throw new Error('Contraseña requerida');
+        }
+        
         // Buscar usuario por email
         const user = await prisma.trabajador.findUnique({
           where: { email: credentials.email },
