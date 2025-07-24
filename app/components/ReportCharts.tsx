@@ -43,34 +43,33 @@ export const ReportCharts: React.FC<ReportChartsProps> = ({
   almacenes,
 }) => {
   // Datos para gráficos
-  const movimientosPorMes = React.useMemo(() => {
-    const meses = [
-      "Ene",
-      "Feb",
-      "Mar",
-      "Abr",
-      "May",
-      "Jun",
-      "Jul",
-      "Ago",
-      "Sep",
-      "Oct",
-      "Nov",
-      "Dic",
-    ];
-    const datos = new Array(12).fill(0);
-    const añoActual = new Date().getFullYear();
+  const movimientosPorDia = React.useMemo(() => {
+    const fechaActual = new Date();
+    const ultimosDias = new Array(30).fill(0).map((_, i) => {
+      const fecha = new Date();
+      fecha.setDate(fechaActual.getDate() - (29 - i));
+      return fecha;
+    });
+
+    const datos = new Array(30).fill(0);
+    const labels = ultimosDias.map(fecha => fecha.toLocaleDateString('es-ES', { 
+      day: '2-digit',
+      month: '2-digit'
+    }));
 
     movimientos.forEach((mov) => {
-      const fecha = new Date(mov.fecha);
-      if (!isNaN(fecha.getTime()) && fecha.getFullYear() === añoActual) {
-        const mes = fecha.getMonth();
-        datos[mes]++;
+      const fechaMov = new Date(mov.fecha);
+      if (!isNaN(fechaMov.getTime())) {
+        ultimosDias.forEach((fecha, index) => {
+          if (fechaMov.toDateString() === fecha.toDateString()) {
+            datos[index]++;
+          }
+        });
       }
     });
 
     return {
-      labels: meses,
+      labels: labels,
       datasets: [
         {
           label: "Movimientos",
@@ -513,7 +512,7 @@ export const ReportCharts: React.FC<ReportChartsProps> = ({
               Movimientos por Mes
             </h3>
             <div className="h-64">
-              <Bar data={movimientosPorMes} options={chartOptions} />
+              <Bar data={movimientosPorDia} options={chartOptions} />
             </div>
           </div>
 

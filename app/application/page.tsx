@@ -1538,6 +1538,12 @@ export default function Dashboard() {
                           scope="col"
                           className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                         >
+                          Stock Total
+                        </th>
+                        <th
+                          scope="col"
+                          className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                        >
                           Estado
                         </th>
                       </tr>
@@ -1559,6 +1565,17 @@ export default function Dashboard() {
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                             {almacenes.find((a) => a.id === producto.almacenId)
                               ?.nombre || "-"}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
+                            {(() => {
+                              const movs = movimientos.filter(m => m.productoId === producto.id);
+                              let stock = 0;
+                              movs.forEach(m => {
+                                if (m.tipo === "entrada") stock += m.cantidad;
+                                else stock -= m.cantidad;
+                              });
+                              return stock;
+                            })()}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
