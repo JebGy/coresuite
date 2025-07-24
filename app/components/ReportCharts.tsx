@@ -162,12 +162,7 @@ export const ReportCharts: React.FC<ReportChartsProps> = ({
     if (!reporteElement) return;
 
     try {
-      const canvas = await html2canvas(reporteElement, {
-        scale: 2,
-        useCORS: true,
-        allowTaint: true,
-        backgroundColor: "#ffffff",
-      });
+      const canvas = await html2canvas(reporteElement);
 
       const imgData = canvas.toDataURL("image/png");
       const pdf = new jsPDF("landscape", "mm", "a4");
@@ -188,12 +183,7 @@ export const ReportCharts: React.FC<ReportChartsProps> = ({
     if (!reporteElement) return;
 
     try {
-      const canvas = await html2canvas(reporteElement, {
-        scale: 2,
-        useCORS: true,
-        allowTaint: true,
-        backgroundColor: "#ffffff",
-      });
+      const canvas = await html2canvas(reporteElement);
 
       const link = document.createElement("a");
       link.download = "reporte-Core Manager.png";

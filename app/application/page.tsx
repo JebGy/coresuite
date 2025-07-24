@@ -74,6 +74,14 @@ export default function Dashboard() {
     errors: any;
   }>(null);
 
+  // Estado para autocompletado de producto en movimientos
+  const [productoInput, setProductoInput] = useState("");
+  const [sugerenciasProducto, setSugerenciasProducto] = useState<Producto[]>(
+    []
+  );
+  const [mostrarSugerencias, setMostrarSugerencias] = useState(false);
+  const inputProductoRef = useRef<HTMLInputElement>(null);
+
   // Cargar datos al montar el componente
   useEffect(() => {
     const cargarDatos = async () => {
@@ -103,6 +111,20 @@ export default function Dashboard() {
 
     cargarDatos();
   }, []);
+
+  // Lógica para filtrar sugerencias de productos
+  useEffect(() => {
+    if (productoInput.trim() === "") {
+      setSugerenciasProducto([]);
+      return;
+    }
+    const sugerencias = productos.filter(
+      (p) =>
+        p.nombre.toLowerCase().includes(productoInput.toLowerCase()) ||
+        p.codigo?.toLowerCase().includes(productoInput.toLowerCase())
+    );
+    setSugerenciasProducto(sugerencias);
+  }, [productoInput, productos]);
 
   // Handlers para almacenes
   const handleAlmacenChange = (
@@ -859,43 +881,7 @@ export default function Dashboard() {
                   Resumen general del sistema de gestión
                 </p>
               </div>
-              <div className="flex items-center space-x-4">
-                <button
-                  onClick={() => setActiveSection("reportes")}
-                  className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200 flex items-center"
-                >
-                  <svg
-                    className="w-4 h-4 mr-2"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
-                    />
-                  </svg>
-                  Reportes
-                </button>
-                <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200 flex items-center">
-                  <svg
-                    className="w-4 h-4 mr-2"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-                    />
-                  </svg>
-                  Nuevo Registro
-                </button>
-              </div>
+              <div className="flex items-center space-x-4"></div>
             </div>
 
             {/* Métricas principales */}
@@ -1550,56 +1536,67 @@ export default function Dashboard() {
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
                       {filteredProducts
-                        .slice(currentPage * itemsPerPage, (currentPage + 1) * itemsPerPage)
+                        .slice(
+                          currentPage * itemsPerPage,
+                          (currentPage + 1) * itemsPerPage
+                        )
                         .map((producto) => (
-                        <tr key={producto.id}>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                            {producto.codigo}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {producto.nombre}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {producto.descripcion || "-"}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {almacenes.find((a) => a.id === producto.almacenId)
-                              ?.nombre || "-"}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
-                            {(() => {
-                              const movs = movimientos.filter(m => m.productoId === producto.id);
-                              let stock = 0;
-                              movs.forEach(m => {
-                                if (m.tipo === "entrada") stock += m.cantidad;
-                                else stock -= m.cantidad;
-                              });
-                              return stock;
-                            })()}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                              Activo
-                            </span>
-                          </td>
-                        </tr>
-                      ))}
+                          <tr key={producto.id}>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                              {producto.codigo}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                              {producto.nombre}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                              {producto.descripcion || "-"}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                              {almacenes.find(
+                                (a) => a.id === producto.almacenId
+                              )?.nombre || "-"}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
+                              {(() => {
+                                const movs = movimientos.filter(
+                                  (m) => m.productoId === producto.id
+                                );
+                                let stock = 0;
+                                movs.forEach((m) => {
+                                  if (m.tipo === "entrada") stock += m.cantidad;
+                                  else stock -= m.cantidad;
+                                });
+                                return stock;
+                              })()}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                Activo
+                              </span>
+                            </td>
+                          </tr>
+                        ))}
                     </tbody>
                   </table>
-                  
+
                   {/* Paginación */}
                   <div className="mt-4 flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3 sm:px-6">
                     <div className="flex flex-1 justify-between sm:hidden">
                       <button
-                        onClick={() => setCurrentPage(prev => Math.max(0, prev - 1))}
+                        onClick={() =>
+                          setCurrentPage((prev) => Math.max(0, prev - 1))
+                        }
                         disabled={currentPage === 0}
                         className="relative inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
                       >
                         Anterior
                       </button>
                       <button
-                        onClick={() => setCurrentPage(prev => prev + 1)}
-                        disabled={(currentPage + 1) * itemsPerPage >= filteredProducts.length}
+                        onClick={() => setCurrentPage((prev) => prev + 1)}
+                        disabled={
+                          (currentPage + 1) * itemsPerPage >=
+                          filteredProducts.length
+                        }
                         className="relative ml-3 inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
                       >
                         Siguiente
@@ -1608,33 +1605,70 @@ export default function Dashboard() {
                     <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
                       <div>
                         <p className="text-sm text-gray-700">
-                          Mostrando <span className="font-medium">{currentPage * itemsPerPage + 1}</span> a{' '}
+                          Mostrando{" "}
                           <span className="font-medium">
-                            {Math.min((currentPage + 1) * itemsPerPage, filteredProducts.length)}
-                          </span>{' '}
-                          de <span className="font-medium">{filteredProducts.length}</span> resultados
+                            {currentPage * itemsPerPage + 1}
+                          </span>{" "}
+                          a{" "}
+                          <span className="font-medium">
+                            {Math.min(
+                              (currentPage + 1) * itemsPerPage,
+                              filteredProducts.length
+                            )}
+                          </span>{" "}
+                          de{" "}
+                          <span className="font-medium">
+                            {filteredProducts.length}
+                          </span>{" "}
+                          resultados
                         </p>
                       </div>
                       <div>
-                        <nav className="isolate inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
+                        <nav
+                          className="isolate inline-flex -space-x-px rounded-md shadow-sm"
+                          aria-label="Pagination"
+                        >
                           <button
-                            onClick={() => setCurrentPage(prev => Math.max(0, prev - 1))}
+                            onClick={() =>
+                              setCurrentPage((prev) => Math.max(0, prev - 1))
+                            }
                             disabled={currentPage === 0}
                             className="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50"
                           >
                             <span className="sr-only">Anterior</span>
-                            <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                              <path fillRule="evenodd" d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z" clipRule="evenodd" />
+                            <svg
+                              className="h-5 w-5"
+                              viewBox="0 0 20 20"
+                              fill="currentColor"
+                              aria-hidden="true"
+                            >
+                              <path
+                                fillRule="evenodd"
+                                d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z"
+                                clipRule="evenodd"
+                              />
                             </svg>
                           </button>
                           <button
-                            onClick={() => setCurrentPage(prev => prev + 1)}
-                            disabled={(currentPage + 1) * itemsPerPage >= filteredProducts.length}
+                            onClick={() => setCurrentPage((prev) => prev + 1)}
+                            disabled={
+                              (currentPage + 1) * itemsPerPage >=
+                              filteredProducts.length
+                            }
                             className="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50"
                           >
                             <span className="sr-only">Siguiente</span>
-                            <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                              <path fillRule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clipRule="evenodd" />
+                            <svg
+                              className="h-5 w-5"
+                              viewBox="0 0 20 20"
+                              fill="currentColor"
+                              aria-hidden="true"
+                            >
+                              <path
+                                fillRule="evenodd"
+                                d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"
+                                clipRule="evenodd"
+                              />
                             </svg>
                           </button>
                         </nav>
@@ -1686,35 +1720,59 @@ export default function Dashboard() {
                 </div>
 
                 <form onSubmit={handleMovimientoSubmit} className="space-y-4">
+                  {/* Producto */}
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">
                       Producto
                     </label>
-                    <select
-                      name="productoId"
-                      value={movimientoForm.productoId}
-                      onChange={(e) => {
-                        handleMovimientoChange(e);
-                        // Buscar el producto seleccionado y asignar su almacenId automáticamente
-                        const prod = productos.find(
-                          (p) => p.id === Number(e.target.value)
-                        );
-                        setMovimientoForm((prev) => ({
-                          ...prev,
-                          productoId: Number(e.target.value),
-                          almacenId: prod?.almacenId || 0,
-                        }));
-                      }}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-gray-900 bg-white"
-                      required
-                    >
-                      <option value="">Selecciona un producto</option>
-                      {productos.map((p) => (
-                        <option key={p.id} value={p.id}>
-                          {p.nombre} ({p.codigo})
-                        </option>
-                      ))}
-                    </select>
+                    <div className="relative">
+                      <input
+                        ref={inputProductoRef}
+                        type="text"
+                        name="productoInput"
+                        autoComplete="off"
+                        value={productoInput}
+                        onChange={(e) => {
+                          setProductoInput(e.target.value);
+                          setMostrarSugerencias(true);
+                        }}
+                        onFocus={() => setMostrarSugerencias(true)}
+                        onBlur={() =>
+                          setTimeout(() => setMostrarSugerencias(false), 150)
+                        }
+                        placeholder="Escribe el nombre o código del producto"
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-gray-900 bg-white"
+                        required
+                      />
+                      {/* Sugerencias */}
+                      {mostrarSugerencias && sugerenciasProducto.length > 0 && (
+                        <ul className="absolute z-10 w-full bg-white border border-gray-200 rounded-lg mt-1 max-h-48 overflow-y-auto shadow-lg">
+                          {sugerenciasProducto.map((p) => (
+                            <li
+                              key={p.id}
+                              className="px-4 py-2 cursor-pointer flex flex-col hover:bg-blue-100 text-gray-800"
+                              onMouseDown={() => {
+                                setProductoInput(`${p.nombre} (${p.codigo})`);
+                                setMovimientoForm((prev) => ({
+                                  ...prev,
+                                  productoId: p.id,
+                                  almacenId: p.almacenId || 0,
+                                }));
+                                setMostrarSugerencias(false);
+                              }}
+                            >
+                              <p className="font-bold">
+                                {p.nombre}{" "}
+                                <span className="text-xs font-normal text-gray-500">
+                                  ({p.codigo})
+                                </span>
+                              </p>
+                              <span className="text-gray-500">{p.descripcion}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
                   </div>
 
                   <div>

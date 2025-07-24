@@ -25,10 +25,27 @@ export default function TrasladosPage() {
     message: "",
     type: "",
   });
+  const [productoInput, setProductoInput] = useState("");
+  const[mostrarSugerencias,setMostrarSugerencias] = useState(false)
+  const [sugerenciasProducto, setSugerenciasProducto] = useState<Producto[]>([]);
 
   useEffect(() => {
     loadData();
   }, []);
+
+  useEffect(() => {
+    if (productoInput.trim() === "") {
+      setSugerenciasProducto([]);
+      return;
+    }
+    const sugerencias = productos.filter(
+      (p) =>
+        p.nombre.toLowerCase().includes(productoInput.toLowerCase()) ||
+        p.codigo?.toLowerCase().includes(productoInput.toLowerCase())
+    );
+    setSugerenciasProducto(sugerencias);
+  }, [productoInput, productos]);
+
 
   const loadData = async () => {
     try {
@@ -42,6 +59,7 @@ export default function TrasladosPage() {
 
       if (productosRes.success && productosRes.data) {
         setProductos(productosRes.data);
+        setSugerenciasProducto(productosRes.data)
       }
       if (almacenesRes.success && almacenesRes.data) {
         setAlmacenes(almacenesRes.data);
@@ -111,7 +129,10 @@ export default function TrasladosPage() {
     }
   };
 
-  const handleStatusUpdate = async (id: number, newStatus: Traslado['estado']) => {
+  const handleStatusUpdate = async (
+    id: number,
+    newStatus: Traslado["estado"]
+  ) => {
     const result = await updateTrasladoStatus(id, newStatus);
     if (result.success) {
       setNotification({
@@ -143,27 +164,52 @@ export default function TrasladosPage() {
             <label className="block text-sm font-medium text-gray-700">
               Producto
             </label>
-            <select
-              value={selectedProduct}
-              onChange={(e) => {
-                const productId = e.target.value;
-                setSelectedProduct(productId);
-                if (productId) {
-                  const product = productos.find(p => p.id === parseInt(productId));
-                  if (product?.almacenId) {
-                    setSelectedOrigin(product.almacenId.toString());
-                  }
+            <div className="relative">
+              <input
+                type="text"
+                name="productoInput"
+                autoComplete="off"
+                value={productoInput}
+                onChange={(e) => {
+                  setProductoInput(e.target.value);
+                  setMostrarSugerencias(true);
+                }}
+                onFocus={() => setMostrarSugerencias(true)}
+                onBlur={() =>
+                  setTimeout(() => setMostrarSugerencias(false), 150)
                 }
-              }}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-            >
-              <option value="">Seleccione un producto</option>
-              {productos.map((product) => (
-                <option key={product.id} value={product.id}>
-                  {product.nombre} - {almacenes.find(a => a.id === product.almacenId)?.nombre || 'Sin almacén'}
-                </option>
-              ))}
-            </select>
+                placeholder="Escribe el nombre o código del producto"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-gray-900 bg-white"
+                required
+              />
+              {/* Sugerencias */}
+              {mostrarSugerencias && sugerenciasProducto.length > 0 && (
+                <ul className="absolute z-10 w-full bg-white border border-gray-200 rounded-lg mt-1 max-h-48 overflow-y-auto shadow-lg">
+                  {sugerenciasProducto.map((p) => (
+                    <li
+                      key={p.id}
+                      className="px-4 py-2 cursor-pointer flex flex-col hover:bg-blue-100 text-gray-800"
+                      onMouseDown={() => {
+                        setProductoInput(`${p.nombre} (${p.codigo})`);
+                        // Aquí deberías actualizar el estado relacionado con el producto seleccionado para traslados, por ejemplo:
+                        // 
+                        setSelectedOrigin(p.almacenId?.toString()!)
+                        
+                        setMostrarSugerencias(false);
+                      }}
+                    >
+                      <p className="font-bold">
+                        {p.nombre}{" "}
+                        <span className="text-xs font-normal text-gray-500">
+                          ({p.codigo})
+                        </span>
+                      </p>
+                      <span className="text-gray-500">{p.descripcion}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
           </div>
 
           <div>
@@ -172,8 +218,11 @@ export default function TrasladosPage() {
             </label>
             <input
               type="text"
-              value={almacenes.find(a => a.id === parseInt(selectedOrigin))?.nombre || ''}
-              className="mt-1 block w-full rounded-md border-gray-300 bg-gray-100 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+              value={
+                almacenes.find((a) => a.id === parseInt(selectedOrigin))
+                  ?.nombre || ""
+              }
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-gray-900 bg-white"
               disabled
             />
           </div>
@@ -185,11 +234,11 @@ export default function TrasladosPage() {
             <select
               value={selectedDestination}
               onChange={(e) => setSelectedDestination(e.target.value)}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-gray-900 bg-white"
             >
               <option value="">Seleccione almacén destino</option>
               {almacenes
-                .filter(almacen => almacen.id !== parseInt(selectedOrigin))
+                .filter((almacen) => almacen.id !== parseInt(selectedOrigin))
                 .map((almacen) => (
                   <option key={almacen.id} value={almacen.id}>
                     {almacen.nombre}
@@ -206,7 +255,7 @@ export default function TrasladosPage() {
               type="number"
               value={quantity}
               onChange={(e) => setQuantity(e.target.value)}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-gray-900 bg-white"
               min="1"
             />
           </div>
@@ -218,7 +267,7 @@ export default function TrasladosPage() {
             <textarea
               value={observations}
               onChange={(e) => setObservations(e.target.value)}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-gray-900 bg-white"
               rows={3}
             />
           </div>
@@ -338,7 +387,13 @@ export default function TrasladosPage() {
       {notification.show && (
         <Notificacion
           mensaje={notification.message}
-          tipo={notification.type === 'success' ? 'exito' : notification.type === 'error' ? 'error' : 'info'}
+          tipo={
+            notification.type === "success"
+              ? "exito"
+              : notification.type === "error"
+              ? "error"
+              : "info"
+          }
           onClose={() => setNotification({ ...notification, show: false })}
         />
       )}
