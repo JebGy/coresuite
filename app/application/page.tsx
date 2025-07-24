@@ -82,6 +82,29 @@ export default function Dashboard() {
   const [mostrarSugerencias, setMostrarSugerencias] = useState(false);
   const inputProductoRef = useRef<HTMLInputElement>(null);
 
+  // Estados para formulario de traslados en dashboard
+  const [productoInputTraslado, setProductoInputTraslado] = useState("");
+  const [sugerenciasProductoTraslado, setSugerenciasProductoTraslado] = useState<Producto[]>([]);
+  const [mostrarSugerenciasTraslado, setMostrarSugerenciasTraslado] = useState(false);
+  const [selectedOrigin, setSelectedOrigin] = useState("");
+  const [selectedDestination, setSelectedDestination] = useState("");
+  const [quantityTraslado, setQuantityTraslado] = useState("");
+  const [observationsTraslado, setObservationsTraslado] = useState("");
+
+  // Autocompletado para traslado
+  useEffect(() => {
+    if (productoInputTraslado.trim() === "") {
+      setSugerenciasProductoTraslado([]);
+      return;
+    }
+    const sugerencias = productos.filter(
+      (p) =>
+        p.nombre.toLowerCase().includes(productoInputTraslado.toLowerCase()) ||
+        p.codigo?.toLowerCase().includes(productoInputTraslado.toLowerCase())
+    );
+    setSugerenciasProductoTraslado(sugerencias);
+  }, [productoInputTraslado, productos]);
+
   // Cargar datos al montar el componente
   useEffect(() => {
     const cargarDatos = async () => {
@@ -757,6 +780,33 @@ export default function Dashboard() {
             />
           </svg>
           Importar/Exportar
+        </button>
+
+        <button
+          className={`flex items-center w-full px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 ${
+            activeSection === "recursoshumanos"
+              ? "bg-blue-100 text-blue-700 border border-blue-200"
+              : ""
+          }`}
+          onClick={() => {
+            setActiveSection("recursoshumanos");
+            setSidebarOpen(false);
+          }}
+        >
+          <svg
+            className="w-5 h-5 mr-3"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"
+            />
+          </svg>
+          Recursos Humanos
         </button>
       </nav>
 
@@ -2362,6 +2412,156 @@ export default function Dashboard() {
                   {exportando ? "Exportando..." : "Exportar todo a Excel"}
                 </button>
               </div>
+            </div>
+          </div>
+        );
+
+      case "traslados":
+        return (
+          <div className="space-y-6 col-span-full">
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-3xl font-bold text-gray-800">Gestión de Traslados</h1>
+                <p className="text-gray-600">Registra traslados de productos entre almacenes</p>
+              </div>
+            </div>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              {/* Formulario de traslados */}
+              <div className="bg-white/95 backdrop-blur-sm rounded-xl p-6 shadow-lg border border-gray-200">
+                <div className="flex items-center mb-6">
+                  <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg flex items-center justify-center mr-3">
+                    <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                    </svg>
+                  </div>
+                  <h2 className="text-xl font-bold text-gray-800">Nuevo Traslado</h2>
+                </div>
+                <form onSubmit={e => { e.preventDefault(); /* Aquí va la lógica de envío */ }} className="space-y-4">
+                  {/* Producto con autocompletado */}
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Producto</label>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        name="productoInputTraslado"
+                        autoComplete="off"
+                        value={productoInputTraslado}
+                        onChange={e => {
+                          setProductoInputTraslado(e.target.value);
+                          setMostrarSugerenciasTraslado(true);
+                        }}
+                        onFocus={() => setMostrarSugerenciasTraslado(true)}
+                        onBlur={() => setTimeout(() => setMostrarSugerenciasTraslado(false), 150)}
+                        placeholder="Escribe el nombre o código del producto"
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-gray-900 bg-white"
+                        required
+                      />
+                      {mostrarSugerenciasTraslado && sugerenciasProductoTraslado.length > 0 && (
+                        <ul className="absolute z-10 w-full bg-white border border-gray-200 rounded-lg mt-1 max-h-48 overflow-y-auto shadow-lg">
+                          {sugerenciasProductoTraslado.map((p) => (
+                            <li
+                              key={p.id}
+                              className="px-4 py-2 cursor-pointer flex flex-col hover:bg-blue-100 text-gray-800"
+                              onMouseDown={() => {
+                                setProductoInputTraslado(`${p.nombre} (${p.codigo})`);
+                                setSelectedOrigin(p.almacenId?.toString() || "");
+                                setMostrarSugerenciasTraslado(false);
+                              }}
+                            >
+                              <p className="font-bold">
+                                {p.nombre} <span className="text-xs font-normal text-gray-500">({p.codigo})</span>
+                              </p>
+                              <span className="text-gray-500">{p.descripcion}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
+                  </div>
+                  {/* Almacén origen (solo lectura) */}
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Almacén Origen</label>
+                    <input
+                      type="text"
+                      value={almacenes.find(a => a.id.toString() === selectedOrigin)?.nombre || ""}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-gray-900 bg-white"
+                      disabled
+                    />
+                  </div>
+                  {/* Almacén destino */}
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Almacén Destino</label>
+                    <select
+                      value={selectedDestination}
+                      onChange={e => setSelectedDestination(e.target.value)}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-gray-900 bg-white"
+                      required
+                    >
+                      <option value="">Seleccione almacén destino</option>
+                      {almacenes
+                        .filter(a => a.id.toString() !== selectedOrigin)
+                        .map(a => (
+                          <option key={a.id} value={a.id}>{a.nombre}</option>
+                        ))}
+                    </select>
+                  </div>
+                  {/* Cantidad */}
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Cantidad</label>
+                    <input
+                      type="number"
+                      value={quantityTraslado}
+                      onChange={e => setQuantityTraslado(e.target.value)}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-gray-900 bg-white"
+                      min="1"
+                      required
+                    />
+                  </div>
+                  {/* Observaciones */}
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Observaciones</label>
+                    <textarea
+                      value={observationsTraslado}
+                      onChange={e => setObservationsTraslado(e.target.value)}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-gray-900 bg-white"
+                      rows={3}
+                    />
+                  </div>
+                  <button
+                    type="submit"
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-lg font-medium transition-colors duration-200 flex items-center justify-center"
+                  >
+                    Registrar Traslado
+                  </button>
+                </form>
+              </div>
+              {/* Aquí puedes agregar la lista de traslados recientes si lo deseas */}
+            </div>
+          </div>
+        );
+
+      case "recursoshumanos":
+        return (
+          <div className="space-y-6 col-span-full">
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-3xl font-bold text-gray-800">
+                  Recursos Humanos
+                </h1>
+                <p className="text-gray-600">
+                  Gestión y administración del personal de la empresa
+                </p>
+              </div>
+            </div>
+            <div className="bg-white/95 backdrop-blur-sm rounded-xl p-6 shadow-lg border border-gray-200">
+              <p className="text-center text-gray-600 py-8">
+                <a
+                  href="/recursoshumanos"
+                  className="text-blue-600 hover:text-blue-800 underline"
+                >
+                  Ir a la página de Recursos Humanos
+                </a>
+              </p>
             </div>
           </div>
         );
