@@ -1,3 +1,4 @@
+"use client"
 import React, { FormEvent, FormEventHandler } from "react";
 
 function page() {
