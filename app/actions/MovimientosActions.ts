@@ -5,18 +5,39 @@ import { Movimiento } from "@/types";
 import { registrarLog } from "@/lib/logger";
 
 export async function addMovimiento(movimiento: Omit<Movimiento, 'id'>, usuarioId?: number) {
+  // Si es un movimiento de salida, buscar el último precio de entrada
+  let precioUnitarioFinal = movimiento.precioUnitario;
+  
+  if (movimiento.tipo === "salida") {
+    const ultimaEntrada = await prisma.movimiento.findFirst({
+      where: {
+        productoId: movimiento.productoId,
+        tipo: "entrada",
+        precioUnitario: { not: null }
+      },
+      orderBy: {
+        fecha: 'desc'
+      }
+    });
+
+    if (ultimaEntrada?.precioUnitario) {
+      precioUnitarioFinal = ultimaEntrada.precioUnitario;
+    }
+  }
+
   const nuevoMovimiento = await prisma.movimiento.create({
     data: {
       tipo: movimiento.tipo,
       fecha: new Date(movimiento.fecha),
       cantidad: movimiento.cantidad,
-      precioUnitario: movimiento.precioUnitario,
+      precioUnitario: precioUnitarioFinal,
       motivo: movimiento.motivo,
-      factura: movimiento.factura, // Nuevo campo
+      factura: movimiento.factura,
       productoId: movimiento.productoId,
       almacenId: movimiento.almacenId,
     },
   });
+
   await registrarLog({
     usuarioId: usuarioId,
     accion: "CREAR",
@@ -24,6 +45,7 @@ export async function addMovimiento(movimiento: Omit<Movimiento, 'id'>, usuarioI
     entidadId: nuevoMovimiento.id,
     detalles: `Movimiento creado: ${nuevoMovimiento.tipo}`,
   });
+  
   console.log("Movimiento agregado");
 }
 

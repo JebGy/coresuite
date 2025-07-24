@@ -296,9 +296,14 @@ export default function Dashboard() {
   const totalMovimientos = movimientos.length;
   const entradas = movimientos.filter((m) => m.tipo === "entrada").length;
   const salidas = movimientos.filter((m) => m.tipo === "salida").length;
-  const valorTotalInventario = movimientos
-    .filter((m) => m.tipo === "entrada")
-    .reduce((sum, m) => sum + m.cantidad * (m.precioUnitario ?? 0), 0);
+  const valorTotalInventario = movimientos.reduce((sum, m) => {
+    if (m.tipo === "entrada") {
+      return sum + m.cantidad * (m.precioUnitario ?? 0);
+    } else if (m.tipo === "salida") {
+      return sum - m.cantidad * (m.precioUnitario ?? 0);
+    }
+    return sum;
+  }, 0);
 
   // Función para importar datos
   const handleImportar = async (e: React.FormEvent) => {

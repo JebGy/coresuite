@@ -27,7 +27,7 @@ export function calcularKardex(movimientos: Movimiento[], almacenes: Almacen[] =
         factura: mov.factura,
       });
     } else {
-      const valorSalida = mov.cantidad * costoPromedio;
+      const valorSalida = mov.cantidad * (mov.precioUnitario ?? 0);
       saldoCantidad -= mov.cantidad;
       saldoValor -= valorSalida;
       kardex.push({
@@ -114,7 +114,7 @@ export function calcularKardexConsolidado(
           saldoValor += valorEntrada;
           costoPromedio = saldoCantidad ? saldoValor / saldoCantidad : 0;
         } else {
-          const valorSalida = mov.cantidad * costoPromedio;
+          const valorSalida = mov.cantidad * (mov.precioUnitario ?? 0);
           saldoCantidad -= mov.cantidad;
           saldoValor -= valorSalida;
         }
