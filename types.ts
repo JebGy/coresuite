@@ -126,3 +126,15 @@ export type Rol = {
   descripcion?: string;
   permisos: any;
 };
+
+
+export type Notificacion = {
+  id: number;
+  tipo: string;
+  mensaje: string;
+  leida: boolean;
+  origen: string;
+  datos?: string;
+  createdAt: string;
+  updatedAt: string;
+};

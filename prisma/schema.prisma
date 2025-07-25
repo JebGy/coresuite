@@ -135,3 +135,14 @@ model Log {
   fecha     DateTime    @default(now())
   usuario   Trabajador? @relation(fields: [usuarioId], references: [id])
 }
+
+model Notificacion {
+  id        Int      @id @default(autoincrement())
+  tipo      String   // "PRODUCTO_NUEVO", "ERROR", etc.
+  mensaje   String
+  leida     Boolean  @default(false)
+  origen    String   // Sistema de origen
+  datos     String?  // JSON stringified data
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
