@@ -8,8 +8,8 @@ export default async function handler(
 ) {
   // Configuración de CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   
   // Manejar solicitudes OPTIONS (preflight)
   if (req.method === 'OPTIONS') {
@@ -69,6 +69,6 @@ export default async function handler(
   }
 
   // Método no permitido
-  res.setHeader("Allow", ["GET", "POST", "OPTIONS"]);
+  res.setHeader("Allow", ["POST", "OPTIONS"]);
   return res.status(405).json({ error: `Método ${req.method} no permitido` });
 }
