@@ -7,9 +7,12 @@ const prisma = new PrismaClient();
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'GET') {
     const { productoId } = req.query;
+    // Convertir productoId a número
+    const productoIdInt = parseInt(productoId as string, 10);
+    
     // Adaptar el tipo de fecha a string para cumplir con el tipo Movimiento
     const movimientosRaw = await prisma.movimiento.findMany({
-      where: { productoId: Number(productoId) },
+      where: { productoId: productoIdInt },
       orderBy: { fecha: 'asc' }
     });
     // Solución: Convertir null a undefined para 'precioUnitario' y 'factura', y null a undefined para 'ordenEntregaId'
@@ -31,6 +34,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
   if (req.method === 'POST') {
     const { tipo, fecha, cantidad, precioUnitario, motivo, productoId, almacenId } = req.body;
+    
+    // Convertir IDs a números
+    const productoIdInt = parseInt(productoId, 10);
+    const almacenIdInt = parseInt(almacenId, 10);
+    
     const movimiento = await prisma.movimiento.create({
       data: {
         tipo,
@@ -38,8 +46,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         cantidad,
         precioUnitario,
         motivo,
-        producto: { connect: { id: productoId } },
-        almacen: { connect: { id: almacenId } }, // Debes obtener almacenId del body
+        producto: { connect: { id: productoIdInt } },
+        almacen: { connect: { id: almacenIdInt } },
       }
     });
     return res.status(201).json(movimiento);
