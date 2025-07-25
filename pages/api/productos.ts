@@ -24,16 +24,19 @@ export default async function handler(
       return res.status(400).json({ error: "Nombre y almacenId son requeridos" });
     }
     
+    // Convert almacenId to integer
+    const almacenIdInt = parseInt(almacenId, 10);
+    
     const almacen = await prisma.almacen.findUnique({
       where: {
-        id: almacenId,
+        id: almacenIdInt,
       },
     });
 
     // Get the last product code for this warehouse to generate the correlative
     const lastProduct = await prisma.producto.findFirst({
       where: {
-        almacenId: almacenId,
+        almacenId: almacenIdInt,
         codigo: {
           startsWith: almacen?.nombre.substring(0, 3).toUpperCase() || "",
         },
@@ -59,7 +62,7 @@ export default async function handler(
           codigo: newCode,
           nombre,
           descripcion: descripcion || "",
-          almacenId,
+          almacenId: almacenIdInt,
         },
       });
       return res.status(201).json(producto);
