@@ -16,48 +16,6 @@ export default async function handler(
     return res.status(200).end();
   }
 
-  // Redirigir parámetros opcionales a POST
-  if (req.method === 'GET' && req.query.nombre && req.query.almacenId) {
-    req.method = 'POST';
-    req.body = {
-      nombre: req.query.nombre,
-      descripcion: req.query.descripcion || '',
-      almacenId: Number(req.query.almacenId)
-    };
-  }
-
-  if (req.method === "GET") {
-    try {
-      // Si se proporciona un ID, obtener un producto específico
-      if (req.query.id) {
-        const producto = await prisma.producto.findUnique({
-          where: { id: Number(req.query.id) }
-        });
-        
-        if (!producto) {
-          return res.status(404).json({ error: "Producto no encontrado" });
-        }
-        
-        return res.status(200).json(producto);
-      }
-      
-      // Si se proporciona un almacenId, filtrar por almacén
-      if (req.query.almacenId) {
-        const productos = await prisma.producto.findMany({
-          where: { almacenId: Number(req.query.almacenId) }
-        });
-        
-        return res.status(200).json(productos);
-      }
-      
-      // Obtener todos los productos
-      const productos = await prisma.producto.findMany();
-      return res.status(200).json(productos);
-    } catch (error) {
-      return res.status(500).json({ error: "Error al obtener productos" });
-    }
-  }
-
   if (req.method === "POST") {
     const { nombre, descripcion, almacenId } = req.body;
     
