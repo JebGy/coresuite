@@ -12,7 +12,7 @@ export default async function handler(
     return res.status(200).end();
   }
   if (req.method === "POST") {
-    const { tipo, cantidad, precioUnitario, productoId, almacenId } = req.body;
+    const { tipo, cantidad,motivo, precioUnitario, productoId, almacenId } = req.body;
 
     // Convertir IDs a números
     const productoIdInt = parseInt(productoId, 10);
@@ -24,7 +24,7 @@ export default async function handler(
         fecha: new Date(),
         cantidad,
         precioUnitario,
-        motivo: "REGISTRO INICIAL",
+        motivo:motivo,
         producto: { connect: { id: productoIdInt } },
         almacen: { connect: { id: almacenIdInt } },
       },
