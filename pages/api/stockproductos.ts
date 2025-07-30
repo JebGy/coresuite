@@ -9,71 +9,71 @@ export default async function handler(
   res: NextApiResponse
 ) {
   // Configuración de CORS
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-  
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+
   // Manejar solicitudes OPTIONS (preflight)
-  if (req.method === 'OPTIONS') {
+  if (req.method === "OPTIONS") {
     return res.status(200).end();
   }
 
   if (req.method === "GET") {
-    const {nombreElemento} = req.query;
+    const { nombreElemento } = req.query;
     try {
       // Obtener todos los productos
       const productos = await prisma.producto.findMany();
-      
+
       // Obtener todos los almacenes
       const almacenes = await prisma.almacen.findMany();
-      
+
       // Obtener todos los movimientos
       const movimientos = await prisma.movimiento.findMany({
         orderBy: {
-          fecha: 'asc',
+          fecha: "asc",
         },
       });
-      
+
       // Calcular el stock para cada producto
       const productosConStock = productos.map((producto) => {
         // Filtrar movimientos por producto
         const movimientosProducto = movimientos.filter(
           (m) => m.productoId === producto.id
         );
-        
+
         // Calcular stock
         let stock = 0;
         movimientosProducto.forEach((m) => {
           if (m.tipo === "entrada") stock += m.cantidad;
           else stock -= m.cantidad;
         });
-        
+
         // Encontrar el almacén del producto
         const almacen = almacenes.find((a) => a.id === producto.almacenId);
-        
+
         return {
           id: producto.id,
           codigo: producto.codigo,
-          nombre: producto.nombre,
+          nombre: producto.nombre.toLocaleLowerCase(),
           descripcion: producto.descripcion || "-",
           almacenId: producto.almacenId,
           almacenNombre: almacen?.nombre || "-",
           stockTotal: stock,
-          estado: "Activo"
+          estado: "Activo",
         };
       });
-      
+
       return res.status(200).json({
         success: true,
-        data: productosConStock.filter(
-            p=> p.nombre.includes(nombreElemento as string)
-        )
+        data: productosConStock.filter((p) =>
+          p.nombre.includes((nombreElemento as string).toLocaleLowerCase())
+        ),
       });
     } catch (error) {
-      console.error('Error al obtener stock de productos:', error);
+      console.error("Error al obtener stock de productos:", error);
       return res.status(500).json({
         success: false,
-        error: 'Error al obtener el stock de productos'
+        error: "Error al obtener el stock de productos",
       });
     }
   }
