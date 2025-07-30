@@ -53,9 +53,9 @@ export default async function handler(
 
         return {
           id: producto.id,
-          codigo: producto.codigo,
+          codigo: producto.codigo.toLocaleLowerCase(),
           nombre: producto.nombre.toLocaleLowerCase(),
-          descripcion: producto.descripcion || "-",
+          descripcion: producto.descripcion?.toLocaleLowerCase() || "-",
           almacenId: producto.almacenId,
           almacenNombre: almacen?.nombre || "-",
           stockTotal: stock,
@@ -65,8 +65,12 @@ export default async function handler(
 
       return res.status(200).json({
         success: true,
-        data: productosConStock.filter((p) =>
-          p.nombre.includes((nombreElemento as string).toLocaleLowerCase())
+        data: productosConStock.filter(
+          (p) =>
+            p.nombre.includes((nombreElemento as string).toLocaleLowerCase()) ||
+            p.descripcion.includes(
+              (nombreElemento as string).toLocaleLowerCase()
+            )
         ),
       });
     } catch (error) {
