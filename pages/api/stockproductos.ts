@@ -68,9 +68,8 @@ export default async function handler(
         data: productosConStock.filter(
           (p) =>
             p.nombre.toLowerCase().includes((nombreElemento as string).toLowerCase()) ||
-            p.descripcion.toLowerCase().includes(
-              (nombreElemento as string).toLowerCase()
-            )
+            p.codigo.toLowerCase().includes((nombreElemento as string).toLowerCase()) ||
+            p.descripcion.toLowerCase().includes((nombreElemento as string).toLowerCase())
         ),
       });
     } catch (error) {
