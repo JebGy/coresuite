@@ -21,7 +21,8 @@ export default async function handler(
     }
     
     // Establecer cookie de sesión
-    res.setHeader('Set-Cookie', `session=${trabajador.id}; Path=/; HttpOnly; SameSite=Lax`);
+    // Cookie con expiración de 1 día (86400 segundos)
+    res.setHeader('Set-Cookie', `session=${trabajador.id}; Path=/; HttpOnly; SameSite=Lax; Max-Age=86400`);
     
     res.status(200).json({datos:trabajador, message: "Login successful" });
     res.redirect("/application");
