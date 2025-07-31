@@ -360,7 +360,7 @@ export default function Dashboard() {
       if (tipo === "entrada") {
         valorMovimiento = cantidad * precioUnitario;
       } else if (tipo === "salida") {
-        valorMovimiento = -cantidad * precioUnitario;
+        valorMovimiento = -(cantidad * precioUnitario);
       }
 
       total += valorMovimiento;
