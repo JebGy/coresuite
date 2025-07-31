@@ -84,8 +84,10 @@ export default function Dashboard() {
 
   // Estados para formulario de traslados en dashboard
   const [productoInputTraslado, setProductoInputTraslado] = useState("");
-  const [sugerenciasProductoTraslado, setSugerenciasProductoTraslado] = useState<Producto[]>([]);
-  const [mostrarSugerenciasTraslado, setMostrarSugerenciasTraslado] = useState(false);
+  const [sugerenciasProductoTraslado, setSugerenciasProductoTraslado] =
+    useState<Producto[]>([]);
+  const [mostrarSugerenciasTraslado, setMostrarSugerenciasTraslado] =
+    useState(false);
   const [selectedOrigin, setSelectedOrigin] = useState("");
   const [selectedDestination, setSelectedDestination] = useState("");
   const [quantityTraslado, setQuantityTraslado] = useState("");
@@ -339,16 +341,44 @@ export default function Dashboard() {
   const totalAlmacenes = almacenes.length;
   const totalProductos = productos.length;
   const totalMovimientos = movimientos.length;
+
+  function calcularValorTotalInventario(
+    movimientos: Movimiento[],
+    debug = false
+  ) {
+    let total = 0;
+
+    movimientos.forEach((m, index) => {
+      // Conversión segura
+      const cantidad = parseFloat(m.cantidad.toString()) || 0;
+      const precioUnitario =
+        parseFloat(m.precioUnitario?.toString() ?? "0") || 0;
+      const tipo = (m.tipo || "").toLowerCase().trim();
+
+      let valorMovimiento = 0;
+
+      if (tipo === "entrada") {
+        valorMovimiento = cantidad * precioUnitario;
+      } else if (tipo === "salida") {
+        valorMovimiento = -cantidad * precioUnitario;
+      }
+
+      total += valorMovimiento;
+
+      if (debug) {
+        console.log(
+          `#${
+            index + 1
+          } Tipo:${tipo}, Cant:${cantidad}, Precio:${precioUnitario}, Valor:${valorMovimiento}`
+        );
+      }
+    });
+
+    return total;
+  }
   const entradas = movimientos.filter((m) => m.tipo === "entrada").length;
   const salidas = movimientos.filter((m) => m.tipo === "salida").length;
-  const valorTotalInventario = movimientos.reduce((sum, m) => {
-    if (m.tipo === "entrada") {
-      return sum + m.cantidad * (m.precioUnitario ?? 0);
-    } else if (m.tipo === "salida") {
-      return sum - m.cantidad * (m.precioUnitario ?? 0);
-    }
-    return sum;
-  }, 0);
+  const valorTotalInventario = calcularValorTotalInventario(movimientos);
 
   // Función para importar datos
   const handleImportar = async (e: React.FormEvent) => {
@@ -1817,7 +1847,9 @@ export default function Dashboard() {
                                   ({p.codigo})
                                 </span>
                               </p>
-                              <span className="text-gray-500">{p.descripcion}</span>
+                              <span className="text-gray-500">
+                                {p.descripcion}
+                              </span>
                             </li>
                           ))}
                         </ul>
@@ -2421,8 +2453,12 @@ export default function Dashboard() {
           <div className="space-y-6 col-span-full">
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-3xl font-bold text-gray-800">Gestión de Traslados</h1>
-                <p className="text-gray-600">Registra traslados de productos entre almacenes</p>
+                <h1 className="text-3xl font-bold text-gray-800">
+                  Gestión de Traslados
+                </h1>
+                <p className="text-gray-600">
+                  Registra traslados de productos entre almacenes
+                </p>
               </div>
             </div>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -2430,88 +2466,134 @@ export default function Dashboard() {
               <div className="bg-white/95 backdrop-blur-sm rounded-xl p-6 shadow-lg border border-gray-200">
                 <div className="flex items-center mb-6">
                   <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg flex items-center justify-center mr-3">
-                    <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                    <svg
+                      className="w-5 h-5 text-white"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"
+                      />
                     </svg>
                   </div>
-                  <h2 className="text-xl font-bold text-gray-800">Nuevo Traslado</h2>
+                  <h2 className="text-xl font-bold text-gray-800">
+                    Nuevo Traslado
+                  </h2>
                 </div>
-                <form onSubmit={e => { e.preventDefault(); /* Aquí va la lógica de envío */ }} className="space-y-4">
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault(); /* Aquí va la lógica de envío */
+                  }}
+                  className="space-y-4"
+                >
                   {/* Producto con autocompletado */}
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Producto</label>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Producto
+                    </label>
                     <div className="relative">
                       <input
                         type="text"
                         name="productoInputTraslado"
                         autoComplete="off"
                         value={productoInputTraslado}
-                        onChange={e => {
+                        onChange={(e) => {
                           setProductoInputTraslado(e.target.value);
                           setMostrarSugerenciasTraslado(true);
                         }}
                         onFocus={() => setMostrarSugerenciasTraslado(true)}
-                        onBlur={() => setTimeout(() => setMostrarSugerenciasTraslado(false), 150)}
+                        onBlur={() =>
+                          setTimeout(
+                            () => setMostrarSugerenciasTraslado(false),
+                            150
+                          )
+                        }
                         placeholder="Escribe el nombre o código del producto"
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-gray-900 bg-white"
                         required
                       />
-                      {mostrarSugerenciasTraslado && sugerenciasProductoTraslado.length > 0 && (
-                        <ul className="absolute z-10 w-full bg-white border border-gray-200 rounded-lg mt-1 max-h-48 overflow-y-auto shadow-lg">
-                          {sugerenciasProductoTraslado.map((p) => (
-                            <li
-                              key={p.id}
-                              className="px-4 py-2 cursor-pointer flex flex-col hover:bg-blue-100 text-gray-800"
-                              onMouseDown={() => {
-                                setProductoInputTraslado(`${p.nombre} (${p.codigo})`);
-                                setSelectedOrigin(p.almacenId?.toString() || "");
-                                setMostrarSugerenciasTraslado(false);
-                              }}
-                            >
-                              <p className="font-bold">
-                                {p.nombre} <span className="text-xs font-normal text-gray-500">({p.codigo})</span>
-                              </p>
-                              <span className="text-gray-500">{p.descripcion}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      )}
+                      {mostrarSugerenciasTraslado &&
+                        sugerenciasProductoTraslado.length > 0 && (
+                          <ul className="absolute z-10 w-full bg-white border border-gray-200 rounded-lg mt-1 max-h-48 overflow-y-auto shadow-lg">
+                            {sugerenciasProductoTraslado.map((p) => (
+                              <li
+                                key={p.id}
+                                className="px-4 py-2 cursor-pointer flex flex-col hover:bg-blue-100 text-gray-800"
+                                onMouseDown={() => {
+                                  setProductoInputTraslado(
+                                    `${p.nombre} (${p.codigo})`
+                                  );
+                                  setSelectedOrigin(
+                                    p.almacenId?.toString() || ""
+                                  );
+                                  setMostrarSugerenciasTraslado(false);
+                                }}
+                              >
+                                <p className="font-bold">
+                                  {p.nombre}{" "}
+                                  <span className="text-xs font-normal text-gray-500">
+                                    ({p.codigo})
+                                  </span>
+                                </p>
+                                <span className="text-gray-500">
+                                  {p.descripcion}
+                                </span>
+                              </li>
+                            ))}
+                          </ul>
+                        )}
                     </div>
                   </div>
                   {/* Almacén origen (solo lectura) */}
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Almacén Origen</label>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Almacén Origen
+                    </label>
                     <input
                       type="text"
-                      value={almacenes.find(a => a.id.toString() === selectedOrigin)?.nombre || ""}
+                      value={
+                        almacenes.find(
+                          (a) => a.id.toString() === selectedOrigin
+                        )?.nombre || ""
+                      }
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-gray-900 bg-white"
                       disabled
                     />
                   </div>
                   {/* Almacén destino */}
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Almacén Destino</label>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Almacén Destino
+                    </label>
                     <select
                       value={selectedDestination}
-                      onChange={e => setSelectedDestination(e.target.value)}
+                      onChange={(e) => setSelectedDestination(e.target.value)}
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-gray-900 bg-white"
                       required
                     >
                       <option value="">Seleccione almacén destino</option>
                       {almacenes
-                        .filter(a => a.id.toString() !== selectedOrigin)
-                        .map(a => (
-                          <option key={a.id} value={a.id}>{a.nombre}</option>
+                        .filter((a) => a.id.toString() !== selectedOrigin)
+                        .map((a) => (
+                          <option key={a.id} value={a.id}>
+                            {a.nombre}
+                          </option>
                         ))}
                     </select>
                   </div>
                   {/* Cantidad */}
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Cantidad</label>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Cantidad
+                    </label>
                     <input
                       type="number"
                       value={quantityTraslado}
-                      onChange={e => setQuantityTraslado(e.target.value)}
+                      onChange={(e) => setQuantityTraslado(e.target.value)}
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-gray-900 bg-white"
                       min="1"
                       required
@@ -2519,10 +2601,12 @@ export default function Dashboard() {
                   </div>
                   {/* Observaciones */}
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Observaciones</label>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Observaciones
+                    </label>
                     <textarea
                       value={observationsTraslado}
-                      onChange={e => setObservationsTraslado(e.target.value)}
+                      onChange={(e) => setObservationsTraslado(e.target.value)}
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-gray-900 bg-white"
                       rows={3}
                     />
