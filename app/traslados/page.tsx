@@ -193,6 +193,7 @@ export default function TrasladosPage() {
                         setProductoInput(`${p.nombre} (${p.codigo})`);
                         // Aquí deberías actualizar el estado relacionado con el producto seleccionado para traslados, por ejemplo:
                         // 
+                        setSelectedProduct(p.id.toString())
                         setSelectedOrigin(p.almacenId?.toString()!)
                         
                         setMostrarSugerencias(false);
