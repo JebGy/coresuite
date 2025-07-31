@@ -23,8 +23,8 @@ export default async function handler(
     // Establecer cookie de sesión
     res.setHeader('Set-Cookie', `session=${trabajador.id}; Path=/; HttpOnly; SameSite=Lax`);
     
-    res.redirect("/application");
     res.status(200).json({datos:trabajador, message: "Login successful" });
+    res.redirect("/application");
   } else {
     res.status(401).json({ message: "Invalid credentials" });
   }
