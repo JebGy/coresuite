@@ -42,7 +42,7 @@ export type Traslado = {
     nombre: string;
   };
   cantidad: number;
-  estado: 'PENDIENTE' | 'APROBADO' | 'RECHAZADO' | 'COMPLETADO';
+  estado: "PENDIENTE" | "APROBADO" | "RECHAZADO" | "COMPLETADO";
   observaciones?: string;
   trabajadorId: number;
 };
@@ -58,6 +58,16 @@ export type Trabajador = {
   unidad?: Unidad;
   createdAt: string;
   updatedAt: string;
+  rol?: Rol;
+};
+
+export type UsuarioSession = {
+  id: number;
+  nombres: string;
+  apellidos: string;
+  email: string;
+  rolId: number;
+  rol?: Rol;
 };
 
 export type OrdenEntrega = {
@@ -65,7 +75,7 @@ export type OrdenEntrega = {
   numeroTicket: string;
   fechaSolicitud: string;
   fechaAprobacion?: string;
-  estado: 'pendiente' | 'aprobada' | 'rechazada' | 'entregada';
+  estado: "pendiente" | "aprobada" | "rechazada" | "entregada";
   cantidad: number;
   motivo: string;
   observaciones?: string;
@@ -93,17 +103,17 @@ export type Movimiento = {
 };
 
 export type KardexRow = {
-    fecha: string;
-    detalle: string;
-    entrada: number;
-    salida: number;
-    saldoCantidad: number;
-    saldoValor: number;
-    costoPromedio: number;
-    almacenId?: number;
-    almacenNombre?: string;
-    factura?: string;
-  };
+  fecha: string;
+  detalle: string;
+  entrada: number;
+  salida: number;
+  saldoCantidad: number;
+  saldoValor: number;
+  costoPromedio: number;
+  almacenId?: number;
+  almacenNombre?: string;
+  factura?: string;
+};
 
 export type KardexConsolidado = {
   productoId: number;
@@ -124,9 +134,16 @@ export type Rol = {
   id: number;
   nombre: string;
   descripcion?: string;
-  permisos: any;
+  permisos: Permiso;
 };
 
+export interface Permiso {
+  accesoTotal: boolean;
+  puedeCrearOrdenes: boolean;
+  puedeEditarUsuarios: boolean;
+  puedeGestionarInventario: boolean;
+  puedeVerReportes: boolean;
+}
 
 export type Notificacion = {
   id: number;

@@ -98,10 +98,17 @@ export async function updateTrabajador(id: number, data: {
   if (!usuario.permisos.puedeEditarUsuarios) {
     throw new Error('No tienes permiso para editar usuarios');
   }
+  let hashedPassword;
+  if (data.dni) {
+    hashedPassword = await bcrypt.hash(data.dni, 10);
+  }
   try {
     const trabajador = await prisma.trabajador.update({
       where: { id },
-      data,
+      data:{
+        ...data,
+        password:hashedPassword
+      },
       include: {
         unidad: true
       }

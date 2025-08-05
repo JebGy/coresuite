@@ -8,7 +8,13 @@ import {
   calcularKardexPorAlmacen,
   calcularKardexConsolidado,
 } from "@/lib/kardex";
-import { Almacen, Producto, Movimiento } from "@/types";
+import {
+  Almacen,
+  Producto,
+  Movimiento,
+  Trabajador,
+  UsuarioSession,
+} from "@/types";
 import { addAlmacen, getAlmacenes } from "../actions/AlmacenesActions";
 import { addProudcto, getProductos } from "../actions/ProductosActions";
 import { addMovimiento, getMovimientos } from "../actions/MovimientosActions";
@@ -515,329 +521,346 @@ export default function Dashboard() {
           Dashboard
         </button>
 
-        <button
-          className={`flex items-center w-full px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 ${
-            activeSection === "almacenes"
-              ? "bg-blue-100 text-blue-700 border border-blue-200"
-              : ""
-          }`}
-          onClick={() => {
-            setActiveSection("almacenes");
-            setSidebarOpen(false);
-          }}
-        >
-          <svg
-            className="w-5 h-5 mr-3"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
+        {trabajador.rol?.permisos?.puedeGestionarInventario && (
+          <button
+            className={`flex items-center w-full px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 ${
+              activeSection === "almacenes"
+                ? "bg-blue-100 text-blue-700 border border-blue-200"
+                : ""
+            }`}
+            onClick={() => {
+              setActiveSection("almacenes");
+              setSidebarOpen(false);
+            }}
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
-            />
-          </svg>
-          Almacenes
-        </button>
+            <svg
+              className="w-5 h-5 mr-3"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
+              />
+            </svg>
+            Almacenes
+          </button>
+        )}
+        {trabajador.rol?.permisos?.puedeGestionarInventario && (
+          <button
+            className={`flex items-center w-full px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 ${
+              activeSection === "productos"
+                ? "bg-blue-100 text-blue-700 border border-blue-200"
+                : ""
+            }`}
+            onClick={() => {
+              setActiveSection("productos");
+              setSidebarOpen(false);
+            }}
+          >
+            <svg
+              className="w-5 h-5 mr-3"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
+              />
+            </svg>
+            Productos
+          </button>
+        )}
+        {trabajador.rol?.permisos?.puedeGestionarInventario && (
+          <button
+            className={`flex items-center w-full px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 ${
+              activeSection === "unidades"
+                ? "bg-blue-100 text-blue-700 border border-blue-200"
+                : ""
+            }`}
+            onClick={() => {
+              setActiveSection("unidades");
+              setSidebarOpen(false);
+            }}
+          >
+            <svg
+              className="w-5 h-5 mr-3"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
+              />
+            </svg>
+            Unidades
+          </button>
+        )}
 
-        <button
-          className={`flex items-center w-full px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 ${
-            activeSection === "productos"
-              ? "bg-blue-100 text-blue-700 border border-blue-200"
-              : ""
-          }`}
-          onClick={() => {
-            setActiveSection("productos");
-            setSidebarOpen(false);
-          }}
-        >
-          <svg
-            className="w-5 h-5 mr-3"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
+        {trabajador.rol?.permisos?.puedeEditarUsuarios && (
+          <button
+            className={`flex items-center w-full px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 ${
+              activeSection === "trabajadores"
+                ? "bg-blue-100 text-blue-700 border border-blue-200"
+                : ""
+            }`}
+            onClick={() => {
+              setActiveSection("trabajadores");
+              setSidebarOpen(false);
+            }}
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
-            />
-          </svg>
-          Productos
-        </button>
+            <svg
+              className="w-5 h-5 mr-3"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"
+              />
+            </svg>
+            Trabajadores
+          </button>
+        )}
 
-        <button
-          className={`flex items-center w-full px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 ${
-            activeSection === "unidades"
-              ? "bg-blue-100 text-blue-700 border border-blue-200"
-              : ""
-          }`}
-          onClick={() => {
-            setActiveSection("unidades");
-            setSidebarOpen(false);
-          }}
-        >
-          <svg
-            className="w-5 h-5 mr-3"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
+        {trabajador.rol?.permisos.puedeGestionarInventario && (
+          <button
+            className={`flex items-center w-full px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 ${
+              activeSection === "traslados"
+                ? "bg-blue-100 text-blue-700 border border-blue-200"
+                : ""
+            }`}
+            onClick={() => {
+              router.push("/traslados");
+              setSidebarOpen(false);
+            }}
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
-            />
-          </svg>
-          Unidades
-        </button>
+            <svg
+              className="w-5 h-5 mr-3"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"
+              />
+            </svg>
+            Traslados
+          </button>
+        )}
 
-        <button
-          className={`flex items-center w-full px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 ${
-            activeSection === "trabajadores"
-              ? "bg-blue-100 text-blue-700 border border-blue-200"
-              : ""
-          }`}
-          onClick={() => {
-            setActiveSection("trabajadores");
-            setSidebarOpen(false);
-          }}
-        >
-          <svg
-            className="w-5 h-5 mr-3"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
+        {trabajador.rol?.permisos.puedeCrearOrdenes && (
+          <button
+            className={`flex items-center w-full px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 ${
+              activeSection === "ordenes-entrega"
+                ? "bg-blue-100 text-blue-700 border border-blue-200"
+                : ""
+            }`}
+            onClick={() => {
+              setActiveSection("ordenes-entrega");
+              setSidebarOpen(false);
+            }}
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"
-            />
-          </svg>
-          Trabajadores
-        </button>
+            <svg
+              className="w-5 h-5 mr-3"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+              />
+            </svg>
+            Órdenes de Entrega
+          </button>
+        )}
+        {trabajador.rol?.permisos.puedeGestionarInventario && (
+          <button
+            className={`flex items-center w-full px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 ${
+              activeSection === "movimientos"
+                ? "bg-blue-100 text-blue-700 border border-blue-200"
+                : ""
+            }`}
+            onClick={() => {
+              setActiveSection("movimientos");
+              setSidebarOpen(false);
+            }}
+          >
+            <svg
+              className="w-5 h-5 mr-3"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"
+              />
+            </svg>
+            Movimientos
+          </button>
+        )}
+        {trabajador.rol?.permisos.puedeGestionarInventario && (
+          <button
+            className={`flex items-center w-full px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 ${
+              activeSection === "kardex"
+                ? "bg-blue-100 text-blue-700 border border-blue-200"
+                : ""
+            }`}
+            onClick={() => {
+              setActiveSection("kardex");
+              setSidebarOpen(false);
+            }}
+          >
+            <svg
+              className="w-5 h-5 mr-3"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+              />
+            </svg>
+            Kardex
+          </button>
+        )}
+        {trabajador.rol?.permisos.puedeGestionarInventario && (
+          <button
+            className={`flex items-center w-full px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 ${
+              activeSection === "reportes"
+                ? "bg-blue-100 text-blue-700 border border-blue-200"
+                : ""
+            }`}
+            onClick={() => {
+              setActiveSection("reportes");
+              setSidebarOpen(false);
+            }}
+          >
+            <svg
+              className="w-5 h-5 mr-3"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+              />
+            </svg>
+            Reportes
+          </button>
+        )}
+        {trabajador.rol?.permisos.accesoTotal && (
+          <button
+            className={`flex items-center w-full px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 ${
+              activeSection === "logs"
+                ? "bg-blue-100 text-blue-700 border border-blue-200"
+                : ""
+            }`}
+            onClick={() => {
+              window.location.href = "/logs";
+              setSidebarOpen(false);
+            }}
+          >
+            <svg
+              className="w-5 h-5 mr-3"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 17v-2a4 4 0 014-4h3m4 4v6a2 2 0 01-2 2H7a2 2 0 01-2-2V7a2 2 0 012-2h6"
+              />
+            </svg>
+            Logs del sistema
+          </button>
+        )}
+        {trabajador.rol?.permisos?.puedeVerReportes && (
+          <button
+            className={`flex items-center w-full px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 ${
+              activeSection === "import-export"
+                ? "bg-blue-100 text-blue-700 border border-blue-200"
+                : ""
+            }`}
+            onClick={() => {
+              setActiveSection("import-export");
+              setSidebarOpen(false);
+            }}
+          >
+            <svg
+              className="w-5 h-5 mr-3"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 4v16m8-8H4"
+              />
+            </svg>
+            Importar/Exportar
+          </button>
+        )}
 
-        <button
-          className={`flex items-center w-full px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 ${
-            activeSection === "traslados"
-              ? "bg-blue-100 text-blue-700 border border-blue-200"
-              : ""
-          }`}
-          onClick={() => {
-            router.push("/traslados");
-            setSidebarOpen(false);
-          }}
-        >
-          <svg
-            className="w-5 h-5 mr-3"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
+        {trabajador.rol?.permisos?.puedeEditarUsuarios && (
+          <button
+            className={`flex items-center w-full px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 ${
+              activeSection === "recursoshumanos"
+                ? "bg-blue-100 text-blue-700 border border-blue-200"
+                : ""
+            }`}
+            onClick={() => {
+              setActiveSection("recursoshumanos");
+              setSidebarOpen(false);
+            }}
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"
-            />
-          </svg>
-          Traslados
-        </button>
-
-        <button
-          className={`flex items-center w-full px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 ${
-            activeSection === "ordenes-entrega"
-              ? "bg-blue-100 text-blue-700 border border-blue-200"
-              : ""
-          }`}
-          onClick={() => {
-            setActiveSection("ordenes-entrega");
-            setSidebarOpen(false);
-          }}
-        >
-          <svg
-            className="w-5 h-5 mr-3"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-            />
-          </svg>
-          Órdenes de Entrega
-        </button>
-
-        <button
-          className={`flex items-center w-full px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 ${
-            activeSection === "movimientos"
-              ? "bg-blue-100 text-blue-700 border border-blue-200"
-              : ""
-          }`}
-          onClick={() => {
-            setActiveSection("movimientos");
-            setSidebarOpen(false);
-          }}
-        >
-          <svg
-            className="w-5 h-5 mr-3"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"
-            />
-          </svg>
-          Movimientos
-        </button>
-
-        <button
-          className={`flex items-center w-full px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 ${
-            activeSection === "kardex"
-              ? "bg-blue-100 text-blue-700 border border-blue-200"
-              : ""
-          }`}
-          onClick={() => {
-            setActiveSection("kardex");
-            setSidebarOpen(false);
-          }}
-        >
-          <svg
-            className="w-5 h-5 mr-3"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-            />
-          </svg>
-          Kardex
-        </button>
-
-        <button
-          className={`flex items-center w-full px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 ${
-            activeSection === "reportes"
-              ? "bg-blue-100 text-blue-700 border border-blue-200"
-              : ""
-          }`}
-          onClick={() => {
-            setActiveSection("reportes");
-            setSidebarOpen(false);
-          }}
-        >
-          <svg
-            className="w-5 h-5 mr-3"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
-            />
-          </svg>
-          Reportes
-        </button>
-
-        <button
-          className={`flex items-center w-full px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 ${
-            activeSection === "logs"
-              ? "bg-blue-100 text-blue-700 border border-blue-200"
-              : ""
-          }`}
-          onClick={() => {
-            window.location.href = "/logs";
-            setSidebarOpen(false);
-          }}
-        >
-          <svg
-            className="w-5 h-5 mr-3"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M9 17v-2a4 4 0 014-4h3m4 4v6a2 2 0 01-2 2H7a2 2 0 01-2-2V7a2 2 0 012-2h6"
-            />
-          </svg>
-          Logs del sistema
-        </button>
-
-        <button
-          className={`flex items-center w-full px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 ${
-            activeSection === "import-export"
-              ? "bg-blue-100 text-blue-700 border border-blue-200"
-              : ""
-          }`}
-          onClick={() => {
-            setActiveSection("import-export");
-            setSidebarOpen(false);
-          }}
-        >
-          <svg
-            className="w-5 h-5 mr-3"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M12 4v16m8-8H4"
-            />
-          </svg>
-          Importar/Exportar
-        </button>
-
-        <button
-          className={`flex items-center w-full px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 ${
-            activeSection === "recursoshumanos"
-              ? "bg-blue-100 text-blue-700 border border-blue-200"
-              : ""
-          }`}
-          onClick={() => {
-            setActiveSection("recursoshumanos");
-            setSidebarOpen(false);
-          }}
-        >
-          <svg
-            className="w-5 h-5 mr-3"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"
-            />
-          </svg>
-          Recursos Humanos
-        </button>
+            <svg
+              className="w-5 h-5 mr-3"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"
+              />
+            </svg>
+            Recursos Humanos
+          </button>
+        )}
       </nav>
 
       <div className="mt-auto pt-8">
@@ -868,7 +891,14 @@ export default function Dashboard() {
         </div>
         <button
           onClick={() => {
-            /* No sign out needed for ROOT user */
+            fetch("/api/auth/logout", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+            }).then((v) => {
+              router.refresh();
+            });
           }}
           className="w-full bg-red-600 hover:bg-red-700 text-white py-2 rounded-lg font-medium transition-colors duration-200 flex items-center justify-center"
         >
@@ -947,6 +977,37 @@ export default function Dashboard() {
     </div>
   );
 
+  const [trabajador, setTrabajador] = useState<UsuarioSession>({
+    id: 0,
+    nombres: "",
+    apellidos: "",
+    email: "",
+    rolId: 0,
+    rol: {
+      id: 0,
+      nombre: "",
+      descripcion: "",
+      permisos: {
+        accesoTotal: false,
+        puedeCrearOrdenes: false,
+        puedeEditarUsuarios: false,
+        puedeGestionarInventario: false,
+        puedeVerReportes: false,
+      },
+    },
+  });
+
+  useEffect(() => {
+    fetch("/api/auth/me", {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    }).then((v) => {
+      v.json().then((v) => setTrabajador(v.datos as UsuarioSession));
+    });
+  }, [trabajador.nombres]);
+
   // Renderizado condicional basado en la sección activa
   const renderContent = () => {
     switch (activeSection) {
@@ -956,7 +1017,11 @@ export default function Dashboard() {
             {/* Header del Dashboard */}
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-3xl font-bold text-gray-800">Dashboard</h1>
+                <h1 className="text-3xl font-bold text-gray-800">
+                  Dashboard - {trabajador.nombres} -{" "}
+                  {trabajador.rol?.nombre || "Sin Rol"}
+                </h1>
+
                 <p className="text-gray-600">
                   Resumen general del sistema de gestión
                 </p>
