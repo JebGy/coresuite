@@ -897,7 +897,9 @@ export default function Dashboard() {
                 "Content-Type": "application/json",
               },
             }).then((v) => {
-              router.refresh();
+              if(v.ok){
+                router.replace("/login")
+              }
             });
           }}
           className="w-full bg-red-600 hover:bg-red-700 text-white py-2 rounded-lg font-medium transition-colors duration-200 flex items-center justify-center"
