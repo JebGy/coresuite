@@ -156,12 +156,22 @@ export type Notificacion = {
   updatedAt: string;
 };
 
+export type Segmento = {
+  id: number;
+  nombre: string;
+  descripcion?: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
 export type Proveedor = {
   id: number;
   ruc: string;
   nombre: string;
   telefono?: string;
   email?: string;
+  segmentoId: number;
+  segmento?: Segmento;
   createdAt: string;
   updatedAt: string;
 };

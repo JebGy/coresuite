@@ -1,11 +1,40 @@
 "use server";
+import { prisma } from "@/lib/prisma";
 import { Proveedor } from "@/types";
 
 export async function getProveedores(): Promise<Proveedor[]> {
   try {
-    const response = await fetch("/api/proveedores");
-    if (!response.ok) throw new Error("Error al obtener proveedores");
-    return await response.json();
+    const proveedores = await prisma.proveedor.findMany({
+      select: {
+        id: true,
+        ruc: true,
+        nombre: true,
+        telefono: true,
+        email: true,
+        createdAt: true,
+        segmentoId: true,
+        segmento: true,
+
+        updatedAt: true,
+      },
+    });
+
+    return proveedores.map((proveedor) => ({
+      ...proveedor,
+      telefono: proveedor.telefono || undefined,
+      email: proveedor.email || undefined,
+      segmentoId: proveedor.segmentoId,
+      segmento: {
+        id: proveedor.segmentoId,
+        nombre: proveedor.segmento?.nombre || "",
+        descripcion: proveedor.segmento?.descripcion || "",
+        createdAt: new Date(proveedor.segmento?.createdAt || 0).toISOString(),
+        updatedAt: new Date(proveedor.segmento?.updatedAt || 0).toISOString(),
+      },
+
+      createdAt: new Date(proveedor.createdAt).toISOString(),
+      updatedAt: new Date(proveedor.updatedAt).toISOString(),
+    }));
   } catch (error) {
     console.error("Error:", error);
     return [];
@@ -13,19 +42,38 @@ export async function getProveedores(): Promise<Proveedor[]> {
 }
 
 export async function addProveedor(
-  proveedor: Omit<Proveedor, "id" | "createdAt" | "updatedAt">
+  proveedor: Omit<Proveedor, "id" | "createdAt" | "updatedAt" | "segmento">
 ): Promise<Proveedor | null> {
   try {
-    const response = await fetch("/api/proveedores", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
+    const { ruc, nombre, telefono, email, segmentoId } = proveedor;
+
+    const nuevoProveedor = await prisma.proveedor.create({
+      data: {
+        ruc,
+        nombre,
+        telefono: telefono || undefined,
+        email: email || undefined,
+        segmentoId: segmentoId,
       },
-      body: JSON.stringify(proveedor),
+      include: {
+        segmento: true,
+      },
     });
 
-    if (!response.ok) throw new Error("Error al crear proveedor");
-    return await response.json();
+    return {
+      ...nuevoProveedor,
+      telefono: nuevoProveedor.telefono || undefined,
+      email: nuevoProveedor.email || undefined,
+      segmento: nuevoProveedor.segmento ? {
+        id: nuevoProveedor.segmento.id,
+        nombre: nuevoProveedor.segmento.nombre,
+        descripcion: nuevoProveedor.segmento.descripcion || undefined,
+        createdAt: new Date(nuevoProveedor.segmento.createdAt).toISOString(),
+        updatedAt: new Date(nuevoProveedor.segmento.updatedAt).toISOString(),
+      } : undefined,
+      createdAt: new Date(nuevoProveedor.createdAt).toISOString(),
+      updatedAt: new Date(nuevoProveedor.updatedAt).toISOString(),
+    };
   } catch (error) {
     console.error("Error:", error);
     return null;

@@ -1,20 +1,31 @@
 import React, { useState, useEffect } from 'react';
-import { Proveedor } from '@/types';
+import { Proveedor, Segmento } from '@/types';
 import { getProveedores, addProveedor, getRucData } from '@/app/actions/ProveedoresActions';
+
 import { Notificacion } from './Notificacion';
+import { addSegmento, getSegmentos } from '../actions/SegmentosActions';
 
 interface ProveedorFormData {
   ruc: string;
   nombre: string;
   telefono: string;
   email: string;
+  segmentoId: number;
+}
+
+interface SegmentoFormData {
+  nombre: string;
+  descripcion: string;
 }
 
 function ProveedoresView() {
   const [proveedores, setProveedores] = useState<Proveedor[]>([]);
+  const [segmentos, setSegmentos] = useState<Segmento[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [submittingSegmento, setSubmittingSegmento] = useState(false);
   const [validatingRuc, setValidatingRuc] = useState(false);
+  const [showSegmentoForm, setShowSegmentoForm] = useState(false);
   const [notificacion, setNotificacion] = useState<{
     mensaje: string;
     tipo: 'success' | 'error';
@@ -25,21 +36,31 @@ function ProveedoresView() {
     nombre: '',
     telefono: '',
     email: '',
+    segmentoId: 0,
   });
 
-  // Cargar proveedores al montar el componente
+  const [segmentoFormData, setSegmentoFormData] = useState<SegmentoFormData>({
+    nombre: '',
+    descripcion: '',
+  });
+
+  // Cargar datos al montar el componente
   useEffect(() => {
-    loadProveedores();
+    loadData();
   }, []);
 
-  const loadProveedores = async () => {
+  const loadData = async () => {
     try {
-      const data = await getProveedores();
-      setProveedores(data);
+      const [proveedoresData, segmentosData] = await Promise.all([
+        getProveedores(),
+        getSegmentos()
+      ]);
+      setProveedores(proveedoresData);
+      setSegmentos(segmentosData);
     } catch (error) {
-      console.error('Error al cargar proveedores:', error);
+      console.error('Error al cargar datos:', error);
       setNotificacion({
-        mensaje: 'Error al cargar proveedores',
+        mensaje: 'Error al cargar datos',
         tipo: 'error'
       });
     } finally {
@@ -86,9 +107,9 @@ function ProveedoresView() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.ruc || !formData.nombre) {
+    if (!formData.ruc || !formData.nombre || !formData.segmentoId) {
       setNotificacion({
-        mensaje: 'RUC y nombre son requeridos',
+        mensaje: 'RUC, nombre y segmento son requeridos',
         tipo: 'error'
       });
       return;
@@ -119,6 +140,7 @@ function ProveedoresView() {
         nombre: formData.nombre,
         telefono: formData.telefono || undefined,
         email: formData.email || undefined,
+        segmentoId: formData.segmentoId,
       });
 
       if (nuevoProveedor) {
@@ -133,10 +155,11 @@ function ProveedoresView() {
           nombre: '',
           telefono: '',
           email: '',
+          segmentoId: 0,
         });
         
         // Recargar lista de proveedores
-        await loadProveedores();
+        await loadData();
       } else {
         setNotificacion({
           mensaje: 'Error al agregar proveedor',
@@ -154,6 +177,59 @@ function ProveedoresView() {
     }
   };
 
+  const handleSegmentoSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!segmentoFormData.nombre) {
+      setNotificacion({
+        mensaje: 'El nombre del segmento es requerido',
+        tipo: 'error'
+      });
+      return;
+    }
+
+    setSubmittingSegmento(true);
+    try {
+      const nuevoSegmento = await addSegmento({
+        nombre: segmentoFormData.nombre,
+        descripcion: segmentoFormData.descripcion || undefined,
+      });
+
+      if (nuevoSegmento) {
+        setNotificacion({
+          mensaje: 'Segmento agregado exitosamente',
+          tipo: 'success'
+        });
+        
+        // Limpiar formulario
+        setSegmentoFormData({
+          nombre: '',
+          descripcion: '',
+        });
+        
+        // Recargar segmentos
+        const segmentosData = await getSegmentos();
+        setSegmentos(segmentosData);
+        
+        // Cerrar formulario
+        setShowSegmentoForm(false);
+      } else {
+        setNotificacion({
+          mensaje: 'Error al agregar segmento',
+          tipo: 'error'
+        });
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      setNotificacion({
+        mensaje: 'Error al agregar segmento',
+        tipo: 'error'
+      });
+    } finally {
+      setSubmittingSegmento(false);
+    }
+  };
+
   return (
     <div className="space-y-6 col-span-full">
       {notificacion && (
@@ -164,15 +240,101 @@ function ProveedoresView() {
         />
       )}
       
+      {/* Formulario para agregar segmento */}
+      {showSegmentoForm && (
+        <div className="bg-white/95 backdrop-blur-sm rounded-xl p-6 shadow-lg border border-gray-200">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center">
+              <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-purple-600 rounded-lg flex items-center justify-center mr-3">
+                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                </svg>
+              </div>
+              <h2 className="text-xl font-bold text-gray-800">Nuevo Segmento</h2>
+            </div>
+            <button
+              onClick={() => setShowSegmentoForm(false)}
+              className="text-gray-500 hover:text-gray-700"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+
+          <form onSubmit={handleSegmentoSubmit} className="space-y-4">
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                Nombre <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                value={segmentoFormData.nombre}
+                onChange={(e) => setSegmentoFormData(prev => ({ ...prev, nombre: e.target.value }))}
+                placeholder="Ej: EPPS, FERRETERÍA, OFICINA"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 text-gray-900 bg-white"
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">Descripción</label>
+              <input
+                type="text"
+                value={segmentoFormData.descripcion}
+                onChange={(e) => setSegmentoFormData(prev => ({ ...prev, descripcion: e.target.value }))}
+                placeholder="Descripción del segmento"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 text-gray-900 bg-white"
+              />
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                type="submit"
+                disabled={submittingSegmento}
+                className="flex-1 bg-purple-600 hover:bg-purple-700 disabled:bg-purple-400 text-white px-4 py-3 rounded-lg font-medium transition-colors duration-200 flex items-center justify-center"
+              >
+                {submittingSegmento ? (
+                  <>
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                    Agregando...
+                  </>
+                ) : (
+                  'Agregar Segmento'
+                )}
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowSegmentoForm(false)}
+                className="px-4 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors duration-200"
+              >
+                Cancelar
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+      
       {/* Formulario para agregar proveedor */}
       <div className="bg-white/95 backdrop-blur-sm rounded-xl p-6 shadow-lg border border-gray-200">
-        <div className="flex items-center mb-6">
-          <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg flex items-center justify-center mr-3">
-            <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-            </svg>
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center">
+            <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg flex items-center justify-center mr-3">
+              <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+              </svg>
+            </div>
+            <h2 className="text-xl font-bold text-gray-800">Nuevo Proveedor</h2>
           </div>
-          <h2 className="text-xl font-bold text-gray-800">Nuevo Proveedor</h2>
+          <button
+            onClick={() => setShowSegmentoForm(true)}
+            className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200 flex items-center"
+          >
+            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            </svg>
+            Nuevo Segmento
+          </button>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -244,26 +406,81 @@ function ProveedoresView() {
             </div>
           </div>
 
-          {/* Botón de envío */}
-          <button
-            type="submit"
-            disabled={submitting || validatingRuc}
-            className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white px-4 py-3 rounded-lg font-medium transition-colors duration-200 flex items-center justify-center"
-          >
-            {submitting ? (
-              <>
-                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-                Agregando...
-              </>
-            ) : (
-              <>
-                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
-                Agregar Proveedor
-              </>
-            )}
-          </button>
+          {/* Selector de Segmento */}
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              Segmento <span className="text-red-500">*</span>
+            </label>
+            <select
+              name="segmentoId"
+              value={formData.segmentoId}
+              onChange={(e) => setFormData(prev => ({ ...prev, segmentoId: Number(e.target.value) }))}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-gray-900 bg-white"
+              required
+            >
+              <option value={0}>Seleccione un segmento</option>
+              {segmentos.map((segmento) => (
+                <option key={segmento.id} value={segmento.id}>
+                  {segmento.nombre}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Verify RUC Button */}
+          <div className="flex justify-end mb-4">
+            <button
+              type="button"
+              onClick={() => handleRucChange(formData.ruc)}
+              disabled={!formData.ruc || validatingRuc}
+              className="bg-gray-100 hover:bg-gray-200 text-gray-800 px-4 py-2 rounded-lg font-medium transition-colors duration-200 flex items-center"
+            >
+              {validatingRuc ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-800 mr-2"></div>
+                  Verificando...
+                </>
+              ) : (
+                <>
+                  <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                  </svg>
+                  Verificar RUC
+                </>
+              )}
+            </button>
+          </div>
+
+          {/* Submit Button */}
+          <div className="flex gap-3">
+            <button
+              type="submit"
+              disabled={submitting}
+              className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white px-4 py-3 rounded-lg font-medium transition-colors duration-200 flex items-center justify-center"
+            >
+              {submitting ? (
+                <>
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                  Agregando...
+                </>
+              ) : (
+                'Agregar Proveedor'
+              )}
+            </button>
+            <button
+              type="reset"
+              onClick={() => setFormData({
+                ruc: '',
+                nombre: '',
+                telefono: '',
+                email: '',
+                segmentoId: 0,
+              })}
+              className="px-4 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors duration-200"
+            >
+              Limpiar
+            </button>
+          </div>
         </form>
       </div>
 
@@ -293,6 +510,7 @@ function ProveedoresView() {
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">RUC</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Razón Social</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Segmento</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Teléfono</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha Registro</th>
@@ -306,6 +524,11 @@ function ProveedoresView() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       {proveedor.nombre}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                        {proveedor.segmento?.nombre || 'Sin segmento'}
+                      </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       {proveedor.telefono || '-'}

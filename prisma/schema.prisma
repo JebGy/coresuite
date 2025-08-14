@@ -147,14 +147,29 @@ model Notificacion {
   updatedAt DateTime @updatedAt
 }
 
+// ... existing code ...
+
+model Segmento {
+  id          Int         @id @default(autoincrement())
+  nombre      String      @unique // "EPPS", "FERRETERÍA", "OFICINA", etc.
+  descripcion String?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  proveedores Proveedor[]
+
+  @@map("segmentos")
+}
+
 model Proveedor {
-  id        Int      @id @default(autoincrement())
-  ruc       String   @unique
-  nombre    String
-  telefono  String?
-  email     String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id         Int      @id @default(autoincrement())
+  ruc        String   @unique
+  nombre     String
+  telefono   String?
+  email      String?
+  segmentoId Int
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  segmento   Segmento @relation(fields: [segmentoId], references: [id])
 
   @@map("proveedores")
 }
