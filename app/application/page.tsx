@@ -22,6 +22,8 @@ import { useRouter } from "next/navigation";
 import { Notificacion } from "../components/Notificacion";
 import { useUser } from "../context/UserContext";
 import { ReportesSection } from "../components/ReportesSection";
+import { ImportSection } from "../components/ImportSection";
+import { ExportSection } from "../components/ExportSection";
 
 // Tipos de datos ya importados desde @/types
 
@@ -253,6 +255,35 @@ export default function Dashboard() {
       setSubmitting(false);
     }
   };
+
+  const handleImportFile = async (file: File) => {
+  setImportando(true);
+  setResultadoImportacion(null);
+  
+  try {
+    const res = await fetch("/api/import-export", {
+      method: "POST",
+      body: file,
+    });
+    
+    if (res.ok) {
+      const data = await res.json();
+      setNotificacion({ mensaje: "Importación exitosa", tipo: "exito" });
+      setResultadoImportacion({ results: data.results, errors: data.errors });
+    } else {
+      let mensaje = "Error al importar datos";
+      try {
+        const data = await res.json();
+        if (data.error) mensaje = data.error;
+      } catch {}
+      setNotificacion({ mensaje, tipo: "error" });
+    }
+  } catch (err) {
+    setNotificacion({ mensaje: "Error de red al importar", tipo: "error" });
+  } finally {
+    setImportando(false);
+  }
+};
 
   // Handlers para movimientos
   const handleMovimientoChange = (
@@ -2441,94 +2472,17 @@ export default function Dashboard() {
       case "import-export":
         return (
           <div className="space-y-6 col-span-full">
-            <div className="flex items-center justify-between">
-              <div>
-                <h1 className="text-3xl font-bold text-gray-800">
-                  Importar/Exportar
-                </h1>
-                <p className="text-gray-600">
-                  Importa datos desde un archivo Excel o exporta toda la
-                  información del sistema.
-                </p>
-              </div>
-            </div>
+            <ImportExportHeader />
             <div className="bg-white/95 backdrop-blur-sm rounded-xl p-6 shadow-lg border border-gray-200 flex flex-col gap-6">
-              <div>
-                <h2 className="text-xl font-semibold mb-2">Importar datos</h2>
-                <form onSubmit={handleImportar}>
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept=".xlsx,.xls"
-                    className="mb-4"
-                  />
-                  <button
-                    type="submit"
-                    disabled={importando}
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200 mr-2"
-                  >
-                    {importando ? "Importando..." : "Importar"}
-                  </button>
-                  <div className="mt-2 text-sm text-gray-600 bg-blue-50 border border-blue-200 rounded p-2">
-                    Para importar datos correctamente, utiliza como plantilla el
-                    archivo generado por la exportación. Así tendrás todos los
-                    campos y el formato exacto que espera el sistema.
-                  </div>
-                </form>
-                {/* Mostrar resumen y errores de importación */}
-                {resultadoImportacion && (
-                  <div className="mt-6">
-                    <h3 className="text-lg font-bold text-gray-800 mb-2">
-                      Resumen de la importación
-                    </h3>
-                    <div className="mb-4">
-                      {Object.entries(resultadoImportacion.results || {}).map(
-                        ([hoja, res]: any) => (
-                          <div key={hoja} className="mb-2">
-                            <span className="font-semibold text-blue-700">
-                              {hoja.charAt(0).toUpperCase() + hoja.slice(1)}:
-                            </span>{" "}
-                            {res.ok} registros importados, {res.fail} errores
-                          </div>
-                        )
-                      )}
-                    </div>
-                    {resultadoImportacion.errors &&
-                      Object.keys(resultadoImportacion.errors).length > 0 && (
-                        <div className="bg-red-50 border border-red-200 rounded p-4">
-                          <h4 className="font-semibold text-red-700 mb-2">
-                            Errores detectados:
-                          </h4>
-                          {Object.entries(resultadoImportacion.errors).map(
-                            ([hoja, errores]: any) => (
-                              <div key={hoja} className="mb-2">
-                                <span className="font-semibold text-red-600">
-                                  {hoja.charAt(0).toUpperCase() + hoja.slice(1)}
-                                  :
-                                </span>
-                                <ul className="list-disc list-inside text-sm text-red-700 mt-1">
-                                  {(errores as string[]).map((err, idx) => (
-                                    <li key={idx}>{err}</li>
-                                  ))}
-                                </ul>
-                              </div>
-                            )
-                          )}
-                        </div>
-                      )}
-                  </div>
-                )}
-              </div>
-              <div>
-                <h2 className="text-xl font-semibold mb-2">Exportar datos</h2>
-                <button
-                  disabled={exportando}
-                  className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200"
-                  onClick={handleExportar}
-                >
-                  {exportando ? "Exportando..." : "Exportar todo a Excel"}
-                </button>
-              </div>
+              <ImportSection
+                onImport={handleImportFile}
+                importando={importando}
+                resultadoImportacion={resultadoImportacion}
+              />
+              <ExportSection
+                onExport={handleExportar}
+                exportando={exportando}
+              />
             </div>
           </div>
         );
