@@ -34,7 +34,7 @@ export const KardexTable: React.FC<Props> = ({ data }) => (
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">{row.entrada}</td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">{row.salida}</td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                {row.entrada > 0 && row.factura ? row.factura : '-'}
+                {row.factura! || '-'}
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
                 {row.saldoCantidad}

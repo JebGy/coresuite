@@ -28,6 +28,8 @@ export default function OrdenesEntregaPage() {
     cantidad: 1,
     motivo: "",
     observaciones: "",
+    trabajadorNombre: "", // Agregar para el input autocompletable
+    productoNombre: "", // Agregar para el input autocompletable
   });
   const [notificacion, setNotificacion] = useState<{
     mensaje: string;
@@ -148,6 +150,8 @@ export default function OrdenesEntregaPage() {
       cantidad: 1,
       motivo: "",
       observaciones: "",
+      trabajadorNombre: "", // Resetear también los campos de nombre
+      productoNombre: "",
     });
   };
 
@@ -199,52 +203,65 @@ export default function OrdenesEntregaPage() {
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Trabajador *
                 </label>
-                <select
-                  value={formData.trabajadorId}
-                  onChange={(e) =>
+                <input
+                  type="text"
+                  value={formData.trabajadorNombre}
+                  onChange={(e) => {
+                    const trabajadorNombre = e.target.value;
+                    const trabajador = trabajadores.find((t) => 
+                      `${t.apellidos}, ${t.nombres} - ${t.unidad?.nombre}`.toLowerCase().includes(trabajadorNombre.toLowerCase())
+                    );
                     setFormData({
                       ...formData,
-                      trabajadorId: parseInt(e.target.value),
-                    })
-                  }
+                      trabajadorId: trabajador?.id || 0,
+                      trabajadorNombre,
+                    });
+                  }}
+                  list="trabajadores"
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Buscar trabajador..."
                   required
-                >
-                  <option value={0}>Seleccionar trabajador</option>
+                />
+                <datalist id="trabajadores">
                   {trabajadores.map((trabajador) => (
-                    <option key={trabajador.id} value={trabajador.id}>
-                      {trabajador.apellidos}, {trabajador.nombres} -{" "}
-                      {trabajador.unidad?.nombre}
+                    <option key={trabajador.id} value={`${trabajador.apellidos}, ${trabajador.nombres} - ${trabajador.unidad?.nombre}`}>
+                      {trabajador.apellidos}, {trabajador.nombres} - {trabajador.unidad?.nombre}
                     </option>
                   ))}
-                </select>
+                </datalist>
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Producto *
                 </label>
-                <select
-                  value={formData.productoId}
+                <input
+                  type="text"
+                  value={formData.productoNombre}
                   onChange={(e) => {
-                    const productoId = parseInt(e.target.value);
-                    const producto = productos.find((p) => p.id === productoId);
+                    const productoNombre = e.target.value;
+                    const producto = productos.find((p) => 
+                      `${p.codigo} - ${p.nombre}`.toLowerCase().includes(productoNombre.toLowerCase())
+                    );
                     setFormData({
                       ...formData,
-                      productoId,
+                      productoId: producto?.id || 0,
+                      productoNombre,
                       almacenId: producto?.almacenId || 0,
                     });
                   }}
+                  list="productos"
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Buscar producto..."
                   required
-                >
-                  <option value={0}>Seleccionar producto</option>
+                />
+                <datalist id="productos">
                   {productos.map((producto) => (
-                    <option key={producto.id} value={producto.id}>
+                    <option key={producto.id} value={`${producto.codigo} - ${producto.nombre}`}>
                       {producto.codigo} - {producto.nombre}
                     </option>
                   ))}
-                </select>
+                </datalist>
               </div>
 
               <div>

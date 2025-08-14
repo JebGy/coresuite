@@ -4,20 +4,23 @@ import { prisma } from "@/lib/prisma";
 import { Movimiento } from "@/types";
 import { registrarLog } from "@/lib/logger";
 
-export async function addMovimiento(movimiento: Omit<Movimiento, 'id'>, usuarioId?: number) {
+export async function addMovimiento(
+  movimiento: Omit<Movimiento, "id">,
+  usuarioId?: number
+) {
   // Si es un movimiento de salida, buscar el último precio de entrada
   let precioUnitarioFinal = movimiento.precioUnitario;
-  
+
   if (movimiento.tipo === "salida") {
     const ultimaEntrada = await prisma.movimiento.findFirst({
       where: {
         productoId: movimiento.productoId,
         tipo: "entrada",
-        precioUnitario: { not: null }
+        precioUnitario: { not: null },
       },
       orderBy: {
-        fecha: 'desc'
-      }
+        fecha: "desc",
+      },
     });
 
     if (ultimaEntrada?.precioUnitario) {
@@ -45,7 +48,7 @@ export async function addMovimiento(movimiento: Omit<Movimiento, 'id'>, usuarioI
     entidadId: nuevoMovimiento.id,
     detalles: `Movimiento creado: ${nuevoMovimiento.tipo}`,
   });
-  
+
   console.log("Movimiento agregado");
 }
 
@@ -56,7 +59,7 @@ export async function getMovimientos(): Promise<Movimiento[]> {
       almacen: true,
     },
     orderBy: {
-      fecha: 'desc',
+      fecha: "desc",
     },
   });
 
@@ -68,11 +71,15 @@ export async function getMovimientos(): Promise<Movimiento[]> {
     precioUnitario: m.precioUnitario || undefined,
     motivo: m.motivo,
     productoId: m.productoId,
+    factura: m.factura || undefined,
+
     almacenId: m.almacenId,
   }));
 }
 
-export async function getMovimientosByProducto(productoId: number): Promise<Movimiento[]> {
+export async function getMovimientosByProducto(
+  productoId: number
+): Promise<Movimiento[]> {
   const movimientos = await prisma.movimiento.findMany({
     where: { productoId },
     include: {
@@ -80,7 +87,7 @@ export async function getMovimientosByProducto(productoId: number): Promise<Movi
       almacen: true,
     },
     orderBy: {
-      fecha: 'asc',
+      fecha: "asc",
     },
   });
 
@@ -92,6 +99,8 @@ export async function getMovimientosByProducto(productoId: number): Promise<Movi
     precioUnitario: m.precioUnitario || undefined,
     motivo: m.motivo,
     productoId: m.productoId,
+    factura: m.factura || undefined,
+
     almacenId: m.almacenId,
   }));
 }
@@ -110,7 +119,11 @@ export async function deleteMovimiento(id: number, usuarioId?: number) {
   console.log("Movimiento eliminado");
 }
 
-export async function updateMovimiento(id: number, movimiento: Partial<Movimiento>, usuarioId?: number) {
+export async function updateMovimiento(
+  id: number,
+  movimiento: Partial<Movimiento>,
+  usuarioId?: number
+) {
   await prisma.movimiento.update({
     where: { id },
     data: {

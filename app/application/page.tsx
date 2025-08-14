@@ -301,7 +301,9 @@ export default function Dashboard() {
         cantidad: 0,
         precioUnitario: 0,
         motivo: "",
-        factura: "",
+        factura: movimientoForm.factura ,
+        productoId: 0,
+        almacenId: 0,
       });
       setNotificacion({
         mensaje: "Movimiento registrado exitosamente",
