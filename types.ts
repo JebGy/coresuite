@@ -155,3 +155,13 @@ export type Notificacion = {
   createdAt: string;
   updatedAt: string;
 };
+
+export type Proveedor = {
+  id: number;
+  ruc: string;
+  nombre: string;
+  telefono?: string;
+  email?: string;
+  createdAt: string;
+  updatedAt: string;
+};
