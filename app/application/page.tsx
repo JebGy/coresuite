@@ -26,6 +26,8 @@ import { ImportSection } from "../components/ImportSection";
 import { ExportSection } from "../components/ExportSection";
 import { KardexSection } from "../components/KardexSection";
 import { MovementManagement } from "../components/MovementManagement";
+import { DashboardView } from "../components/DashboardView";
+import { WarehouseManagement } from "../components/WarehouseManagement";
 
 // Tipos de datos ya importados desde @/types
 
@@ -1079,160 +1081,12 @@ export default function Dashboard() {
     switch (activeSection) {
       case "dashboard":
         return (
-          <div className="space-y-6 col-span-full">
-            {/* Header del Dashboard */}
-            <div className="flex items-center justify-between">
-              <div>
-                <h1 className="text-3xl font-bold text-gray-800">
-                  Dashboard - {trabajador.nombres} -{" "}
-                  {trabajador.rol?.nombre || "Sin Rol"}
-                </h1>
-
-                <p className="text-gray-600">
-                  Resumen general del sistema de gestión
-                </p>
-              </div>
-              <div className="flex items-center space-x-4"></div>
-            </div>
-
-            {/* Métricas principales */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              <MetricCard
-                title="Total Almacenes"
-                value={totalAlmacenes}
-                icon={
-                  <svg
-                    className="w-5 h-5 text-white"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
-                    />
-                  </svg>
-                }
-                color="bg-purple-500"
-              />
-              <MetricCard
-                title="Total Productos"
-                value={totalProductos}
-                icon={
-                  <svg
-                    className="w-5 h-5 text-white"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
-                    />
-                  </svg>
-                }
-                color="bg-blue-500"
-              />
-              <MetricCard
-                title="Total Movimientos"
-                value={totalMovimientos}
-                icon={
-                  <svg
-                    className="w-5 h-5 text-white"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"
-                    />
-                  </svg>
-                }
-                color="bg-green-500"
-              />
-              <MetricCard
-                title="Valor Inventario"
-                value={`S/ ${valorTotalInventario.toLocaleString()}`}
-                icon={
-                  <svg
-                    className="w-5 h-5 text-white"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"
-                    />
-                  </svg>
-                }
-                color="bg-purple-500"
-              />
-            </div>
-
-            {/* Gráficos y análisis */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <SimpleChart
-                title="Distribución de Movimientos"
-                data={[
-                  { label: "Entradas", value: entradas, color: "#10b981" },
-                  { label: "Salidas", value: salidas, color: "#ef4444" },
-                ]}
-              />
-              <div className="glass-effect rounded-2xl p-6">
-                <h3 className="text-lg font-semibold text-gray-800 mb-4">
-                  Actividad Reciente
-                </h3>
-                <div className="space-y-3">
-                  {movimientos
-                    .slice(-5)
-                    .reverse()
-                    .map((mov) => (
-                      <div
-                        key={mov.id}
-                        className="flex items-center justify-between p-3 bg-white/50 rounded-lg"
-                      >
-                        <div className="flex items-center">
-                          <div
-                            className={`w-3 h-3 rounded-full mr-3 ${
-                              mov.tipo === "entrada"
-                                ? "bg-green-500"
-                                : "bg-red-500"
-                            }`}
-                          ></div>
-                          <div>
-                            <p className="text-sm font-medium text-gray-800">
-                              {productos.find((p) => p.id === mov.productoId)
-                                ?.nombre || "Producto"}
-                            </p>
-                            <p className="text-xs text-gray-600">{mov.fecha}</p>
-                          </div>
-                        </div>
-                        <span
-                          className={`text-sm font-semibold ${
-                            mov.tipo === "entrada"
-                              ? "text-green-600"
-                              : "text-red-600"
-                          }`}
-                        >
-                          {mov.tipo === "entrada" ? "+" : "-"}
-                          {mov.cantidad}
-                        </span>
-                      </div>
-                    ))}
-                </div>
-              </div>
-            </div>
-          </div>
+          <DashboardView
+            trabajador={trabajador}
+            almacenes={almacenes}
+            productos={productos}
+            movimientos={movimientos}
+          />
         );
 
       case "unidades":
@@ -1315,171 +1169,13 @@ export default function Dashboard() {
 
       case "almacenes":
         return (
-          <div className="space-y-6 col-span-full">
-            <div className="flex items-center justify-between">
-              <div>
-                <h1 className="text-3xl font-bold text-gray-800">
-                  Gestión de Almacenes
-                </h1>
-                <p className="text-gray-600">
-                  Administra los almacenes de tu empresa
-                </p>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              {/* Formulario de almacenes */}
-              <div className="bg-white/95 backdrop-blur-sm rounded-xl p-6 shadow-lg border border-gray-200">
-                <div className="flex items-center mb-6">
-                  <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg flex items-center justify-center mr-3">
-                    <svg
-                      className="w-5 h-5 text-white"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-                      />
-                    </svg>
-                  </div>
-                  <h2 className="text-xl font-bold text-gray-800">
-                    Nuevo Almacén
-                  </h2>
-                </div>
-
-                <form onSubmit={handleAlmacenSubmit} className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Nombre del Almacén
-                    </label>
-                    <input
-                      name="nombre"
-                      placeholder="Ej: Almacén Principal"
-                      value={almacenForm.nombre}
-                      onChange={handleAlmacenChange}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-gray-900 bg-white"
-                      required
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Ubicación
-                    </label>
-                    <input
-                      name="ubicacion"
-                      placeholder="Ej: Calle Principal #123"
-                      value={almacenForm.ubicacion}
-                      onChange={handleAlmacenChange}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-gray-900 bg-white"
-                      required
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Descripción (opcional)
-                    </label>
-                    <textarea
-                      name="descripcion"
-                      placeholder="Descripción detallada del almacén"
-                      value={almacenForm.descripcion}
-                      onChange={handleAlmacenChange}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-gray-900 bg-white"
-                    />
-                  </div>
-
-                  <button
-                    type="submit"
-                    disabled={submitting}
-                    className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white px-4 py-3 rounded-lg font-medium transition-colors duration-200 flex items-center justify-center"
-                  >
-                    {submitting ? (
-                      <>
-                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-                        Agregando...
-                      </>
-                    ) : (
-                      <>
-                        <svg
-                          className="w-5 h-5 mr-2"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-                          />
-                        </svg>
-                        Agregar Almacén
-                      </>
-                    )}
-                  </button>
-                </form>
-              </div>
-
-              {/* Lista de almacenes */}
-              <div className="bg-white/95 backdrop-blur-sm rounded-xl p-6 shadow-lg border border-gray-200">
-                <h2 className="text-xl font-bold text-gray-800 mb-6">
-                  Almacenes Registrados
-                </h2>
-                <div className="space-y-3 max-h-96 overflow-y-auto">
-                  {almacenes.map((almacen) => (
-                    <div
-                      key={almacen.id}
-                      className="bg-gray-50 rounded-lg p-4 border border-gray-200"
-                    >
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <h3 className="font-semibold text-gray-800">
-                            {almacen.nombre}
-                          </h3>
-                          <p className="text-sm text-gray-600">
-                            Ubicación: {almacen.ubicacion}
-                          </p>
-                          {almacen.descripcion && (
-                            <p className="text-sm text-gray-500 mt-1">
-                              {almacen.descripcion}
-                            </p>
-                          )}
-                        </div>
-                        <div className="text-right">
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                            Activo
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                  {almacenes.length === 0 && (
-                    <div className="text-center py-8 text-gray-500">
-                      <svg
-                        className="w-12 h-12 mx-auto mb-4 text-gray-300"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
-                        />
-                      </svg>
-                      <p>No hay almacenes registrados</p>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
+           <WarehouseManagement
+            almacenes={almacenes}
+            almacenForm={almacenForm}
+            submitting={submitting}
+            onSubmit={handleAlmacenSubmit}
+            onChange={handleAlmacenChange}
+          />
         );
 
       case "productos":
