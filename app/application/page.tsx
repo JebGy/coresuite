@@ -24,6 +24,7 @@ import { useUser } from "../context/UserContext";
 import { ReportesSection } from "../components/ReportesSection";
 import { ImportSection } from "../components/ImportSection";
 import { ExportSection } from "../components/ExportSection";
+import { KardexSection } from "../components/KardexSection";
 
 // Tipos de datos ya importados desde @/types
 
@@ -257,33 +258,33 @@ export default function Dashboard() {
   };
 
   const handleImportFile = async (file: File) => {
-  setImportando(true);
-  setResultadoImportacion(null);
-  
-  try {
-    const res = await fetch("/api/import-export", {
-      method: "POST",
-      body: file,
-    });
-    
-    if (res.ok) {
-      const data = await res.json();
-      setNotificacion({ mensaje: "Importación exitosa", tipo: "exito" });
-      setResultadoImportacion({ results: data.results, errors: data.errors });
-    } else {
-      let mensaje = "Error al importar datos";
-      try {
+    setImportando(true);
+    setResultadoImportacion(null);
+
+    try {
+      const res = await fetch("/api/import-export", {
+        method: "POST",
+        body: file,
+      });
+
+      if (res.ok) {
         const data = await res.json();
-        if (data.error) mensaje = data.error;
-      } catch {}
-      setNotificacion({ mensaje, tipo: "error" });
+        setNotificacion({ mensaje: "Importación exitosa", tipo: "exito" });
+        setResultadoImportacion({ results: data.results, errors: data.errors });
+      } else {
+        let mensaje = "Error al importar datos";
+        try {
+          const data = await res.json();
+          if (data.error) mensaje = data.error;
+        } catch {}
+        setNotificacion({ mensaje, tipo: "error" });
+      }
+    } catch (err) {
+      setNotificacion({ mensaje: "Error de red al importar", tipo: "error" });
+    } finally {
+      setImportando(false);
     }
-  } catch (err) {
-    setNotificacion({ mensaje: "Error de red al importar", tipo: "error" });
-  } finally {
-    setImportando(false);
-  }
-};
+  };
 
   // Handlers para movimientos
   const handleMovimientoChange = (
@@ -2225,239 +2226,11 @@ export default function Dashboard() {
 
       case "kardex":
         return (
-          <div className="space-y-6 col-span-full">
-            <div className="flex items-center justify-between">
-              <div>
-                <h1 className="text-3xl font-bold text-gray-800">Kardex</h1>
-                <p className="text-gray-600">
-                  Control de inventario valorizado por producto, almacén y
-                  consolidado
-                </p>
-              </div>
-            </div>
-
-            {/* Selector de tipo de Kardex */}
-            <div className="bg-white/95 backdrop-blur-sm rounded-xl p-6 shadow-lg border border-gray-200">
-              <div className="mb-6">
-                <label className="block text-sm font-semibold text-gray-700 mb-3">
-                  Tipo de Kardex
-                </label>
-                <div className="flex flex-wrap gap-3">
-                  <button
-                    onClick={() => setTipoKardex("producto")}
-                    className={`px-4 py-2 rounded-lg font-medium transition-colors duration-200 ${
-                      tipoKardex === "producto"
-                        ? "bg-blue-600 text-white"
-                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                    }`}
-                  >
-                    Por Producto
-                  </button>
-                  <button
-                    onClick={() => setTipoKardex("almacen")}
-                    className={`px-4 py-2 rounded-lg font-medium transition-colors duration-200 ${
-                      tipoKardex === "almacen"
-                        ? "bg-blue-600 text-white"
-                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                    }`}
-                  >
-                    Por Almacén
-                  </button>
-                  <button
-                    onClick={() => setTipoKardex("consolidado")}
-                    className={`px-4 py-2 rounded-lg font-medium transition-colors duration-200 ${
-                      tipoKardex === "consolidado"
-                        ? "bg-blue-600 text-white"
-                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                    }`}
-                  >
-                    Consolidado
-                  </button>
-                </div>
-              </div>
-
-              {/* Contenido según el tipo seleccionado */}
-              {tipoKardex === "producto" && (
-                <div>
-                  <div className="mb-6">
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Seleccionar Producto
-                    </label>
-                    <select
-                      value={productoSeleccionado || ""}
-                      onChange={(e) =>
-                        setProductoSeleccionado(Number(e.target.value) || null)
-                      }
-                      className="w-full max-w-md px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-gray-900 bg-white"
-                    >
-                      <option value="">
-                        Selecciona un producto para ver su kardex
-                      </option>
-                      {productos.map((p) => (
-                        <option key={p.id} value={p.id}>
-                          {p.nombre} ({p.codigo})
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  {productoSeleccionado && kardex.length > 0 ? (
-                    <KardexTable data={kardex} />
-                  ) : productoSeleccionado ? (
-                    <div className="text-center py-12 text-gray-500">
-                      <svg
-                        className="w-16 h-16 mx-auto mb-4 text-gray-300"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                        />
-                      </svg>
-                      <p className="text-lg">
-                        No hay movimientos para este producto
-                      </p>
-                      <p className="text-sm">
-                        Registra movimientos para ver el kardex
-                      </p>
-                    </div>
-                  ) : (
-                    <div className="text-center py-12 text-gray-500">
-                      <svg
-                        className="w-16 h-16 mx-auto mb-4 text-gray-300"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                        />
-                      </svg>
-                      <p className="text-lg">
-                        Selecciona un producto para ver su kardex
-                      </p>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {tipoKardex === "almacen" && (
-                <div>
-                  <div className="mb-6">
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Seleccionar Almacén
-                    </label>
-                    <select
-                      value={almacenSeleccionado || ""}
-                      onChange={(e) =>
-                        setAlmacenSeleccionado(Number(e.target.value) || null)
-                      }
-                      className="w-full max-w-md px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-gray-900 bg-white"
-                    >
-                      <option value="">
-                        Selecciona un almacén para ver su kardex
-                      </option>
-                      {almacenes.map((a) => (
-                        <option key={a.id} value={a.id}>
-                          {a.nombre}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  {almacenSeleccionado && kardexPorAlmacen.length > 0 ? (
-                    <KardexTable data={kardexPorAlmacen} />
-                  ) : almacenSeleccionado ? (
-                    <div className="text-center py-12 text-gray-500">
-                      <svg
-                        className="w-16 h-16 mx-auto mb-4 text-gray-300"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                        />
-                      </svg>
-                      <p className="text-lg">
-                        No hay movimientos para este almacén
-                      </p>
-                      <p className="text-sm">
-                        Registra movimientos para ver el kardex
-                      </p>
-                    </div>
-                  ) : (
-                    <div className="text-center py-12 text-gray-500">
-                      <svg
-                        className="w-16 h-16 mx-auto mb-4 text-gray-300"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                        />
-                      </svg>
-                      <p className="text-lg">
-                        Selecciona un almacén para ver su kardex
-                      </p>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {tipoKardex === "consolidado" && (
-                <div>
-                  <div className="mb-6">
-                    <h3 className="text-lg font-semibold text-gray-800 mb-2">
-                      Kardex Consolidado
-                    </h3>
-                    <p className="text-sm text-gray-600">
-                      Vista consolidada de inventario por producto y almacén
-                    </p>
-                  </div>
-
-                  {kardexConsolidado.length > 0 ? (
-                    <KardexConsolidadoTable data={kardexConsolidado} />
-                  ) : (
-                    <div className="text-center py-12 text-gray-500">
-                      <svg
-                        className="w-16 h-16 mx-auto mb-4 text-gray-300"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                        />
-                      </svg>
-                      <p className="text-lg">No hay datos para mostrar</p>
-                      <p className="text-sm">
-                        Registra productos y movimientos para ver el kardex
-                        consolidado
-                      </p>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-          </div>
+          <KardexSection
+            productos={productos}
+            almacenes={almacenes}
+            movimientos={movimientos}
+          />
         );
 
       case "reportes":
