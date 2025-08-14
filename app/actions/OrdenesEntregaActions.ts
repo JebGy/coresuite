@@ -71,6 +71,8 @@ export async function createOrdenEntrega(
     trabajadorId: number;
     productoId: number;
     almacenId: number;
+    trabajadorNombre: string;
+    productoNombre: string;
   },
   usuarioId?: number
 ): Promise<OrdenEntrega> {
@@ -80,9 +82,12 @@ export async function createOrdenEntrega(
       .toString(36)
       .substr(2, 9)}`;
 
+      //remove trabajador nombre y producto nombre de data
+      const { trabajadorNombre, productoNombre, ...restoData } = data;
+
     const orden = await prisma.ordenEntrega.create({
       data: {
-        ...data,
+        ...restoData,
         numeroTicket,
         estado: "pendiente",
       },
