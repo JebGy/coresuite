@@ -28,6 +28,7 @@ import { KardexSection } from "../components/KardexSection";
 import { MovementManagement } from "../components/MovementManagement";
 import { DashboardView } from "../components/DashboardView";
 import { WarehouseManagement } from "../components/WarehouseManagement";
+import ProveedoresView from "../components/ProveedoresView";
 
 // Tipos de datos ya importados desde @/types
 
@@ -1616,6 +1617,12 @@ export default function Dashboard() {
             almacenes={almacenes}
           />
         );
+
+        case "proveedores":
+          return (
+            <ProveedoresView/>
+          );
+
 
       case "import-export":
         return (
