@@ -297,13 +297,12 @@ export default function Dashboard() {
     setMovimientoForm({ ...movimientoForm, [e.target.name]: e.target.value });
   };
 
-  const handleMovimientoSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleMovimientoSubmit = async (formData: any) => {
     if (
-      !movimientoForm.productoId ||
-      !movimientoForm.cantidad ||
-      !movimientoForm.fecha ||
-      !movimientoForm.almacenId
+      !formData.productoId ||
+      !formData.cantidad ||
+      !formData.fecha ||
+      !formData.almacenId
     )
       return;
 
@@ -311,20 +310,20 @@ export default function Dashboard() {
       setSubmitting(true);
       await addMovimiento(
         {
-          tipo: movimientoForm.tipo,
-          fecha: movimientoForm.fecha,
-          cantidad: Number(movimientoForm.cantidad),
+          tipo: formData.tipo,
+          fecha: formData.fecha,
+          cantidad: Number(formData.cantidad),
           precioUnitario:
-            movimientoForm.tipo === "entrada"
-              ? Number(movimientoForm.precioUnitario)
+            formData.tipo === "entrada"
+              ? Number(formData.precioUnitario)
               : undefined,
-          motivo: movimientoForm.motivo,
+          motivo: formData.motivo,
           factura:
-            movimientoForm.tipo === "entrada"
-              ? movimientoForm.factura
+            formData.tipo === "entrada"
+              ? formData.factura
               : undefined,
-          productoId: Number(movimientoForm.productoId),
-          almacenId: Number(movimientoForm.almacenId),
+          productoId: Number(formData.productoId),
+          almacenId: Number(formData.almacenId),
         },
         user.id
       );
@@ -333,15 +332,6 @@ export default function Dashboard() {
       const nuevosMovimientos = await getMovimientos();
       setMovimientos(nuevosMovimientos);
 
-      setMovimientoForm({
-        ...movimientoForm,
-        cantidad: 0,
-        precioUnitario: 0,
-        motivo: "",
-        factura: movimientoForm.factura,
-        productoId: 0,
-        almacenId: 0,
-      });
       setNotificacion({
         mensaje: "Movimiento registrado exitosamente",
         tipo: "exito",
