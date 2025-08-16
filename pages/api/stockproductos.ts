@@ -55,7 +55,7 @@ export default async function handler(
           id: producto.id,
           codigo: producto.codigo.toLocaleLowerCase(),
           nombre: producto.nombre.toLocaleLowerCase(),
-          descripcion: producto.descripcion?.toLocaleLowerCase() || "-",
+          descripcion: "-",
           almacenId: producto.almacenId,
           almacenNombre: almacen?.nombre || "-",
           stockTotal: stock,

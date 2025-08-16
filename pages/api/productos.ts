@@ -61,7 +61,7 @@ export default async function handler(
         data: {
           codigo: newCode,
           nombre,
-          descripcion: descripcion || "",
+          descripcion: "",
           almacenId: almacenIdInt,
         },
       });
