@@ -170,7 +170,8 @@ export type Proveedor = {
   nombre: string;
   telefono?: string;
   email?: string;
-  detalles?: string;  // Nuevo campo opcional
+  detalles?: string;
+  mesesCredito?: number; // Nueva propiedad para meses de crédito
   segmentoId: number;
   segmento?: Segmento;
   createdAt: string;

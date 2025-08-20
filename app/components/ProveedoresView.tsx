@@ -15,7 +15,8 @@ interface ProveedorFormData {
   nombre: string;
   telefono: string;
   email: string;
-  detalles: string; // Nuevo campo
+  detalles: string;
+  mesesCredito: string; // Nuevo campo para meses de crédito
   segmentoId: number;
 }
 
@@ -43,6 +44,7 @@ function ProveedoresView() {
     telefono: "",
     detalles: "",
     email: "",
+    mesesCredito: "", // Nuevo campo
     segmentoId: 0,
   });
 
@@ -147,6 +149,7 @@ function ProveedoresView() {
         nombre: formData.nombre,
         telefono: formData.telefono || undefined,
         email: formData.email || undefined,
+        mesesCredito: formData.mesesCredito ? parseInt(formData.mesesCredito) : undefined, // Nuevo campo
         segmentoId: formData.segmentoId,
       });
 
@@ -163,6 +166,7 @@ function ProveedoresView() {
           telefono: "",
           email: "",
           detalles: "", // Nuevo campo
+          mesesCredito: "", // Nuevo campo
           segmentoId: 0,
         });
 
@@ -254,11 +258,11 @@ function ProveedoresView() {
       Segmento: proveedor.segmento?.nombre || "Sin segmento",
       Teléfono: proveedor.telefono || "",
       Email: proveedor.email || "",
+      "Meses de Crédito": proveedor.mesesCredito || "", // Nueva columna
       "Fecha de Registro": new Date(proveedor.createdAt).toLocaleDateString(
         "es-PE"
       ),
       Detalles: proveedor.detalles || "",
-
     }));
 
     // Crear el libro de trabajo
@@ -273,6 +277,7 @@ function ProveedoresView() {
       { wch: 20 }, // Segmento
       { wch: 15 }, // Teléfono
       { wch: 25 }, // Email
+      { wch: 15 }, // Meses de Crédito
       { wch: 15 }, // Fecha de Registro
       { wch: 20 }, // Detalles
 
@@ -571,6 +576,26 @@ function ProveedoresView() {
             />
           </div>
 
+          {/* Nuevo campo de Meses de Crédito */}
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              Meses de Crédito
+            </label>
+            <input
+              type="number"
+              name="mesesCredito"
+              value={formData.mesesCredito}
+              onChange={handleChange}
+              placeholder="Número de meses de crédito que ofrece (opcional)"
+              min="0"
+              max="60"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-gray-900 bg-white"
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              Ingrese el número de meses de crédito que ofrece el proveedor
+            </p>
+          </div>
+
           {/* Verify RUC Button */}
           <div className="flex justify-end mb-4">
             <button
@@ -630,6 +655,7 @@ function ProveedoresView() {
                   telefono: "",
                   email: "",
                   detalles: "",
+                  mesesCredito: "", // Nuevo campo
                   segmentoId: 0,
                 })
               }
@@ -715,6 +741,9 @@ function ProveedoresView() {
                     Email
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Meses Crédito
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Fecha Registro
                   </th>
                 </tr>
@@ -738,6 +767,9 @@ function ProveedoresView() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       {proveedor.email || "-"}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {proveedor.mesesCredito ? `${proveedor.mesesCredito} meses` : "-"}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       {new Date(proveedor.createdAt).toLocaleDateString(
