@@ -251,49 +251,158 @@ function ProveedoresView() {
       });
       return;
     }
-
-    // Preparar los datos para exportar
-    const dataToExport = proveedores.map((proveedor) => ({
-      RUC: proveedor.ruc,
+  
+    // Preparar los datos para exportar con mejor formato
+    const dataToExport = proveedores.map((proveedor, index) => ({
+      "N°": index + 1,
+      "RUC": proveedor.ruc,
       "Razón Social": proveedor.nombre,
-      Segmento: proveedor.segmento?.nombre || "Sin segmento",
-      Teléfono: proveedor.telefono || "",
-      Email: proveedor.email || "",
-      "Meses de Crédito": proveedor.mesesCredito || "", // Nueva columna
+      "Segmento": proveedor.segmento?.nombre || "Sin segmento",
+      "Teléfono": proveedor.telefono || "No registrado",
+      "Email": proveedor.email || "No registrado",
+      "Meses de Crédito": proveedor.mesesCredito ? `${proveedor.mesesCredito} meses` : "Sin crédito",
       "Fecha de Registro": new Date(proveedor.createdAt).toLocaleDateString(
-        "es-PE"
+        "es-PE",
+        { year: 'numeric', month: 'long', day: 'numeric' }
       ),
-      Detalles: proveedor.detalles || "",
+      "Detalles": proveedor.detalles || "Sin detalles adicionales",
     }));
-
+  
     // Crear el libro de trabajo
     const worksheet = XLSX.utils.json_to_sheet(dataToExport);
     const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Proveedores");
-
-    // Ajustar el ancho de las columnas
+  
+    // Configurar el ancho de las columnas mejorado
     const columnWidths = [
+      { wch: 5 },  // N°
       { wch: 15 }, // RUC
-      { wch: 30 }, // Razón Social
+      { wch: 35 }, // Razón Social
       { wch: 20 }, // Segmento
-      { wch: 15 }, // Teléfono
-      { wch: 25 }, // Email
-      { wch: 15 }, // Meses de Crédito
-      { wch: 15 }, // Fecha de Registro
-      { wch: 20 }, // Detalles
-
+      { wch: 18 }, // Teléfono
+      { wch: 30 }, // Email
+      { wch: 18 }, // Meses de Crédito
+      { wch: 20 }, // Fecha de Registro
+      { wch: 25 }, // Detalles
     ];
     worksheet["!cols"] = columnWidths;
-
-    // Generar el nombre del archivo con fecha actual
-    const fechaActual = new Date().toISOString().split("T")[0];
-    const nombreArchivo = `proveedores_${fechaActual}.xlsx`;
-
+  
+    // Aplicar estilos a los encabezados
+    const headerRange = XLSX.utils.decode_range(worksheet['!ref'] || 'A1');
+  
+    // Estilo para encabezados
+    for (let col = headerRange.s.c; col <= headerRange.e.c; col++) {
+      const cellAddress = XLSX.utils.encode_cell({ r: 0, c: col });
+      if (!worksheet[cellAddress]) continue;
+      
+      worksheet[cellAddress].s = {
+        font: {
+          bold: true,
+          color: { rgb: "FFFFFF" },
+          sz: 12
+        },
+        fill: {
+          fgColor: { rgb: "2563EB" } // Azul profesional
+        },
+        alignment: {
+          horizontal: "center",
+          vertical: "center"
+        },
+        border: {
+          top: { style: "thin", color: { rgb: "000000" } },
+          bottom: { style: "thin", color: { rgb: "000000" } },
+          left: { style: "thin", color: { rgb: "000000" } },
+          right: { style: "thin", color: { rgb: "000000" } }
+        }
+      };
+    }
+  
+    // Aplicar estilos alternados a las filas de datos
+    for (let row = 1; row <= headerRange.e.r; row++) {
+      for (let col = headerRange.s.c; col <= headerRange.e.c; col++) {
+        const cellAddress = XLSX.utils.encode_cell({ r: row, c: col });
+        if (!worksheet[cellAddress]) continue;
+        
+        worksheet[cellAddress].s = {
+          font: {
+            sz: 10
+          },
+          fill: {
+            fgColor: { rgb: row % 2 === 0 ? "F8FAFC" : "FFFFFF" } // Filas alternadas
+          },
+          alignment: {
+            horizontal: col === 0 ? "center" : "left", // Centrar solo el número
+            vertical: "center",
+            wrapText: true
+          },
+          border: {
+            top: { style: "thin", color: { rgb: "E2E8F0" } },
+            bottom: { style: "thin", color: { rgb: "E2E8F0" } },
+            left: { style: "thin", color: { rgb: "E2E8F0" } },
+            right: { style: "thin", color: { rgb: "E2E8F0" } }
+          }
+        };
+      }
+    }
+  
+    // Agregar información adicional en la parte superior
+    XLSX.utils.sheet_add_aoa(worksheet, [
+      ["REPORTE DE PROVEEDORES"],
+      [`Fecha de generación: ${new Date().toLocaleDateString('es-PE', { 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      })}`],
+      [`Total de proveedores: ${proveedores.length}`],
+      [""] // Fila vacía
+    ], { origin: "A1" });
+  
+    // Ajustar el rango para incluir las nuevas filas
+    const newRange = XLSX.utils.encode_range({
+      s: { c: 0, r: 0 },
+      e: { c: 8, r: dataToExport.length + 4 }
+    });
+    worksheet['!ref'] = newRange;
+  
+    // Estilo para el título principal
+    worksheet['A1'].s = {
+      font: {
+        bold: true,
+        sz: 16,
+        color: { rgb: "1F2937" }
+      },
+      alignment: {
+        horizontal: "center"
+      }
+    };
+  
+    // Combinar celdas para el título
+    worksheet['!merges'] = [
+      { s: { r: 0, c: 0 }, e: { r: 0, c: 8 } }, // Título
+      { s: { r: 1, c: 0 }, e: { r: 1, c: 8 } }, // Fecha
+      { s: { r: 2, c: 0 }, e: { r: 2, c: 8 } }  // Total
+    ];
+  
+    // Mover los datos 4 filas hacia abajo
+    XLSX.utils.sheet_add_json(worksheet, dataToExport, {
+      origin: "A5",
+      skipHeader: false
+    });
+  
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Proveedores");
+  
+    // Generar el nombre del archivo con fecha y hora
+    const fechaActual = new Date();
+    const fechaFormateada = fechaActual.toISOString().split('T')[0];
+    const horaFormateada = fechaActual.toTimeString().split(' ')[0].replace(/:/g, '-');
+    const nombreArchivo = `Proveedores_${fechaFormateada}_${horaFormateada}.xlsx`;
+  
     // Descargar el archivo
     XLSX.writeFile(workbook, nombreArchivo);
-
+  
     setNotificacion({
-      mensaje: "Lista de proveedores exportada exitosamente",
+      mensaje: `Lista de ${proveedores.length} proveedores exportada exitosamente como ${nombreArchivo}`,
       tipo: "success",
     });
   };
