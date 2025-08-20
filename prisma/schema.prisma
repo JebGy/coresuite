@@ -159,16 +159,17 @@ model Segmento {
 }
 
 model Proveedor {
-  id         Int      @id @default(autoincrement())
-  ruc        String   @unique
-  nombre     String
-  telefono   String?
-  email      String?
-  detalles   String?  // Nuevo campo opcional para detalles adicionales
-  segmentoId Int
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-  segmento   Segmento @relation(fields: [segmentoId], references: [id])
+  id           Int      @id @default(autoincrement())
+  ruc          String   @unique
+  nombre       String
+  telefono     String?
+  email        String?
+  detalles     String?  // Campo para detalles adicionales
+  mesesCredito Int?     // Nuevo campo para meses de crédito
+  segmentoId   Int
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  segmento     Segmento @relation(fields: [segmentoId], references: [id])
 
   @@map("proveedores")
 }

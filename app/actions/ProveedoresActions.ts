@@ -11,7 +11,8 @@ export async function getProveedores(): Promise<Proveedor[]> {
         nombre: true,
         telefono: true,
         email: true,
-        detalles: true,  // Nuevo campo
+        detalles: true,
+        mesesCredito: true, // Agregar este campo
         createdAt: true,
         segmentoId: true,
         segmento: true,
@@ -23,7 +24,8 @@ export async function getProveedores(): Promise<Proveedor[]> {
       ...proveedor,
       telefono: proveedor.telefono || undefined,
       email: proveedor.email || undefined,
-      detalles: proveedor.detalles || undefined,  // Nuevo campo
+      detalles: proveedor.detalles || undefined,
+      mesesCredito: proveedor.mesesCredito || undefined, // Agregar este mapeo
       segmentoId: proveedor.segmentoId,
       segmento: {
         id: proveedor.segmentoId,
@@ -32,7 +34,6 @@ export async function getProveedores(): Promise<Proveedor[]> {
         createdAt: new Date(proveedor.segmento?.createdAt || 0).toISOString(),
         updatedAt: new Date(proveedor.segmento?.updatedAt || 0).toISOString(),
       },
-
       createdAt: new Date(proveedor.createdAt).toISOString(),
       updatedAt: new Date(proveedor.updatedAt).toISOString(),
     }));
@@ -46,7 +47,7 @@ export async function addProveedor(
   proveedor: Omit<Proveedor, "id" | "createdAt" | "updatedAt" | "segmento">
 ): Promise<Proveedor | null> {
   try {
-    const { ruc, nombre, telefono, email, detalles, segmentoId } = proveedor;
+    const { ruc, nombre, telefono, email, detalles, mesesCredito, segmentoId } = proveedor;
 
     const nuevoProveedor = await prisma.proveedor.create({
       data: {
@@ -54,7 +55,8 @@ export async function addProveedor(
         nombre,
         telefono: telefono || undefined,
         email: email || undefined,
-        detalles: detalles || undefined,  // Nuevo campo
+        detalles: detalles || undefined,
+        mesesCredito: mesesCredito || undefined, // Agregar este campo
         segmentoId: segmentoId,
       },
       include: {
@@ -66,7 +68,8 @@ export async function addProveedor(
       ...nuevoProveedor,
       telefono: nuevoProveedor.telefono || undefined,
       email: nuevoProveedor.email || undefined,
-      detalles: nuevoProveedor.detalles || undefined,  // Nuevo campo
+      detalles: nuevoProveedor.detalles || undefined,
+      mesesCredito: nuevoProveedor.mesesCredito || undefined, // Agregar este mapeo
       segmento: nuevoProveedor.segmento ? {
         id: nuevoProveedor.segmento.id,
         nombre: nuevoProveedor.segmento.nombre,

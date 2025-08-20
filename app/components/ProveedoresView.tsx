@@ -149,7 +149,8 @@ function ProveedoresView() {
         nombre: formData.nombre,
         telefono: formData.telefono || undefined,
         email: formData.email || undefined,
-        mesesCredito: formData.mesesCredito ? parseInt(formData.mesesCredito) : undefined, // Nuevo campo
+        detalles: formData.detalles || undefined, // Agregar esta línea
+        mesesCredito: formData.mesesCredito ? parseInt(formData.mesesCredito) : undefined,
         segmentoId: formData.segmentoId,
       });
 
