@@ -11,6 +11,7 @@ interface ProveedorFormData {
   nombre: string;
   telefono: string;
   email: string;
+  detalles: string;  // Nuevo campo
   segmentoId: number;
 }
 
@@ -156,6 +157,7 @@ function ProveedoresView() {
           nombre: '',
           telefono: '',
           email: '',
+          detalles: '',  // Nuevo campo
           segmentoId: 0,
         });
         
@@ -380,7 +382,7 @@ function ProveedoresView() {
             className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200 flex items-center"
           >
             <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
             Nuevo Segmento
           </button>
@@ -474,6 +476,19 @@ function ProveedoresView() {
                 </option>
               ))}
             </select>
+          </div>
+
+          {/* Nuevo campo de Detalles */}
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">Detalles</label>
+            <textarea
+              name="detalles"
+              value={formData.detalles}
+              onChange={(e) => setFormData(prev => ({ ...prev, detalles: e.target.value }))}
+              placeholder="Información adicional sobre el proveedor (opcional)"
+              rows={3}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-gray-900 bg-white resize-vertical"
+            />
           </div>
 
           {/* Verify RUC Button */}

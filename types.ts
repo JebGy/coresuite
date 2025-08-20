@@ -170,6 +170,7 @@ export type Proveedor = {
   nombre: string;
   telefono?: string;
   email?: string;
+  detalles?: string;  // Nuevo campo opcional
   segmentoId: number;
   segmento?: Segmento;
   createdAt: string;

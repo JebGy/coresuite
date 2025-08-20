@@ -147,8 +147,6 @@ model Notificacion {
   updatedAt DateTime @updatedAt
 }
 
-// ... existing code ...
-
 model Segmento {
   id          Int         @id @default(autoincrement())
   nombre      String      @unique // "EPPS", "FERRETERÍA", "OFICINA", etc.
@@ -166,6 +164,7 @@ model Proveedor {
   nombre     String
   telefono   String?
   email      String?
+  detalles   String?  // Nuevo campo opcional para detalles adicionales
   segmentoId Int
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt

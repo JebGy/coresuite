@@ -11,10 +11,10 @@ export async function getProveedores(): Promise<Proveedor[]> {
         nombre: true,
         telefono: true,
         email: true,
+        detalles: true,  // Nuevo campo
         createdAt: true,
         segmentoId: true,
         segmento: true,
-
         updatedAt: true,
       },
     });
@@ -23,6 +23,7 @@ export async function getProveedores(): Promise<Proveedor[]> {
       ...proveedor,
       telefono: proveedor.telefono || undefined,
       email: proveedor.email || undefined,
+      detalles: proveedor.detalles || undefined,  // Nuevo campo
       segmentoId: proveedor.segmentoId,
       segmento: {
         id: proveedor.segmentoId,
@@ -45,7 +46,7 @@ export async function addProveedor(
   proveedor: Omit<Proveedor, "id" | "createdAt" | "updatedAt" | "segmento">
 ): Promise<Proveedor | null> {
   try {
-    const { ruc, nombre, telefono, email, segmentoId } = proveedor;
+    const { ruc, nombre, telefono, email, detalles, segmentoId } = proveedor;
 
     const nuevoProveedor = await prisma.proveedor.create({
       data: {
@@ -53,6 +54,7 @@ export async function addProveedor(
         nombre,
         telefono: telefono || undefined,
         email: email || undefined,
+        detalles: detalles || undefined,  // Nuevo campo
         segmentoId: segmentoId,
       },
       include: {
@@ -64,6 +66,7 @@ export async function addProveedor(
       ...nuevoProveedor,
       telefono: nuevoProveedor.telefono || undefined,
       email: nuevoProveedor.email || undefined,
+      detalles: nuevoProveedor.detalles || undefined,  // Nuevo campo
       segmento: nuevoProveedor.segmento ? {
         id: nuevoProveedor.segmento.id,
         nombre: nuevoProveedor.segmento.nombre,
