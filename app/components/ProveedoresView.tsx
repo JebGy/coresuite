@@ -37,6 +37,7 @@ function ProveedoresView() {
     ruc: '',
     nombre: '',
     telefono: '',
+    detalles:"",
     email: '',
     segmentoId: 0,
   });
@@ -538,6 +539,7 @@ function ProveedoresView() {
                 nombre: '',
                 telefono: '',
                 email: '',
+                detalles: '',
                 segmentoId: 0,
               })}
               className="px-4 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors duration-200"
