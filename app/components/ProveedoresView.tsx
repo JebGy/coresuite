@@ -38,6 +38,14 @@ function ProveedoresView() {
     tipo: "success" | "error";
   } | null>(null);
 
+  // Estados para filtrado
+  const [filtros, setFiltros] = useState({
+    busqueda: "",
+    segmentoId: 0,
+    conCredito: "todos", // "todos", "con", "sin"
+  });
+  const [proveedoresFiltrados, setProveedoresFiltrados] = useState<Proveedor[]>([]);
+
   const [formData, setFormData] = useState<ProveedorFormData>({
     ruc: "",
     nombre: "",
@@ -57,6 +65,55 @@ function ProveedoresView() {
   useEffect(() => {
     loadData();
   }, []);
+
+  // Aplicar filtros cuando cambien los proveedores o filtros
+  useEffect(() => {
+    aplicarFiltros();
+  }, [proveedores, filtros]);
+
+  const aplicarFiltros = () => {
+    let resultado = [...proveedores];
+
+    // Filtro por búsqueda (RUC, nombre, teléfono, email)
+    if (filtros.busqueda.trim()) {
+      const busqueda = filtros.busqueda.toLowerCase().trim();
+      resultado = resultado.filter(
+        (proveedor) =>
+          proveedor.ruc.toLowerCase().includes(busqueda) ||
+          proveedor.nombre.toLowerCase().includes(busqueda) ||
+          (proveedor.telefono && proveedor.telefono.toLowerCase().includes(busqueda)) ||
+          (proveedor.email && proveedor.email.toLowerCase().includes(busqueda))
+      );
+    }
+
+    // Filtro por segmento
+    if (filtros.segmentoId > 0) {
+      resultado = resultado.filter(
+        (proveedor) => proveedor.segmentoId === filtros.segmentoId
+      );
+    }
+
+    // Filtro por crédito
+    if (filtros.conCredito === "con") {
+      resultado = resultado.filter(
+        (proveedor) => proveedor.mesesCredito && proveedor.mesesCredito > 0
+      );
+    } else if (filtros.conCredito === "sin") {
+      resultado = resultado.filter(
+        (proveedor) => !proveedor.mesesCredito || proveedor.mesesCredito === 0
+      );
+    }
+
+    setProveedoresFiltrados(resultado);
+  };
+
+  const limpiarFiltros = () => {
+    setFiltros({
+      busqueda: "",
+      segmentoId: 0,
+      conCredito: "todos",
+    });
+  };
 
   const loadData = async () => {
     try {
@@ -797,7 +854,7 @@ function ProveedoresView() {
               </svg>
             </div>
             <h2 className="text-xl font-bold text-gray-800">
-              Lista de Proveedores
+              Lista de Proveedores ({proveedoresFiltrados.length} de {proveedores.length})
             </h2>
           </div>
           <button
@@ -822,13 +879,154 @@ function ProveedoresView() {
           </button>
         </div>
 
+        {/* Sección de filtros */}
+        <div className="bg-gray-50 rounded-lg p-4 mb-6">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-gray-700 flex items-center">
+              <svg
+                className="w-5 h-5 mr-2 text-gray-600"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"
+                />
+              </svg>
+              Filtros
+            </h3>
+            <button
+              onClick={limpiarFiltros}
+              className="text-sm text-gray-600 hover:text-gray-800 underline"
+            >
+              Limpiar filtros
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* Búsqueda general */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Buscar
+              </label>
+              <div className="relative">
+                <input
+                  type="text"
+                  value={filtros.busqueda}
+                  onChange={(e) =>
+                    setFiltros((prev) => ({ ...prev, busqueda: e.target.value }))
+                  }
+                  placeholder="RUC, nombre, teléfono o email..."
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                />
+                <svg
+                  className="absolute left-3 top-2.5 h-5 w-5 text-gray-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                  />
+                </svg>
+              </div>
+            </div>
+
+            {/* Filtro por segmento */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Segmento
+              </label>
+              <select
+                value={filtros.segmentoId}
+                onChange={(e) =>
+                  setFiltros((prev) => ({
+                    ...prev,
+                    segmentoId: Number(e.target.value),
+                  }))
+                }
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+              >
+                <option value={0}>Todos los segmentos</option>
+                {segmentos.map((segmento) => (
+                  <option key={segmento.id} value={segmento.id}>
+                    {segmento.nombre}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Filtro por crédito */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Crédito
+              </label>
+              <select
+                value={filtros.conCredito}
+                onChange={(e) =>
+                  setFiltros((prev) => ({ ...prev, conCredito: e.target.value }))
+                }
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+              >
+                <option value="todos">Todos</option>
+                <option value="con">Con crédito</option>
+                <option value="sin">Sin crédito</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
         {loading ? (
           <div className="flex justify-center py-8">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
           </div>
         ) : proveedores.length === 0 ? (
           <div className="text-center py-8 text-gray-500">
-            <p>No hay proveedores registrados</p>
+            <svg
+              className="mx-auto h-12 w-12 text-gray-400 mb-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+              />
+            </svg>
+            <p className="text-lg font-medium">No hay proveedores registrados</p>
+            <p className="text-sm">Comience agregando su primer proveedor</p>
+          </div>
+        ) : proveedoresFiltrados.length === 0 ? (
+          <div className="text-center py-8 text-gray-500">
+            <svg
+              className="mx-auto h-12 w-12 text-gray-400 mb-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+              />
+            </svg>
+            <p className="text-lg font-medium">No se encontraron proveedores</p>
+            <p className="text-sm">Intente ajustar los filtros de búsqueda</p>
+            <button
+              onClick={limpiarFiltros}
+              className="mt-3 text-blue-600 hover:text-blue-800 underline"
+            >
+              Limpiar filtros
+            </button>
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -859,7 +1057,7 @@ function ProveedoresView() {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {proveedores.map((proveedor) => (
+                {proveedoresFiltrados.map((proveedor) => (
                   <tr key={proveedor.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                       {proveedor.ruc}
