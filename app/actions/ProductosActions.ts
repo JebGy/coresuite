@@ -56,6 +56,32 @@ export async function addProudcto(producto: Producto, usuarioId?: number) {
   console.log("Agregado");
 }
 
+export async function updateProducto(producto: Producto, usuarioId?: number) {
+  try {
+    const productoActualizado = await prisma.producto.update({
+      where: { id: producto.id },
+      data: {
+        nombre: producto.nombre,
+        descripcion: producto.descripcion,
+        almacenId: producto.almacenId || null,
+      },
+    });
+    
+    await registrarLog({
+      usuarioId: usuarioId,
+      accion: "ACTUALIZAR",
+      entidad: "Producto",
+      entidadId: productoActualizado.id,
+      detalles: `Producto actualizado: ${productoActualizado.nombre}`,
+    });
+    
+    return productoActualizado;
+  } catch (error) {
+    console.error('Error al actualizar producto:', error);
+    throw new Error('Error al actualizar el producto');
+  }
+}
+
 export async function getProductos(): Promise<ApiResponse<Producto[]>> {
   try {
     const productos = await prisma.producto.findMany({

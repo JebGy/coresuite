@@ -16,7 +16,7 @@ import {
   UsuarioSession,
 } from "@/types";
 import { addAlmacen, getAlmacenes } from "../actions/AlmacenesActions";
-import { addProudcto, getProductos } from "../actions/ProductosActions";
+import { addProudcto, getProductos, updateProducto } from "../actions/ProductosActions";
 import { addMovimiento, getMovimientos } from "../actions/MovimientosActions";
 import { useRouter } from "next/navigation";
 import { Notificacion } from "../components/Notificacion";
@@ -52,6 +52,10 @@ export default function Dashboard() {
     descripcion: "",
     almacenId: 0,
   });
+  
+  // Estados para edición de productos
+  const [editingProduct, setEditingProduct] = useState<Producto | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
   const [movimientoForm, setMovimientoForm] = useState({
     tipo: "entrada" as "entrada" | "salida",
     fecha: new Date().toISOString().slice(0, 10),
@@ -254,6 +258,72 @@ export default function Dashboard() {
       console.error("Error al agregar producto:", error);
       setNotificacion({
         mensaje: "Error al agregar el producto",
+        tipo: "error",
+      });
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  // Funciones para edición de productos
+  const handleEditProduct = (producto: Producto) => {
+    setEditingProduct(producto);
+    setIsEditing(true);
+    setProductoForm({
+      nombre: producto.nombre,
+      descripcion: producto.descripcion || "",
+      almacenId: producto.almacenId || 0,
+    });
+  };
+
+  const handleCancelEdit = () => {
+    setEditingProduct(null);
+    setIsEditing(false);
+    setProductoForm({
+      nombre: "",
+      descripcion: "",
+      almacenId: 0,
+    });
+  };
+
+  const handleUpdateProduct = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingProduct || !productoForm.nombre) {
+      setNotificacion({
+        mensaje: "Por favor ingrese el nombre del producto",
+        tipo: "error",
+      });
+      return;
+    }
+
+    try {
+      setSubmitting(true);
+      await updateProducto(
+        {
+          id: editingProduct.id,
+          codigo: editingProduct.codigo,
+          nombre: productoForm.nombre,
+          descripcion: productoForm.descripcion,
+          almacenId: productoForm.almacenId || undefined,
+        },
+        user.id
+      );
+
+      // Recargar productos
+      const nuevosProductos = await getProductos();
+      if (nuevosProductos.success && nuevosProductos.data) {
+        setProductos(nuevosProductos.data);
+      }
+
+      handleCancelEdit();
+      setNotificacion({
+        mensaje: "Producto actualizado exitosamente",
+        tipo: "exito",
+      });
+    } catch (error) {
+      console.error("Error al actualizar producto:", error);
+      setNotificacion({
+        mensaje: "Error al actualizar el producto",
         tipo: "error",
       });
     } finally {
@@ -1215,11 +1285,11 @@ export default function Dashboard() {
                     </svg>
                   </div>
                   <h2 className="text-xl font-bold text-gray-800">
-                    Nuevo Producto
+                    {isEditing ? "Editar Producto" : "Nuevo Producto"}
                   </h2>
                 </div>
 
-                <form onSubmit={handleProductoSubmit} className="space-y-4">
+                <form onSubmit={isEditing ? handleUpdateProduct : handleProductoSubmit} className="space-y-4">
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">
                       Nombre del producto
@@ -1266,15 +1336,16 @@ export default function Dashboard() {
                     </select>
                   </div>
 
-                  <button
-                    type="submit"
-                    disabled={submitting}
-                    className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white px-4 py-3 rounded-lg font-medium transition-colors duration-200 flex items-center justify-center"
-                  >
+                  <div className="flex gap-3">
+                    <button
+                      type="submit"
+                      disabled={submitting}
+                      className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white px-4 py-3 rounded-lg font-medium transition-colors duration-200 flex items-center justify-center"
+                    >
                     {submitting ? (
                       <>
                         <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-                        Agregando...
+                        {isEditing ? "Actualizando..." : "Agregando..."}
                       </>
                     ) : (
                       <>
@@ -1288,14 +1359,38 @@ export default function Dashboard() {
                             strokeLinecap="round"
                             strokeLinejoin="round"
                             strokeWidth={2}
-                            d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                            d={isEditing ? "M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" : "M12 6v6m0 0v6m0-6h6m-6 0H6"}
                           />
                         </svg>
-                        Agregar Producto
-                      </>
-                    )}
-                  </button>
-                </form>
+                        {isEditing ? "Actualizar Producto" : "Agregar Producto"}
+                       </>
+                     )}
+                   </button>
+                   {isEditing && (
+                     <button
+                       type="button"
+                       onClick={handleCancelEdit}
+                       disabled={submitting}
+                       className="px-4 py-3 border border-gray-300 rounded-lg font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 transition-colors duration-200 flex items-center justify-center"
+                     >
+                       <svg
+                         className="w-5 h-5 mr-2"
+                         fill="none"
+                         stroke="currentColor"
+                         viewBox="0 0 24 24"
+                       >
+                         <path
+                           strokeLinecap="round"
+                           strokeLinejoin="round"
+                           strokeWidth={2}
+                           d="M6 18L18 6M6 6l12 12"
+                         />
+                       </svg>
+                       Cancelar
+                     </button>
+                   )}
+                 </div>
+                 </form>
               </div>
 
               {/* Lista de productos */}
@@ -1331,10 +1426,29 @@ export default function Dashboard() {
                             </p>
                           )}
                         </div>
-                        <div className="text-right">
+                        <div className="text-right flex flex-col items-end space-y-2">
                           <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                             Activo
                           </span>
+                          <button
+                            onClick={() => handleEditProduct(producto)}
+                            className="text-blue-600 hover:text-blue-900 flex items-center text-sm"
+                          >
+                            <svg
+                              className="w-4 h-4 mr-1"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                              />
+                            </svg>
+                            Editar
+                          </button>
                         </div>
                       </div>
                     </div>
@@ -1430,6 +1544,12 @@ export default function Dashboard() {
                         >
                           Estado
                         </th>
+                        <th
+                          scope="col"
+                          className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                        >
+                          Acciones
+                        </th>
                       </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
@@ -1471,6 +1591,27 @@ export default function Dashboard() {
                               <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
                                 Activo
                               </span>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                              <button
+                                onClick={() => handleEditProduct(producto)}
+                                className="text-blue-600 hover:text-blue-900 flex items-center"
+                              >
+                                <svg
+                                  className="w-4 h-4 mr-1"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                                  />
+                                </svg>
+                                Editar
+                              </button>
                             </td>
                           </tr>
                         ))}
