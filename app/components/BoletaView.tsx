@@ -1,10 +1,11 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { OrdenEntrega, Traslado } from "@/types";
 import { getOrdenesEntrega } from "@/app/actions/OrdenesEntregaActions";
 import { getTraslados } from "@/app/actions/TrasladosActions";
 import { useProductos } from "@/app/hooks/useProductos";
+import { useReactToPrint } from "react-to-print";
 
 interface BoletaViewProps {
   tipo: "orden-entrega" | "traslado";
@@ -114,6 +115,11 @@ const BoletaView: React.FC<BoletaViewProps> = ({ tipo, id }) => {
     window.print();
   };
 
+  const contentRef = useRef<HTMLDivElement>(null);
+  const reactToPrintFn = useReactToPrint({ contentRef,
+    pageStyle:"horizontal",
+   });
+
   // Función para agrupar boletas por fecha
   const groupBoletasByDate = (boletas: BoletaData[]) => {
     const grouped = boletas.reduce((acc, boleta) => {
@@ -203,7 +209,7 @@ const BoletaView: React.FC<BoletaViewProps> = ({ tipo, id }) => {
             {/* Botones de acción - solo visible en pantalla */}
             <div className="print:hidden mb-4 flex justify-end space-x-2">
               <button
-                onClick={handlePrint}
+                onClick={reactToPrintFn}
                 className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
               >
                 Imprimir
@@ -217,7 +223,7 @@ const BoletaView: React.FC<BoletaViewProps> = ({ tipo, id }) => {
             </div>
 
             {/* Boleta imprimible */}
-            <div className="boleta-container bg-white border border-gray-300 max-w-4xl mx-auto overflow-y-auto">
+            <div ref={contentRef} className="boleta-container p-8 bg-white border border-gray-300 max-w-4xl mx-auto overflow-y-auto">
               {/* Header */}
               <div className="border-b border-gray-300 p-6">
                 <div className="flex justify-between items-start">
