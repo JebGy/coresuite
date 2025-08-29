@@ -83,6 +83,7 @@ model Movimiento {
   almacen        Almacen       @relation(fields: [almacenId], references: [id])
   ordenEntrega   OrdenEntrega? @relation(fields: [ordenEntregaId], references: [id])
   producto       Producto      @relation(fields: [productoId], references: [id])
+  constancia     ConstanciaRecepcion?
 }
 
 model OrdenEntrega {
@@ -170,6 +171,29 @@ model Proveedor {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
   segmento     Segmento @relation(fields: [segmentoId], references: [id])
+  constancias  ConstanciaRecepcion[]
 
   @@map("proveedores")
+}
+
+model ConstanciaRecepcion {
+  id                    Int        @id @default(autoincrement())
+  numero                String     @unique @default(cuid())
+  fecha                 DateTime   @default(now())
+  horaEntrada           String     // Hora de entrada como string (HH:mm)
+  descripcionProducto   String     // Descripción del producto
+  proveedorId           Int        // Relación con proveedor
+  numeroGuia            String?    // Número de guía
+  agenciaTransporte     String?    // Agencia de transporte
+  numeroGuiaAgencia     String?    // Número de guía de agencia de transporte
+  observaciones         String?    // Observaciones
+  movimientoId          Int        @unique // Relación uno a uno con movimiento
+  createdAt             DateTime   @default(now())
+  updatedAt             DateTime   @updatedAt
+  
+  // Relaciones
+  proveedor             Proveedor  @relation(fields: [proveedorId], references: [id])
+  movimiento            Movimiento @relation(fields: [movimientoId], references: [id])
+
+  @@map("constancias_recepcion")
 }

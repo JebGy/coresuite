@@ -100,6 +100,7 @@ export type Movimiento = {
   productoId: number;
   almacenId: number;
   ordenEntregaId?: number;
+  constancia?: ConstanciaRecepcion;
 };
 
 export type KardexRow = {
@@ -176,4 +177,32 @@ export type Proveedor = {
   segmento?: Segmento;
   createdAt: string;
   updatedAt: string;
+};
+
+export type ConstanciaRecepcion = {
+  id: number;
+  numero: string;
+  fecha: string;
+  horaEntrada: string;
+  descripcionProducto: string;
+  proveedorId: number;
+  proveedor?: Proveedor;
+  numeroGuia?: string;
+  agenciaTransporte?: string;
+  numeroGuiaAgencia?: string;
+  observaciones?: string;
+  movimientoId: number;
+  movimiento?: Movimiento;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type ConstanciaRecepcionForm = {
+  horaEntrada: string;
+  descripcionProducto: string;
+  proveedorId: number;
+  numeroGuia?: string;
+  agenciaTransporte?: string;
+  numeroGuiaAgencia?: string;
+  observaciones?: string;
 };
