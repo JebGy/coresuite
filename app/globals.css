@@ -398,3 +398,129 @@ td {
   background-color: #dc2626;
   color: #ffffff;
 }
+
+/* Estilos específicos para boletas e impresión */
+.boleta-container {
+  font-family: 'Arial', sans-serif;
+  line-height: 1.4;
+}
+
+.boleta-container table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+.boleta-container th,
+.boleta-container td {
+  border: 1px solid #000;
+  padding: 8px;
+  text-align: left;
+  vertical-align: top;
+}
+
+.boleta-container th {
+  background-color: #f5f5f5;
+  font-weight: bold;
+}
+
+/* Estilos para impresión */
+@media print {
+  * {
+    -webkit-print-color-adjust: exact !important;
+    color-adjust: exact !important;
+  }
+  
+  body {
+    margin: 0;
+    padding: 0;
+    background: white !important;
+    font-size: 12px;
+  }
+  
+  .print\:hidden {
+    display: none !important;
+  }
+  
+  .boleta-container {
+    box-shadow: none !important;
+    border: 2px solid #000 !important;
+    margin: 0 !important;
+    max-width: none !important;
+    width: 100% !important;
+    background: white !important;
+  }
+  
+  .boleta-container table {
+    border: 1px solid #000 !important;
+  }
+  
+  .boleta-container th,
+  .boleta-container td {
+    border: 1px solid #000 !important;
+    padding: 6px !important;
+    font-size: 11px !important;
+  }
+  
+  .boleta-container th {
+    background-color: #f0f0f0 !important;
+    font-weight: bold !important;
+  }
+  
+  /* Asegurar que los bordes se impriman */
+  .border,
+  .border-gray-300,
+  .border-gray-400 {
+    border: 1px solid #000 !important;
+  }
+  
+  .border-t {
+    border-top: 1px solid #000 !important;
+  }
+  
+  .border-b {
+    border-bottom: 1px solid #000 !important;
+  }
+  
+  /* Configuración de página */
+  @page {
+    margin: 0.5in;
+    size: A4;
+  }
+  
+  /* Evitar saltos de página dentro de elementos importantes */
+  .boleta-container {
+    page-break-inside: avoid;
+  }
+  
+  /* Asegurar que el texto sea negro */
+  .text-gray-600,
+  .text-gray-700,
+  .text-gray-800 {
+    color: #000 !important;
+  }
+  
+  /* Mantener colores de estado en impresión */
+  .bg-green-100 {
+    background-color: #dcfce7 !important;
+  }
+  
+  .bg-yellow-100 {
+    background-color: #fef3c7 !important;
+  }
+  
+  .bg-red-100 {
+    background-color: #fee2e2 !important;
+  }
+  
+  .text-green-800 {
+    color: #166534 !important;
+  }
+  
+  .text-yellow-800 {
+    color: #92400e !important;
+  }
+  
+  .text-red-800 {
+    color: #991b1b !important;
+  }
+}

@@ -1800,6 +1800,32 @@ export default function Dashboard() {
           </div>
         );
 
+      case "boletas":
+        return (
+          <div className="space-y-6 col-span-full">
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-3xl font-bold text-gray-800">
+                  Boletas
+                </h1>
+                <p className="text-gray-600">
+                  Visualiza órdenes de entrega y traslados en formato de boleta
+                </p>
+              </div>
+            </div>
+            <div className="bg-white/95 backdrop-blur-sm rounded-xl p-6 shadow-lg border border-gray-200">
+              <p className="text-center text-gray-600 py-8">
+                <a
+                  href="/boletas"
+                  className="text-blue-600 hover:text-blue-800 underline"
+                >
+                  Ir a la página de Boletas
+                </a>
+              </p>
+            </div>
+          </div>
+        );
+
       default:
         return null;
     }

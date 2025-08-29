@@ -1,4 +1,4 @@
-import { UnidadesIcon, TrabajadoresIcon, OrdenesEntregaIcon, RecursosHumanosIcon } from '../components/Icons';
+import { UnidadesIcon, TrabajadoresIcon, OrdenesEntregaIcon, RecursosHumanosIcon, BoletasIcon } from '../components/Icons';
 
 export interface NavigationSectionConfig {
   title: string;
@@ -36,5 +36,12 @@ export const navigationSections: Record<string, NavigationSectionConfig> = {
     href: '/recursoshumanos',
     linkText: 'Ir a la página de Recursos Humanos',
     icon: <RecursosHumanosIcon />
+  },
+  boletas: {
+    title: 'Vista de Boletas',
+    description: 'Visualiza e imprime órdenes de entrega y traslados en formato de boleta',
+    href: '/boletas',
+    linkText: 'Ir a la vista de Boletas',
+    icon: <BoletasIcon />
   }
 };
