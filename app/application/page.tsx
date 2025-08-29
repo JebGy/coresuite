@@ -29,6 +29,7 @@ import { MovementManagement } from "../components/MovementManagement";
 import { DashboardView } from "../components/DashboardView";
 import { WarehouseManagement } from "../components/WarehouseManagement";
 import ProveedoresView from "../components/ProveedoresView";
+import ImportExportHeader from "../components/ImportExportHeader";
 
 // Tipos de datos ya importados desde @/types
 
