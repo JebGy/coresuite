@@ -1,7 +1,7 @@
 import { prisma } from './prisma';
 
 export interface LogData {
-  usuarioId?: number;
+  usuarioId: number;
   accion: string;
   entidad: string;
   entidadId?: number;

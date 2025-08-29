@@ -10,9 +10,11 @@ export default async function handler(
     if (!session) {
       return res.status(401).json({ message: "Not authenticated" });
     }
+
+    console.log(JSON.parse(session));
     const trabajador = await prisma.trabajador.findFirst({
       where: {
-        id: Number(session),
+        id: Number(JSON.parse(session)),
       },
       include: {
         rol: true,

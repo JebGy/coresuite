@@ -6,7 +6,7 @@ import { registrarLog } from "@/lib/logger";
 
 export async function addMovimiento(
   movimiento: Omit<Movimiento, "id">,
-  usuarioId?: number
+  usuarioId: number
 ) {
   // Si es un movimiento de salida, buscar el último precio de entrada
   let precioUnitarioFinal = movimiento.precioUnitario;
@@ -105,7 +105,7 @@ export async function getMovimientosByProducto(
   }));
 }
 
-export async function deleteMovimiento(id: number, usuarioId?: number) {
+export async function deleteMovimiento(id: number, usuarioId: number) {
   await prisma.movimiento.delete({
     where: { id },
   });
@@ -122,7 +122,7 @@ export async function deleteMovimiento(id: number, usuarioId?: number) {
 export async function updateMovimiento(
   id: number,
   movimiento: Partial<Movimiento>,
-  usuarioId?: number
+  usuarioId: number
 ) {
   await prisma.movimiento.update({
     where: { id },

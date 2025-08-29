@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { ApiResponse, Producto } from "@/types";
 import { registrarLog } from "@/lib/logger";
 
-export async function addProudcto(producto: Producto, usuarioId?: number) {
+export async function addProudcto(producto: Producto, usuarioId: number) {
   // Get the warehouse to generate the prefix
   const almacen = await prisma.almacen.findUnique({
     where: { id: producto.almacenId || 0 },
@@ -56,7 +56,7 @@ export async function addProudcto(producto: Producto, usuarioId?: number) {
   console.log("Agregado");
 }
 
-export async function updateProducto(producto: Producto, usuarioId?: number) {
+export async function updateProducto(producto: Producto, usuarioId: number) {
   try {
     const productoActualizado = await prisma.producto.update({
       where: { id: producto.id },

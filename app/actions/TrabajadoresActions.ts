@@ -42,7 +42,7 @@ export async function createTrabajador(data: {
   telefono: string
   unidadId: number
   rolId: number
-}, usuarioId?: number): Promise<Trabajador> {
+}, usuarioId: number): Promise<Trabajador> {
   try {
     const hashedPassword = await bcrypt.hash(data.dni, 10);
     const trabajador = await prisma.trabajador.create({
@@ -94,7 +94,7 @@ export async function updateTrabajador(id: number, data: {
   telefono?: string
   unidadId?: number
   rolId?: number
-}, usuario: { permisos: { puedeEditarUsuarios: boolean } }, usuarioId?: number): Promise<Trabajador> {
+}, usuario: { permisos: { puedeEditarUsuarios: boolean } }, usuarioId: number): Promise<Trabajador> {
   if (!usuario.permisos.puedeEditarUsuarios) {
     throw new Error('No tienes permiso para editar usuarios');
   }
@@ -136,7 +136,7 @@ export async function updateTrabajador(id: number, data: {
   }
 }
 
-export async function deleteTrabajador(id: number, usuarioId?: number): Promise<void> {
+export async function deleteTrabajador(id: number, usuarioId: number): Promise<void> {
   try {
     await prisma.trabajador.delete({
       where: { id }

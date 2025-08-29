@@ -74,7 +74,7 @@ export async function createOrdenEntrega(
     trabajadorNombre: string;
     productoNombre: string;
   },
-  usuarioId?: number
+  usuarioId: number
 ): Promise<OrdenEntrega> {
   try {
     // Generar número de ticket único
@@ -152,7 +152,7 @@ export async function createOrdenEntrega(
 
 export async function aprobarOrdenEntrega(
   id: number,
-  usuarioId?: number
+  usuarioId: number
 ): Promise<OrdenEntrega> {
   try {
     // Obtener la orden
@@ -265,7 +265,7 @@ export async function aprobarOrdenEntrega(
 export async function rechazarOrdenEntrega(
   id: number,
   motivo: string,
-  usuarioId?: number
+  usuarioId: number
 ): Promise<OrdenEntrega> {
   try {
     const orden = await prisma.ordenEntrega.update({

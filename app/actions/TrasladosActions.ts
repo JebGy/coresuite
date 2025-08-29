@@ -113,6 +113,35 @@ export async function updateTrasladoStatus(id: number, estado: string) {
     });
 
     if (estado === 'COMPLETADO') {
+      // Obtener el último precio unitario del producto desde el almacén origen
+      const ultimaEntrada = await prisma.movimiento.findFirst({
+        where: {
+          productoId: traslado.productoId,
+          almacenId: traslado.almacenOrigenId,
+          tipo: 'ENTRADA',
+          precioUnitario: { not: null },
+        },
+        orderBy: {
+          fecha: 'desc',
+        },
+      });
+
+      // Si no hay precio en el almacén origen, buscar el último precio general del producto
+      let precioUnitario = ultimaEntrada?.precioUnitario;
+      if (!precioUnitario) {
+        const ultimaEntradaGeneral = await prisma.movimiento.findFirst({
+          where: {
+            productoId: traslado.productoId,
+            tipo: 'ENTRADA',
+            precioUnitario: { not: null },
+          },
+          orderBy: {
+            fecha: 'desc',
+          },
+        });
+        precioUnitario = ultimaEntradaGeneral?.precioUnitario;
+      }
+
       // Create movement records for both warehouses
       const movimientos = await prisma.movimiento.createMany({
         data: [
@@ -120,6 +149,7 @@ export async function updateTrasladoStatus(id: number, estado: string) {
             tipo: 'SALIDA',
             fecha: new Date(),
             cantidad: traslado.cantidad,
+            precioUnitario: precioUnitario,
             motivo: `Traslado #${traslado.numeroGuia}`,
             productoId: traslado.productoId,
             almacenId: traslado.almacenOrigenId,
@@ -128,12 +158,49 @@ export async function updateTrasladoStatus(id: number, estado: string) {
             tipo: 'ENTRADA',
             fecha: new Date(),
             cantidad: traslado.cantidad,
-            motivo: `Traslado #${traslado.numeroGuia}`,
+            precioUnitario: precioUnitario,
+            motivo: `Traslado #${traslado.numeroGuia} - Movimiento de inicio`,
             productoId: traslado.productoId,
             almacenId: traslado.almacenDestinoId,
           },
         ],
       });
+
+      // Crear una nueva instancia del producto en el almacén destino
+      const productoOriginal = await prisma.producto.findUnique({
+        where: { id: traslado.productoId },
+      });
+
+      if (productoOriginal) {
+        const nuevoProducto = await prisma.producto.create({
+          data: {
+            codigo: `${productoOriginal.codigo}-${traslado.almacenDestinoId}`,
+            nombre: productoOriginal.nombre,
+            descripcion: productoOriginal.descripcion,
+            almacenId: traslado.almacenDestinoId,
+          },
+        });
+
+        // Actualizar el movimiento de entrada para que apunte al nuevo producto
+        await prisma.movimiento.updateMany({
+          where: {
+            productoId: traslado.productoId,
+            almacenId: traslado.almacenDestinoId,
+            motivo: `Traslado #${traslado.numeroGuia} - Movimiento de inicio`,
+          },
+          data: {
+            productoId: nuevoProducto.id,
+          },
+        });
+
+        await registrarLog({
+          usuarioId: traslado.trabajadorId,
+          accion: "CREAR",
+          entidad: "Producto",
+          entidadId: nuevoProducto.id,
+          detalles: `Nuevo producto ${traslado.producto.nombre} creado en almacén ${traslado.almacenDestino.nombre} mediante traslado ${traslado.numeroGuia}`,
+        });
+      }
 
       await registrarLog({
         usuarioId: traslado.trabajadorId,

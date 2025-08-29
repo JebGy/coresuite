@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { ApiResponse, Almacen } from "@/types";
 import { registrarLog } from "@/lib/logger";
 
-export async function addAlmacen(almacen: Omit<Almacen, 'id'>, usuarioId?: number) {
+export async function addAlmacen(almacen: Omit<Almacen, 'id'>, usuarioId: number) {
   const nuevoAlmacen = await prisma.almacen.create({
     data: {
       nombre: almacen.nombre,
@@ -46,7 +46,7 @@ export async function getAlmacenes(): Promise<ApiResponse<Almacen[]>> {
   }
 }
 
-export async function deleteAlmacen(id: number, usuarioId?: number) {
+export async function deleteAlmacen(id: number, usuarioId: number) {
   await prisma.almacen.delete({
     where: { id },
   });
@@ -60,7 +60,7 @@ export async function deleteAlmacen(id: number, usuarioId?: number) {
   console.log("Almacén eliminado");
 }
 
-export async function updateAlmacen(id: number, almacen: Partial<Almacen>, usuarioId?: number) {
+export async function updateAlmacen(id: number, almacen: Partial<Almacen>, usuarioId: number) {
   await prisma.almacen.update({
     where: { id },
     data: {

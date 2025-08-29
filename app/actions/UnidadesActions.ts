@@ -24,7 +24,7 @@ export async function createUnidad(
     nombre: string;
     descripcion?: string;
   },
-  usuarioId?: number
+  usuarioId: number
 ): Promise<Unidad> {
   try {
     const unidad = await prisma.unidad.create({
@@ -51,7 +51,7 @@ export async function updateUnidad(
     nombre?: string;
     descripcion?: string;
   },
-  usuarioId?: number
+  usuarioId: number
 ): Promise<Unidad> {
   try {
     const unidad = await prisma.unidad.update({
@@ -75,7 +75,7 @@ export async function updateUnidad(
 
 export async function deleteUnidad(
   id: number,
-  usuarioId?: number
+  usuarioId: number
 ): Promise<void> {
   try {
     await prisma.unidad.delete({
