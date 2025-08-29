@@ -30,6 +30,7 @@ import { DashboardView } from "../components/DashboardView";
 import { WarehouseManagement } from "../components/WarehouseManagement";
 import ProveedoresView from "../components/ProveedoresView";
 import ImportExportHeader from "../components/ImportExportHeader";
+import BoletaView from "../components/BoletaView";
 
 // Tipos de datos ya importados desde @/types
 
@@ -790,6 +791,34 @@ export default function Dashboard() {
               />
             </svg>
             Órdenes de Entrega
+          </button>
+        )}
+        {trabajador.rol?.permisos.puedeCrearOrdenes && (
+          <button
+            className={`flex items-center w-full px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 ${
+              activeSection === "boletas"
+                ? "bg-blue-100 text-blue-700 border border-blue-200"
+                : ""
+            }`}
+            onClick={() => {
+              setActiveSection("boletas");
+              setSidebarOpen(false);
+            }}
+          >
+            <svg
+              className="w-5 h-5 mr-3"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+              />
+            </svg>
+            Vista de Boletas
           </button>
         )}
         {trabajador.rol?.permisos.puedeGestionarInventario && (
@@ -1806,7 +1835,7 @@ export default function Dashboard() {
             <div className="flex items-center justify-between">
               <div>
                 <h1 className="text-3xl font-bold text-gray-800">
-                  Boletas
+                  Vista de Boletas
                 </h1>
                 <p className="text-gray-600">
                   Visualiza órdenes de entrega y traslados en formato de boleta
@@ -1814,15 +1843,17 @@ export default function Dashboard() {
               </div>
             </div>
             <div className="bg-white/95 backdrop-blur-sm rounded-xl p-6 shadow-lg border border-gray-200">
-              <p className="text-center text-gray-600 py-8">
-                <a
-                  href="/boletas"
-                  className="text-blue-600 hover:text-blue-800 underline"
-                >
-                  Ir a la página de Boletas
-                </a>
-              </p>
-            </div>
+              <div className="grid grid-cols-1 lg:grid-rows-2 gap-6">
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-800 mb-4">Órdenes de Entrega</h3>
+                  <BoletaView tipo="orden-entrega" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-800 mb-4">Traslados</h3>
+                  <BoletaView tipo="traslado" />
+                </div>
+              </div>
+              </div>
           </div>
         );
 

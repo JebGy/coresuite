@@ -222,14 +222,15 @@ const BoletaView: React.FC<BoletaViewProps> = ({ tipo, id }) => {
               <div className="border-b border-gray-300 p-6">
                 <div className="flex justify-between items-start">
                   <div className="flex items-center space-x-4">
-                    <div className="bg-gray-200 p-3 rounded">
-                      <span className="text-sm font-semibold">MAGISTRAL</span>
+                    <div className="w-48 rounded">
+                      <span className="text-sm font-semibold">
+                        <img src="/rg.png" alt="logo Ramirez Group" className=""/>
+                      </span>
                     </div>
                     <div className="text-xs">
                       <div>RUC: 20603543565</div>
                       <div>
-                        DIRECCIÓN: AV. LAS AMERICAS NRO. 1714 ICA - PISCO -
-                        PISCO
+                        DIRECCIÓN: AV. LAS AMERICAS NRO. 1714
                       </div>
                     </div>
                   </div>
@@ -315,12 +316,7 @@ const BoletaView: React.FC<BoletaViewProps> = ({ tipo, id }) => {
                       <th className="border border-gray-300 p-2 text-left text-sm font-semibold">
                         DESCRIPCIÓN
                       </th>
-                      <th className="border border-gray-300 p-2 text-left text-sm font-semibold">
-                        PRECIO UNIT.
-                      </th>
-                      <th className="border border-gray-300 p-2 text-left text-sm font-semibold">
-                        PRECIO TOTAL
-                      </th>
+
                     </tr>
                   </thead>
                   <tbody>
@@ -331,16 +327,7 @@ const BoletaView: React.FC<BoletaViewProps> = ({ tipo, id }) => {
                       <td className="border border-gray-300 p-2 text-sm">
                         {selectedBoleta.producto}
                       </td>
-                      <td className="border border-gray-300 p-2 text-sm">
-                        S/ {selectedBoleta.precioUnitario.toFixed(2)}
-                      </td>
-                      <td className="border border-gray-300 p-2 text-sm">
-                        S/{" "}
-                        {(
-                          selectedBoleta.cantidad *
-                          selectedBoleta.precioUnitario
-                        ).toFixed(2)}
-                      </td>
+
                     </tr>
                     {/* Filas vacías para completar el formato */}
                     {[...Array(2)].map((_, i) => (
@@ -351,12 +338,7 @@ const BoletaView: React.FC<BoletaViewProps> = ({ tipo, id }) => {
                         <td className="border border-gray-300 p-2 text-sm">
                           &nbsp;
                         </td>
-                        <td className="border border-gray-300 p-2 text-sm">
-                          &nbsp;
-                        </td>
-                        <td className="border border-gray-300 p-2 text-sm">
-                          &nbsp;
-                        </td>
+
                       </tr>
                     ))}
                   </tbody>
