@@ -78,7 +78,7 @@ export default function UnidadesPage() {
     if (!confirm('¿Está seguro de que desea eliminar esta unidad?')) return
     
     try {
-      await deleteUnidad(id)
+      await deleteUnidad(id,user.id)
       setNotificacion({ mensaje: 'Unidad eliminada correctamente', tipo: 'exito' })
       loadData()
     } catch (error) {
