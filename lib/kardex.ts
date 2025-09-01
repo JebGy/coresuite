@@ -1,4 +1,4 @@
-import { KardexRow, Movimiento, Almacen, KardexConsolidado, Producto } from "@/types";
+import { KardexRow, Movimiento, Almacen, KardexConsolidado, Producto, Proveedor } from "@/types";
 
 export function calcularKardex(movimientos: Movimiento[], almacenes: Almacen[] = []): KardexRow[] {
   let saldoCantidad = 0;

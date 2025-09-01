@@ -1,13 +1,15 @@
 import React from 'react';
 import { MovementForm } from './MovementForm';
 import { MovementList } from './MovementList';
-import { Producto, Almacen, Movimiento } from '@/types';
+import { Producto, Almacen, Movimiento, Proveedor, ConstanciaRecepcion } from '@/types';
+import { ConstanciaRecepcionView } from './ConstanciaRecepcionView';
 
 interface MovementManagementProps {
   productos: Producto[];
   almacenes: Almacen[];
   movimientos: Movimiento[];
-  onSubmitMovement: (formData: any) => Promise<void>;
+  proveedores: Proveedor[];
+  onSubmitMovement: (formData: any) => Promise<any>;
   submitting: boolean;
 }
 
@@ -15,6 +17,7 @@ export const MovementManagement: React.FC<MovementManagementProps> = ({
   productos,
   almacenes,
   movimientos,
+  proveedores,
   onSubmitMovement,
   submitting
 }) => {
@@ -28,17 +31,21 @@ export const MovementManagement: React.FC<MovementManagementProps> = ({
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <MovementForm
+       
+        <MovementList
+          movimientos={movimientos}
+          productos={productos}
+          almacenes={almacenes}
+          proveedores={proveedores}
+        />
+         <MovementForm
           productos={productos}
           almacenes={almacenes}
           onSubmit={onSubmitMovement}
           submitting={submitting}
         />
-        <MovementList
-          movimientos={movimientos}
-          productos={productos}
-          almacenes={almacenes}
-        />
+
+        
       </div>
     </div>
   );

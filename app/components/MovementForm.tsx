@@ -65,8 +65,8 @@ export const MovementForm: React.FC<MovementFormProps> = ({
       return;
     }
 
-    await onSubmit(formData);
-    
+    const constancia = await onSubmit(formData);
+    alert(JSON.stringify(constancia));
     // Reset form
     setFormData({
       ...formData,
@@ -98,7 +98,7 @@ export const MovementForm: React.FC<MovementFormProps> = ({
   };
 
   return (
-    <div className="bg-white/95 backdrop-blur-sm rounded-xl p-6 shadow-lg border border-gray-200">
+    <div className="bg-white/95 flex flex-col h-fit backdrop-blur-sm rounded-xl p-6 shadow-lg border border-gray-200">
       <div className="flex items-center mb-6">
         <div className="w-10 h-10 bg-gradient-to-r from-green-500 to-green-600 rounded-lg flex items-center justify-center mr-3">
           <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">

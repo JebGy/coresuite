@@ -14,10 +14,12 @@ import {
   Movimiento,
   Trabajador,
   UsuarioSession,
+  Proveedor,
 } from "@/types";
 import { addAlmacen, getAlmacenes } from "../actions/AlmacenesActions";
 import { addProudcto, getProductos, updateProducto } from "../actions/ProductosActions";
 import { addMovimiento, getMovimientos } from "../actions/MovimientosActions";
+import { getProveedores } from "../actions/ProveedoresActions";
 import { useRouter } from "next/navigation";
 import { Notificacion } from "../components/Notificacion";
 import { useUser } from "../context/UserContext";
@@ -41,6 +43,7 @@ export default function Dashboard() {
   const [almacenes, setAlmacenes] = useState<Almacen[]>([]);
   const [productos, setProductos] = useState<Producto[]>([]);
   const [movimientos, setMovimientos] = useState<Movimiento[]>([]);
+  const [proveedores, setProveedores] = useState<Proveedor[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(0);
   const itemsPerPage = 10; // Número de items por página
@@ -131,8 +134,8 @@ export default function Dashboard() {
   useEffect(() => {
     const cargarDatos = async () => {
       try {
-        const [almacenesData, productosData, movimientosData] =
-          await Promise.all([getAlmacenes(), getProductos(), getMovimientos()]);
+        const [almacenesData, productosData, movimientosData, proveedoresData] =
+          await Promise.all([getAlmacenes(), getProductos(), getMovimientos(), getProveedores()]);
 
         if (
           almacenesData.success &&
@@ -144,6 +147,7 @@ export default function Dashboard() {
           setProductos(productosData.data);
         }
         setMovimientos(movimientosData);
+        setProveedores(proveedoresData);
       } catch (error) {
         console.error("Error al cargar datos:", error);
         setNotificacion({
@@ -362,12 +366,7 @@ export default function Dashboard() {
     }
   };
 
-  // Handlers para movimientos
-  const handleMovimientoChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
-  ) => {
-    setMovimientoForm({ ...movimientoForm, [e.target.name]: e.target.value });
-  };
+
 
   const handleMovimientoSubmit = async (formData: any) => {
     if (
@@ -380,7 +379,7 @@ export default function Dashboard() {
 
     try {
       setSubmitting(true);
-      await addMovimiento(
+      const constancia = await addMovimiento(
         {
           tipo: formData.tipo,
           fecha: formData.fecha,
@@ -400,14 +399,17 @@ export default function Dashboard() {
         user.id
       );
 
+      
       // Recargar movimientos
       const nuevosMovimientos = await getMovimientos();
       setMovimientos(nuevosMovimientos);
-
+      
       setNotificacion({
         mensaje: "Movimiento registrado exitosamente",
         tipo: "exito",
       });
+      
+      return constancia;
     } catch (error) {
       console.error("Error al registrar movimiento:", error);
       setNotificacion({
@@ -1756,6 +1758,7 @@ export default function Dashboard() {
             productos={productos}
             almacenes={almacenes}
             movimientos={movimientos}
+            proveedores={proveedores}
             onSubmitMovement={handleMovimientoSubmit}
             submitting={submitting}
           />
