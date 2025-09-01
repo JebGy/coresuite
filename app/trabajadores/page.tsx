@@ -115,7 +115,7 @@ export default function TrabajadoresPage() {
     if (!confirm('¿Está seguro de que desea eliminar este trabajador?')) return
     
     try {
-      await deleteTrabajador(id)
+      await deleteTrabajador(id, user.id)
       setNotificacion({ mensaje: 'Trabajador eliminado correctamente', tipo: 'exito' })
       loadData()
     } catch (error) {
