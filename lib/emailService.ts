@@ -170,9 +170,9 @@ class EmailService {
         from: process.env.SMTP_USER,
         to: data.solicitante.email,
         cc: [
-          process.env.EMAIL_GERENCIA_ADMINISTRATIVA ||
+          process.env.GERENCIA_ADMIN_EMAIL ||
             "gerencia.administrativa@empresa.com",
-          process.env.EMAIL_LOGISTICA || "logistica@empresa.com",
+          process.env.GERENCIA_LOGISTICA_EMAIL || "logistica@empresa.com",
         ].join(", "),
         subject: `Solicitud ${estadoTexto} - ${data.asunto}`,
         html: `
