@@ -33,6 +33,7 @@ import { WarehouseManagement } from "../components/WarehouseManagement";
 import ProveedoresView from "../components/ProveedoresView";
 import ImportExportHeader from "../components/ImportExportHeader";
 import BoletaView from "../components/BoletaView";
+import { SolicitudesManagement } from "../components/SolicitudesManagement";
 
 // Tipos de datos ya importados desde @/types
 
@@ -738,6 +739,36 @@ export default function Dashboard() {
           </button>
         )}
 
+        {/* Gestión de Solicitudes para roles autorizados - Posicionado después de Trabajadores */}
+        {trabajador.rol?.permisos?.accesoTotal && (
+          <button
+            className={`flex items-center w-full px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 ${
+              activeSection === "gestionar-solicitudes"
+                ? "bg-blue-100 text-blue-700 border border-blue-200" 
+                : ""
+            }`}
+            onClick={() => {
+              setActiveSection("gestionar-solicitudes");
+              setSidebarOpen(false);
+            }}
+          >
+            <svg
+              className="w-5 h-5 mr-3"
+              fill="none" 
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+            Gestionar Solicitudes
+          </button>
+        )}
+
         {trabajador.rol?.permisos.puedeGestionarInventario && (
           <button
             className={`flex items-center w-full px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 ${
@@ -823,6 +854,34 @@ export default function Dashboard() {
             Vista de Boletas
           </button>
         )}
+        
+        <button
+          className={`flex items-center w-full px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 ${
+            activeSection === "solicitudes"
+              ? "bg-blue-100 text-blue-700 border border-blue-200"
+              : ""
+          }`}
+          onClick={() => {
+            router.push("/solicitudes");
+            setSidebarOpen(false);
+          }}
+        >
+          <svg
+            className="w-5 h-5 mr-3"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"
+            />
+          </svg>
+          Solicitudes
+        </button>
+
         {trabajador.rol?.permisos.puedeGestionarInventario && (
           <button
             className={`flex items-center w-full px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 ${
@@ -992,34 +1051,6 @@ export default function Dashboard() {
           </button>
         )}
 
-        {trabajador.rol?.permisos?.puedeEditarUsuarios && (
-          <button
-            className={`flex items-center w-full px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 ${
-              activeSection === "recursoshumanos"
-                ? "bg-blue-100 text-blue-700 border border-blue-200"
-                : ""
-            }`}
-            onClick={() => {
-              setActiveSection("recursoshumanos");
-              setSidebarOpen(false);
-            }}
-          >
-            <svg
-              className="w-5 h-5 mr-3"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"
-              />
-            </svg>
-            Recursos Humanos
-          </button>
-        )}
       </nav>
 
       <div className="mt-auto pt-8">
@@ -1044,9 +1075,7 @@ export default function Dashboard() {
               Sistema Activo
             </span>
           </div>
-          <p className="text-xs text-gray-600">
-            Última actualización: {new Date().toLocaleString("es-ES")}
-          </p>
+        
         </div>
         <button
           onClick={() => {
@@ -1167,7 +1196,7 @@ export default function Dashboard() {
     }).then((v) => {
       v.json().then((v) => setTrabajador(v.datos as UsuarioSession));
     });
-  }, [trabajador.nombres]);
+  }, []);
 
   // Renderizado condicional basado en la sección activa
   const renderContent = () => {
@@ -1857,6 +1886,23 @@ export default function Dashboard() {
                 </div>
               </div>
               </div>
+          </div>
+        );
+
+      case "gestionar-solicitudes":
+        return (
+          <div className="space-y-6 col-span-full">
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-3xl font-bold text-gray-800">
+                  Gestión de Solicitudes
+                </h1>
+                <p className="text-gray-600">
+                  Administra y procesa las solicitudes del sistema
+                </p>
+              </div>
+            </div>
+            <SolicitudesManagement userRole={trabajador.rol?.nombre || ''} />
           </div>
         );
 

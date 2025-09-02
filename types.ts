@@ -206,3 +206,30 @@ export type ConstanciaRecepcionForm = {
   numeroGuiaAgencia?: string;
   observaciones?: string;
 };
+
+export type ElementoSolicitud = {
+  nombre: string;
+  cantidad: number;
+};
+
+export type Solicitud = {
+  id: number;
+  usuarioId: number;
+  asunto: string;
+  elementos: ElementoSolicitud[];
+  estado: "PENDIENTE" | "APROBADO" | "RECHAZADO";
+  motivo?: string;
+  createdAt: string;
+  updatedAt: string;
+  usuario?: {
+    id: number;
+    nombres: string;
+    apellidos: string;
+    email: string;
+  };
+};
+
+export type SolicitudForm = {
+  asunto: string;
+  elementos: ElementoSolicitud[];
+};

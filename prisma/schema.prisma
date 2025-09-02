@@ -53,6 +53,7 @@ model Trabajador {
   logs           Log[]
   ordenesEntrega OrdenEntrega[]
   traslados      Traslado[]
+  solicitudes    Solicitud[]
   rol            Rol            @relation(fields: [rolId], references: [id])
   unidad         Unidad         @relation(fields: [unidadId], references: [id])
 }
@@ -196,4 +197,20 @@ model ConstanciaRecepcion {
   movimiento            Movimiento @relation(fields: [movimientoId], references: [id])
 
   @@map("constancias_recepcion")
+}
+
+model Solicitud {
+  id              Int       @id @default(autoincrement())
+  usuarioId       Int       // Usuario solicitante
+  asunto          String    // Asunto de la solicitud
+  elementos       Json      // Array de elementos con cantidad [{nombre: string, cantidad: number}]
+  estado          String    @default("PENDIENTE") // "PENDIENTE", "APROBADO", "RECHAZADO"
+  motivo          String?   // Solo en caso sea rechazado
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  // Relaciones
+  usuario         Trabajador @relation(fields: [usuarioId], references: [id])
+  
+  @@map("solicitudes")
 }

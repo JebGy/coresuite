@@ -1,4 +1,4 @@
-import { UnidadesIcon, TrabajadoresIcon, OrdenesEntregaIcon, RecursosHumanosIcon, BoletasIcon } from '../components/Icons';
+import { UnidadesIcon, TrabajadoresIcon, OrdenesEntregaIcon, RecursosHumanosIcon, BoletasIcon, SolicitudesIcon } from '../components/Icons';
 
 export interface NavigationSectionConfig {
   title: string;
@@ -43,5 +43,12 @@ export const navigationSections: Record<string, NavigationSectionConfig> = {
     href: '/boletas',
     linkText: 'Ir a la vista de Boletas',
     icon: <BoletasIcon />
+  },
+  solicitudes: {
+    title: 'Solicitudes de Material/Equipo',
+    description: 'Gestiona solicitudes de materiales y equipos con aprobación digital',
+    href: '/solicitudes',
+    linkText: 'Ir a la página de Solicitudes',
+    icon: <SolicitudesIcon />
   }
 };
