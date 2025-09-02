@@ -1,9 +1,8 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { PrismaClient } from '@prisma/client';
 import { notificarNuevaSolicitud } from '../../lib/emailService';
-import { registrarLog } from '../../lib/logger';
+import { prisma } from '@/lib/prisma';
 
-const prisma = new PrismaClient();
 
 export default async function handler(
   req: NextApiRequest,
