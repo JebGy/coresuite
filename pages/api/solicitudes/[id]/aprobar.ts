@@ -66,7 +66,6 @@ export default async function handler(
     });
 
 
-    // Enviar notificación por email
     try {
       await notificarAprobacionSolicitud(
         {
@@ -79,7 +78,6 @@ export default async function handler(
       );
     } catch (emailError) {
       console.error('Error al enviar notificación por email:', emailError);
-      // No fallar la operación si el email falla
     }
 
     return res.status(200).json({
