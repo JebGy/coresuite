@@ -34,6 +34,15 @@ interface AprobacionEmailData {
   };
 }
 
+interface ProveedorRegistroEmailData {
+  ruc: string;
+  razonSocial: string;
+  email: string;
+  telefono: string;
+  segmento: string;
+  fechaRegistro: string;
+}
+
 class EmailService {
   private transporter: nodemailer.Transporter | null = null;
   private isConfigured = false;
@@ -234,6 +243,78 @@ class EmailService {
     }
   }
 
+  async sendProveedorRegistroNotification(
+    data: ProveedorRegistroEmailData
+  ): Promise<boolean> {
+    if (!this.isConfigured || !this.transporter) {
+      console.warn(
+        "Servicio de correo no configurado. No se enviará notificación."
+      );
+      return false;
+    }
+
+    try {
+      // Correos de destino (Administración y Compras)
+      const adminEmail = process.env.GERENCIA_ADMIN_EMAIL;
+      const comprasEmail = process.env.COMPRAS_EMAIL;
+
+      const destinatarios = [
+        adminEmail || "gerencia.administrativa@empresa.com",
+        comprasEmail || "compras@empresa.com",
+      ].filter(Boolean);
+
+      const mailOptions = {
+        from: process.env.SMTP_USER,
+        to: destinatarios.join(", "),
+        cc: data.email,
+        subject: `Nuevo Proveedor Registrado - ${data.razonSocial}`,
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2 style="color: #2563eb;">Nuevo Proveedor Registrado</h2>
+            
+            <div style="background-color: #f0f9ff; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #2563eb;">
+              <h3 style="color: #1e40af; margin-top: 0;">¡Registro Exitoso!</h3>
+              <p style="margin-bottom: 0;">Se ha registrado un nuevo proveedor en el sistema CoreSuite.</p>
+            </div>
+            
+            <div style="background-color: #f8fafc; padding: 20px; border-radius: 8px; margin: 20px 0;">
+              <h3>Información del Proveedor</h3>
+              <p><strong>RUC:</strong> ${data.ruc}</p>
+              <p><strong>Razón Social:</strong> ${data.razonSocial}</p>
+              <p><strong>Email:</strong> ${data.email}</p>
+              <p><strong>Teléfono:</strong> ${data.telefono}</p>
+              <p><strong>Segmento:</strong> ${data.segmento}</p>
+              <p><strong>Fecha de Registro:</strong> ${data.fechaRegistro}</p>
+            </div>
+            
+            <div style="background-color: #fef3c7; padding: 15px; border-radius: 8px; margin: 20px 0;">
+              <p style="margin: 0; color: #92400e;">
+                <strong>Próximos Pasos:</strong> El proveedor ha sido registrado exitosamente y está disponible en el sistema.
+                Puede proceder con la evaluación y configuración de términos comerciales según sea necesario.
+              </p>
+            </div>
+            
+            <div style="text-align: center; margin: 30px 0;">
+              <p style="color: #6b7280; font-size: 14px;">
+                Este es un correo automático del Sistema de Gestión CoreSuite.
+                <br>Por favor, no responda a este correo.
+              </p>
+            </div>
+          </div>
+        `,
+      };
+
+      await this.transporter.sendMail(mailOptions);
+      console.log(
+        `Notificación de registro de proveedor enviada para ${data.razonSocial}`
+      );
+      return true;
+    } catch (error) {
+      console.error("Error al enviar notificación de registro de proveedor:", error);
+      return false;
+    }
+  }
+
   async testConnection(): Promise<boolean> {
     if (!this.isConfigured || !this.transporter) {
       return false;
@@ -263,4 +344,10 @@ export async function notificarAprobacionSolicitud(
   data: AprobacionEmailData
 ): Promise<boolean> {
   return await emailService.sendAprobacionNotification(data);
+}
+
+export async function notificarRegistroProveedor(
+  data: ProveedorRegistroEmailData
+): Promise<boolean> {
+  return await emailService.sendProveedorRegistroNotification(data);
 }

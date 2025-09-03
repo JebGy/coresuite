@@ -9,17 +9,17 @@ datasource db {
 }
 
 model Almacen {
-  id             Int            @id @default(autoincrement())
-  nombre         String
-  ubicacion      String?
-  descripcion    String?
-  unidadId       Int?
-  unidad         Unidad?        @relation(fields: [unidadId], references: [id])
-  movimientos    Movimiento[]
-  ordenesEntrega OrdenEntrega[]
-  productos      Producto[]
-  trasladosOrigen  Traslado[]   @relation("TrasladoOrigen")
-  trasladosDestino Traslado[]   @relation("TrasladoDestino")
+  id               Int            @id @default(autoincrement())
+  nombre           String
+  ubicacion        String?
+  descripcion      String?
+  unidadId         Int?
+  unidad           Unidad?        @relation(fields: [unidadId], references: [id])
+  movimientos      Movimiento[]
+  ordenesEntrega   OrdenEntrega[]
+  productos        Producto[]
+  trasladosDestino Traslado[]     @relation("TrasladoDestino")
+  trasladosOrigen  Traslado[]     @relation("TrasladoOrigen")
 }
 
 model Unidad {
@@ -52,10 +52,10 @@ model Trabajador {
   password       String?
   logs           Log[]
   ordenesEntrega OrdenEntrega[]
-  traslados      Traslado[]
-  solicitudes    Solicitud[]
   rol            Rol            @relation(fields: [rolId], references: [id])
   unidad         Unidad         @relation(fields: [unidadId], references: [id])
+  traslados      Traslado[]
+  solicitudes    Solicitud[]
 }
 
 model Producto {
@@ -66,12 +66,12 @@ model Producto {
   almacenId      Int?
   movimientos    Movimiento[]
   ordenesEntrega OrdenEntrega[]
-  traslados      Traslado[]
   almacen        Almacen?       @relation(fields: [almacenId], references: [id])
+  traslados      Traslado[]
 }
 
 model Movimiento {
-  id             Int           @id @default(autoincrement())
+  id             Int                  @id @default(autoincrement())
   tipo           String
   fecha          DateTime
   cantidad       Int
@@ -81,9 +81,9 @@ model Movimiento {
   almacenId      Int
   ordenEntregaId Int?
   factura        String?
-  almacen        Almacen       @relation(fields: [almacenId], references: [id])
-  ordenEntrega   OrdenEntrega? @relation(fields: [ordenEntregaId], references: [id])
-  producto       Producto      @relation(fields: [productoId], references: [id])
+  almacen        Almacen              @relation(fields: [almacenId], references: [id])
+  ordenEntrega   OrdenEntrega?        @relation(fields: [ordenEntregaId], references: [id])
+  producto       Producto             @relation(fields: [productoId], references: [id])
   constancia     ConstanciaRecepcion?
 }
 
@@ -108,23 +108,23 @@ model OrdenEntrega {
 }
 
 model Traslado {
-  id              Int       @id @default(autoincrement())
-  numeroGuia      String    @unique
-  fechaSolicitud  DateTime  @default(now())
-  fechaAprobacion DateTime?
-  estado          String    // "PENDIENTE", "APROBADO", "RECHAZADO", "COMPLETADO"
-  cantidad        Int
-  observaciones   String?
-  productoId      Int
-  almacenOrigenId Int
+  id               Int        @id @default(autoincrement())
+  numeroGuia       String     @unique
+  fechaSolicitud   DateTime   @default(now())
+  fechaAprobacion  DateTime?
+  estado           String
+  cantidad         Int
+  observaciones    String?
+  productoId       Int
+  almacenOrigenId  Int
   almacenDestinoId Int
-  trabajadorId    Int
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
-  producto        Producto  @relation(fields: [productoId], references: [id])
-  almacenOrigen   Almacen   @relation("TrasladoOrigen", fields: [almacenOrigenId], references: [id])
-  almacenDestino  Almacen   @relation("TrasladoDestino", fields: [almacenDestinoId], references: [id])
-  trabajador      Trabajador @relation(fields: [trabajadorId], references: [id])
+  trabajadorId     Int
+  createdAt        DateTime   @default(now())
+  updatedAt        DateTime   @updatedAt
+  almacenDestino   Almacen    @relation("TrasladoDestino", fields: [almacenDestinoId], references: [id])
+  almacenOrigen    Almacen    @relation("TrasladoOrigen", fields: [almacenOrigenId], references: [id])
+  producto         Producto   @relation(fields: [productoId], references: [id])
+  trabajador       Trabajador @relation(fields: [trabajadorId], references: [id])
 }
 
 model Log {
@@ -140,77 +140,90 @@ model Log {
 
 model Notificacion {
   id        Int      @id @default(autoincrement())
-  tipo      String   // "PRODUCTO_NUEVO", "ERROR", etc.
+  tipo      String
   mensaje   String
   leida     Boolean  @default(false)
-  origen    String   // Sistema de origen
-  datos     String?  // JSON stringified data
+  origen    String
+  datos     String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
 model Segmento {
   id          Int         @id @default(autoincrement())
-  nombre      String      @unique // "EPPS", "FERRETERÍA", "OFICINA", etc.
+  nombre      String      @unique
   descripcion String?
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
   proveedores Proveedor[]
+  registrationTokens ProveedorRegistrationToken[]
 
   @@map("segmentos")
 }
 
 model Proveedor {
-  id           Int      @id @default(autoincrement())
-  ruc          String   @unique
+  id           Int                   @id @default(autoincrement())
+  ruc          String                @unique
   nombre       String
   telefono     String?
   email        String?
-  detalles     String?  // Campo para detalles adicionales
-  mesesCredito Int?     // Nuevo campo para meses de crédito
+  createdAt    DateTime              @default(now())
+  updatedAt    DateTime              @updatedAt
   segmentoId   Int
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-  segmento     Segmento @relation(fields: [segmentoId], references: [id])
+  detalles     String?
+  mesesCredito Int?
   constancias  ConstanciaRecepcion[]
+  segmento     Segmento              @relation(fields: [segmentoId], references: [id])
 
   @@map("proveedores")
 }
 
 model ConstanciaRecepcion {
-  id                    Int        @id @default(autoincrement())
-  numero                String     @unique @default(cuid())
-  fecha                 DateTime   @default(now())
-  horaEntrada           String     // Hora de entrada como string (HH:mm)
-  descripcionProducto   String     // Descripción del producto
-  proveedorId           Int        // Relación con proveedor
-  numeroGuia            String?    // Número de guía
-  agenciaTransporte     String?    // Agencia de transporte
-  numeroGuiaAgencia     String?    // Número de guía de agencia de transporte
-  observaciones         String?    // Observaciones
-  movimientoId          Int        @unique // Relación uno a uno con movimiento
-  createdAt             DateTime   @default(now())
-  updatedAt             DateTime   @updatedAt
-  
-  // Relaciones
-  proveedor             Proveedor  @relation(fields: [proveedorId], references: [id])
-  movimiento            Movimiento @relation(fields: [movimientoId], references: [id])
+  id                  Int        @id @default(autoincrement())
+  numero              String     @unique @default(cuid())
+  fecha               DateTime   @default(now())
+  horaEntrada         String
+  descripcionProducto String
+  proveedorId         Int
+  numeroGuia          String?
+  agenciaTransporte   String?
+  numeroGuiaAgencia   String?
+  observaciones       String?
+  movimientoId        Int        @unique
+  createdAt           DateTime   @default(now())
+  updatedAt           DateTime   @updatedAt
+  movimiento          Movimiento @relation(fields: [movimientoId], references: [id])
+  proveedor           Proveedor  @relation(fields: [proveedorId], references: [id])
 
   @@map("constancias_recepcion")
 }
 
 model Solicitud {
-  id              Int       @id @default(autoincrement())
-  usuarioId       Int       // Usuario solicitante
-  asunto          String    // Asunto de la solicitud
-  elementos       Json      // Array de elementos con cantidad [{nombre: string, cantidad: number}]
-  estado          String    @default("PENDIENTE") // "PENDIENTE", "APROBADO", "RECHAZADO"
-  motivo          String?   // Solo en caso sea rechazado
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  id        Int        @id @default(autoincrement())
+  usuarioId Int
+  asunto    String
+  elementos Json
+  estado    String     @default("PENDIENTE")
+  motivo    String?
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  usuario   Trabajador @relation(fields: [usuarioId], references: [id])
+
+  @@map("solicitudes")
+}
+
+model ProveedorRegistrationToken {
+  id          Int       @id @default(autoincrement())
+  token       String    @unique
+  segmentoId  Int?      // Segmento predefinido (opcional)
+  expiresAt   DateTime  // Fecha de expiración
+  used        Boolean   @default(false) // Si ya fue usado
+  usedAt      DateTime? // Cuándo fue usado
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
   
   // Relaciones
-  usuario         Trabajador @relation(fields: [usuarioId], references: [id])
+  segmento    Segmento? @relation(fields: [segmentoId], references: [id])
   
-  @@map("solicitudes")
+  @@map("proveedor_registration_tokens")
 }
