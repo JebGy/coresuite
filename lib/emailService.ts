@@ -256,7 +256,7 @@ class EmailService {
     try {
       // Correos de destino (Administración y Compras)
       const adminEmail = process.env.GERENCIA_ADMIN_EMAIL;
-      const comprasEmail = process.env.COMPRAS_EMAIL;
+      const comprasEmail = process.env.GERENCIA_VENTAS_EMAIL;
 
       const destinatarios = [
         adminEmail || "gerencia.administrativa@empresa.com",
