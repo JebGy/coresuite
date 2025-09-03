@@ -116,9 +116,16 @@ const BoletaView: React.FC<BoletaViewProps> = ({ tipo, id }) => {
   };
 
   const contentRef = useRef<HTMLDivElement>(null);
-  const reactToPrintFn = useReactToPrint({ contentRef,
-    pageStyle:"horizontal",
-   });
+  const reactToPrintFn = useReactToPrint({
+    contentRef,
+    pageStyle: `
+      @page {
+        size: A4 landscape;
+        margin: 20mm;
+      }
+      
+    `,
+  });
 
   // Función para agrupar boletas por fecha
   const groupBoletasByDate = (boletas: BoletaData[]) => {
@@ -223,21 +230,33 @@ const BoletaView: React.FC<BoletaViewProps> = ({ tipo, id }) => {
             </div>
 
             {/* Boleta imprimible */}
-            <div ref={contentRef} className="boleta-container p-8 bg-white border border-gray-300 max-w-4xl mx-auto overflow-y-auto">
+            <div
+              ref={contentRef}
+              className="boleta-container p-8 bg-white border border-gray-300 max-w-4xl mx-auto overflow-y-auto"
+            >
               {/* Header */}
+              <style type="text/css" media="print">
+                {
+                  "\
+  @page { size: landscape; }\
+"
+                }
+              </style>
               <div className="border-b border-gray-300 p-6">
                 <div className="flex justify-between items-start">
                   <div className="flex items-center space-x-4">
                     <div className="w-48 rounded">
                       <span className="text-sm font-semibold">
-                        <img src="/rg.png" alt="logo Ramirez Group" className=""/>
+                        <img
+                          src="/rg.png"
+                          alt="logo Ramirez Group"
+                          className=""
+                        />
                       </span>
                     </div>
                     <div className="text-xs">
                       <div>RUC: 20603543565</div>
-                      <div>
-                        DIRECCIÓN: AV. LAS AMERICAS NRO. 1714
-                      </div>
+                      <div>DIRECCIÓN: AV. LAS AMERICAS NRO. 1714</div>
                     </div>
                   </div>
                   <div className="border border-gray-400 p-3 text-center">
@@ -322,7 +341,6 @@ const BoletaView: React.FC<BoletaViewProps> = ({ tipo, id }) => {
                       <th className="border border-gray-300 p-2 text-left text-sm font-semibold">
                         DESCRIPCIÓN
                       </th>
-
                     </tr>
                   </thead>
                   <tbody>
@@ -333,7 +351,6 @@ const BoletaView: React.FC<BoletaViewProps> = ({ tipo, id }) => {
                       <td className="border border-gray-300 p-2 text-sm">
                         {selectedBoleta.producto}
                       </td>
-
                     </tr>
                     {/* Filas vacías para completar el formato */}
                     {[...Array(2)].map((_, i) => (
@@ -344,7 +361,6 @@ const BoletaView: React.FC<BoletaViewProps> = ({ tipo, id }) => {
                         <td className="border border-gray-300 p-2 text-sm">
                           &nbsp;
                         </td>
-
                       </tr>
                     ))}
                   </tbody>
