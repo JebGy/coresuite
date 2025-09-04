@@ -118,7 +118,7 @@ export const MovementList: React.FC<MovementListProps> = ({
                             : "bg-red-500"
                         }`}
                       />
-                      <div className="font-semibold text-blue-600 text-sm">
+                      <div className="font-semibold text-corporate-primary text-sm">
                         {getProductName(movimiento.productoId)}
                       </div>
                     </div>
@@ -150,7 +150,7 @@ export const MovementList: React.FC<MovementListProps> = ({
                       
                     </div>
                     {movimiento.factura && movimiento.tipo === "entrada" && (
-                      <div className="text-xs text-blue-600 mt-1">
+                      <div className="text-xs text-corporate-primary mt-1">
                         Factura: {movimiento.factura}
                       </div>
                     )}
@@ -162,7 +162,7 @@ export const MovementList: React.FC<MovementListProps> = ({
                             setSelectedMovimiento(movimiento);
                             setShowConstancia(true);
                           }}
-                          className="bg-blue-500 hover:bg-blue-600 text-white text-xs px-3 py-1 rounded transition-colors"
+                          className="bg-blue-500 hover:bg-corporate-primary text-white text-xs px-3 py-1 rounded transition-colors"
                         >
                           Generar Constancia
                         </button>

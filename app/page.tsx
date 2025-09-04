@@ -34,9 +34,9 @@ function Page() {
       <section className="relative py-20 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           <div className="text-center">
-            <h2 className="text-4xl md:text-6xl font-bold text-[#102636] mb-6">
+            <h2 className="text-4xl md:text-6xl font-bold text-corporate-secondary mb-6">
               Gestión Empresarial
-              <span className="block text-[#2DB4A5]">Inteligente</span>
+              <span className="block text-corporate-primary">Inteligente</span>
             </h2>
             <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
               CoreSuite es la solución integral de gestión empresarial que
@@ -44,7 +44,7 @@ function Page() {
               crecimiento de Ramirez Group.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <a href="/login" className="bg-[#2DB4A5] hover:bg-[#25a394] text-white px-8 py-4 rounded-lg font-semibold transition-colors shadow-lg">
+              <a href="/login" className="bg-corporate-primary hover:bg-corporate-primary-hover text-white px-8 py-4 rounded-lg font-semibold transition-colors shadow-lg">
                 Comenzar Ahora
               </a>
              

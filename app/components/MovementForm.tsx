@@ -126,7 +126,7 @@ export const MovementForm: React.FC<MovementFormProps> = ({
               onFocus={() => setMostrarSugerencias(true)}
               onBlur={() => setTimeout(() => setMostrarSugerencias(false), 150)}
               placeholder="Escribe el nombre o código del producto"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-gray-900 bg-white"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-corporate-primary focus:border-transparent transition-all duration-200 text-gray-900 bg-white"
               required
             />
             {mostrarSugerencias && sugerenciasProducto.length > 0 && (
@@ -134,7 +134,7 @@ export const MovementForm: React.FC<MovementFormProps> = ({
                 {sugerenciasProducto.map((p) => (
                   <li
                     key={p.id}
-                    className="px-4 py-2 cursor-pointer flex flex-col hover:bg-blue-100 text-gray-800"
+                    className="px-4 py-2 cursor-pointer flex flex-col hover:bg-gray-100 text-gray-800"
                     onMouseDown={() => handleProductSelect(p)}
                   >
                     <p className="font-bold">

@@ -201,13 +201,13 @@ export default function GestionEmpleadosPage() {
           {/* Pestañas */}
           <div className="flex gap-4 border-b mb-8">
             <button
-              className={`px-4 py-2 font-semibold border-b-2 transition-colors ${tab === 'empleados' ? 'border-blue-600 text-blue-700' : 'border-transparent text-gray-500 hover:text-blue-600'}`}
+              className={`px-4 py-2 font-semibold border-b-2 transition-colors ${tab === 'empleados' ? 'border-blue-600 text-blue-700' : 'border-transparent text-gray-500 hover:text-corporate-primary'}`}
               onClick={() => setTab('empleados')}
             >
               Empleados
             </button>
             <button
-              className={`px-4 py-2 font-semibold border-b-2 transition-colors ${tab === 'asistencia' ? 'border-blue-600 text-blue-700' : 'border-transparent text-gray-500 hover:text-blue-600'}`}
+              className={`px-4 py-2 font-semibold border-b-2 transition-colors ${tab === 'asistencia' ? 'border-blue-600 text-blue-700' : 'border-transparent text-gray-500 hover:text-corporate-primary'}`}
               onClick={() => setTab('asistencia')}
             >
               Asistencia
@@ -220,7 +220,7 @@ export default function GestionEmpleadosPage() {
               <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
                 <h1 className="text-3xl font-bold text-gray-900">Gestión de Empleados</h1>
                 <button
-                  className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded shadow"
+                  className="bg-corporate-primary hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded shadow"
                   onClick={abrirModalNuevo}
                 >
                   + Agregar empleado
@@ -288,7 +288,7 @@ export default function GestionEmpleadosPage() {
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{emp.estado}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-center text-sm">
                           <button
-                            className="text-blue-600 hover:underline mr-3"
+                            className="text-corporate-primary hover:underline mr-3"
                             onClick={() => abrirModalEditar(emp)}
                           >Editar</button>
                           <button
@@ -548,7 +548,7 @@ function ModalEmpleado({ empleado, onClose, onSave }: ModalEmpleadoProps) {
             </button>
             <button
               type="submit"
-              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded"
+              className="bg-corporate-primary hover:bg-blue-700 text-white px-4 py-2 rounded"
             >
               Guardar
             </button>

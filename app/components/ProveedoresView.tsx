@@ -646,7 +646,7 @@ function ProveedoresView() {
       <div className="bg-white/95 backdrop-blur-sm rounded-xl p-6 shadow-lg border border-gray-200">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center">
-            <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg flex items-center justify-center mr-3">
+            <div className="w-10 h-10 bg-gradient-to-r from-[#2DB4A5] to-[#1E786E] rounded-lg flex items-center justify-center mr-3">
               <svg
                 className="w-5 h-5 text-white"
                 fill="none"
@@ -861,7 +861,7 @@ function ProveedoresView() {
             <button
               type="submit"
               disabled={submitting}
-              className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white px-4 py-3 rounded-lg font-medium transition-colors duration-200 flex items-center justify-center"
+              className="flex-1 bg-corporate-primary hover:bg-blue-700 disabled:bg-blue-400 text-white px-4 py-3 rounded-lg font-medium transition-colors duration-200 flex items-center justify-center"
             >
               {submitting ? (
                 <>
@@ -897,7 +897,7 @@ function ProveedoresView() {
       <div className="bg-white/95 backdrop-blur-sm rounded-xl p-6 shadow-lg border border-gray-200">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center">
-            <div className="w-10 h-10 bg-gradient-to-r from-green-500 to-green-600 rounded-lg flex items-center justify-center mr-3">
+            <div className="w-10 h-10 bg-gradient-to-r from-[#2DB4A5] to-[#1E786E] rounded-lg flex items-center justify-center mr-3">
               <svg
                 className="w-5 h-5 text-white"
                 fill="none"
@@ -920,7 +920,7 @@ function ProveedoresView() {
             <button
               onClick={() => generateRegistrationLink()}
               disabled={generatingLink}
-              className="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200 flex items-center"
+              className="bg-corporate-primary hover:bg-blue-700 disabled:bg-blue-400 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200 flex items-center"
             >
               <svg
                 className="w-4 h-4 mr-2"
@@ -1001,7 +1001,7 @@ function ProveedoresView() {
                     setFiltros((prev) => ({ ...prev, busqueda: e.target.value }))
                   }
                   placeholder="RUC, nombre, teléfono o email..."
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-corporate-primary focus:border-transparent transition-all duration-200"
                 />
                 <svg
                   className="absolute left-3 top-2.5 h-5 w-5 text-gray-400"
@@ -1104,7 +1104,7 @@ function ProveedoresView() {
             <p className="text-sm">Intente ajustar los filtros de búsqueda</p>
             <button
               onClick={limpiarFiltros}
-              className="mt-3 text-blue-600 hover:text-blue-800 underline"
+              className="mt-3 text-corporate-primary hover:text-corporate-primary-hover underline"
             >
               Limpiar filtros
             </button>
@@ -1201,7 +1201,7 @@ function ProveedoresView() {
             <div className="flex gap-3">
               <button
                 onClick={() => copyToClipboard(generatedLink)}
-                className="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200 flex items-center justify-center"
+                className="flex-1 bg-corporate-primary hover:bg-corporate-primary-hover text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200 flex items-center justify-center"
               >
                 <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />

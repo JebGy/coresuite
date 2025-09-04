@@ -1228,7 +1228,7 @@ export default function Dashboard() {
               <p className="text-center text-gray-600 py-8">
                 <a
                   href="/unidades"
-                  className="text-blue-600 hover:text-blue-800 underline"
+                  className="text-corporate-primary hover:text-blue-800 underline"
                 >
                   Ir a la página de Unidades
                 </a>
@@ -1254,7 +1254,7 @@ export default function Dashboard() {
               <p className="text-center text-gray-600 py-8">
                 <a
                   href="/trabajadores"
-                  className="text-blue-600 hover:text-blue-800 underline"
+                  className="text-corporate-primary hover:text-blue-800 underline"
                 >
                   Ir a la página de Trabajadores
                 </a>
@@ -1280,7 +1280,7 @@ export default function Dashboard() {
               <p className="text-center text-gray-600 py-8">
                 <a
                   href="/ordenes-entrega"
-                  className="text-blue-600 hover:text-blue-800 underline"
+                  className="text-corporate-primary hover:text-blue-800 underline"
                 >
                   Ir a la página de Órdenes de Entrega
                 </a>
@@ -1401,7 +1401,7 @@ export default function Dashboard() {
                     <button
                       type="submit"
                       disabled={submitting}
-                      className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white px-4 py-3 rounded-lg font-medium transition-colors duration-200 flex items-center justify-center"
+                      className="flex-1 bg-corporate-primary hover:bg-blue-700 disabled:bg-blue-400 text-white px-4 py-3 rounded-lg font-medium transition-colors duration-200 flex items-center justify-center"
                     >
                     {submitting ? (
                       <>
@@ -1479,7 +1479,7 @@ export default function Dashboard() {
                             </p>
                           )}
                           {producto.almacenId && (
-                            <p className="text-sm text-blue-600 mt-1">
+                            <p className="text-sm text-corporate-primary mt-1">
                               Almacén:{" "}
                               {almacenes.find(
                                 (a) => a.id === producto.almacenId
@@ -1493,7 +1493,7 @@ export default function Dashboard() {
                           </span>
                           <button
                             onClick={() => handleEditProduct(producto)}
-                            className="text-blue-600 hover:text-blue-900 flex items-center text-sm"
+                            className="text-corporate-primary hover:text-blue-900 flex items-center text-sm"
                           >
                             <svg
                               className="w-4 h-4 mr-1"
@@ -1656,7 +1656,7 @@ export default function Dashboard() {
                             <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                               <button
                                 onClick={() => handleEditProduct(producto)}
-                                className="text-blue-600 hover:text-blue-900 flex items-center"
+                                className="text-corporate-primary hover:text-blue-900 flex items-center"
                               >
                                 <svg
                                   className="w-4 h-4 mr-1"
@@ -1852,7 +1852,7 @@ export default function Dashboard() {
               <p className="text-center text-gray-600 py-8">
                 <a
                   href="/recursoshumanos"
-                  className="text-blue-600 hover:text-blue-800 underline"
+                  className="text-corporate-primary hover:text-blue-800 underline"
                 >
                   Ir a la página de Recursos Humanos
                 </a>

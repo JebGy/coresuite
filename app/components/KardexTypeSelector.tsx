@@ -16,7 +16,7 @@ export function KardexTypeSelector({ tipoKardex, setTipoKardex }: KardexTypeSele
           onClick={() => setTipoKardex("producto")}
           className={`px-4 py-2 rounded-lg font-medium transition-colors duration-200 ${
             tipoKardex === "producto"
-              ? "bg-blue-600 text-white"
+              ? "bg-corporate-primary text-white"
               : "bg-gray-100 text-gray-700 hover:bg-gray-200"
           }`}
         >
@@ -26,7 +26,7 @@ export function KardexTypeSelector({ tipoKardex, setTipoKardex }: KardexTypeSele
           onClick={() => setTipoKardex("almacen")}
           className={`px-4 py-2 rounded-lg font-medium transition-colors duration-200 ${
             tipoKardex === "almacen"
-              ? "bg-blue-600 text-white"
+              ? "bg-corporate-primary text-white"
               : "bg-gray-100 text-gray-700 hover:bg-gray-200"
           }`}
         >
@@ -36,7 +36,7 @@ export function KardexTypeSelector({ tipoKardex, setTipoKardex }: KardexTypeSele
           onClick={() => setTipoKardex("consolidado")}
           className={`px-4 py-2 rounded-lg font-medium transition-colors duration-200 ${
             tipoKardex === "consolidado"
-              ? "bg-blue-600 text-white"
+              ? "bg-corporate-primary text-white"
               : "bg-gray-100 text-gray-700 hover:bg-gray-200"
           }`}
         >

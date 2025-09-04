@@ -70,7 +70,7 @@ function Home() {
             <div>
               <button
                 type="submit"
-                className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-lg font-medium rounded-lg text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-lg font-medium rounded-lg text-white bg-corporate-primary hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
               >
                 Ingresar
               </button>
@@ -80,7 +80,7 @@ function Home() {
       </div>
 
       {/* Columna de CoreSuite */}
-      <div className="hidden md:flex items-center justify-center bg-blue-600 p-8">
+      <div className="hidden md:flex items-center justify-center bg-corporate-primary p-8">
         <div className="text-center text-white">
           <h1 className="text-5xl font-bold mb-4">CoreSuite</h1>
           <p className="text-xl">Sistema de gestión integral</p>

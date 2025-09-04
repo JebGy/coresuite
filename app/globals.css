@@ -3,20 +3,25 @@
 /* Forzar colores hexadecimales para evitar oklch */
 :root {
   --background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-  --foreground: #1e293b;
+  --foreground: #102636;
   --card-bg: rgba(255, 255, 255, 0.95);
   --card-border: rgba(226, 232, 240, 0.8);
-  --primary: #1e40af;
-  --primary-hover: #1d4ed8;
-  --secondary: #64748b;
+  /* Colores corporativos */
+  --corporate-primary: #2DB4A5;
+  --corporate-secondary: #102636;
+  --corporate-primary-hover: #25a394;
+  /* Colores del sistema basados en corporativos */
+  --primary: #2DB4A5;
+  --primary-hover: #25a394;
+  --secondary: #102636;
   --success: #059669;
   --success-hover: #047857;
   --warning: #d97706;
   --danger: #dc2626;
-  --text-primary: #1e293b;
+  --text-primary: #102636;
   --text-secondary: #64748b;
   --sidebar-bg: #ffffff;
-  --sidebar-text: #1e293b;
+  --sidebar-text: #102636;
   --shadow-lg: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
   --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
 }
@@ -28,7 +33,7 @@
 .bg-blue-300 { background-color: #93c5fd !important; }
 .bg-blue-400 { background-color: #60a5fa !important; }
 .bg-blue-500 { background-color: #3b82f6 !important; }
-.bg-blue-600 { background-color: #2563eb !important; }
+.bg-corporate-primary { background-color: #2563eb !important; }
 .bg-blue-700 { background-color: #1d4ed8 !important; }
 .bg-blue-800 { background-color: #1e40af !important; }
 .bg-blue-900 { background-color: #1e3a8a !important; }
@@ -94,7 +99,7 @@
 .text-blue-300 { color: #93c5fd !important; }
 .text-blue-400 { color: #60a5fa !important; }
 .text-blue-500 { color: #3b82f6 !important; }
-.text-blue-600 { color: #2563eb !important; }
+.text-corporate-primary { color: #2563eb !important; }
 .text-blue-700 { color: #1d4ed8 !important; }
 .text-blue-800 { color: #1e40af !important; }
 .text-blue-900 { color: #1e3a8a !important; }
@@ -371,13 +376,26 @@ td {
 
 /* Estilos para botones en tema claro */
 .btn-primary {
-  background-color: #1e40af;
+  background-color: var(--corporate-primary);
   color: #ffffff;
 }
 
 .btn-primary:hover {
-  background-color: #1d4ed8;
+  background-color: var(--corporate-primary-hover);
 }
+
+/* Clases CSS para colores corporativos */
+.bg-corporate-primary { background-color: #2DB4A5 !important; }
+.bg-corporate-secondary { background-color: #102636 !important; }
+.bg-corporate-primary-hover { background-color: #25a394 !important; }
+
+.text-corporate-primary { color: #2DB4A5 !important; }
+.text-corporate-secondary { color: #102636 !important; }
+.text-corporate-primary-hover { color: #25a394 !important; }
+
+.border-corporate-primary { border-color: #2DB4A5 !important; }
+.border-corporate-secondary { border-color: #102636 !important; }
+.border-corporate-primary-hover { border-color: #25a394 !important; }
 
 .btn-secondary {
   background-color: #64748b;

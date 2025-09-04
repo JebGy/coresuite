@@ -158,7 +158,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               />
             </svg>
           }
-          color="bg-blue-500"
+          color="bg-corporate-primary"
         />
         <MetricCard
           title="Total Movimientos"
@@ -178,7 +178,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               />
             </svg>
           }
-          color="bg-green-500"
+          color="bg-corporate-primary"
         />
         <MetricCard
           title="Valor Inventario"

@@ -235,7 +235,7 @@ export const ReportCharts: React.FC<ReportChartsProps> = ({
       <div className="flex gap-4 mb-6">
         <button
           onClick={exportarReporte}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition duration-200"
+          className="bg-corporate-primary hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition duration-200"
         >
           {/* Ícono PDF */}
           <svg

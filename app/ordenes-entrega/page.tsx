@@ -187,7 +187,7 @@ export default function OrdenesEntregaPage() {
         <h1 className="text-3xl font-bold text-gray-900">Órdenes de Entrega</h1>
         <button
           onClick={() => setShowForm(true)}
-          className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+          className="bg-corporate-primary hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
         >
           Nueva Orden
         </button>
@@ -344,7 +344,7 @@ export default function OrdenesEntregaPage() {
               </button>
               <button
                 type="submit"
-                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                className="px-4 py-2 bg-corporate-primary text-white rounded-md hover:bg-blue-700"
               >
                 Crear Orden
               </button>

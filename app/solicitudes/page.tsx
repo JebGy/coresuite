@@ -182,7 +182,7 @@ export default function SolicitudesPage() {
                 onClick={() => setActiveTab("crear")}
                 className={`py-4 px-1 border-b-2 font-medium text-sm ${
                   activeTab === "crear"
-                    ? "border-blue-500 text-blue-600"
+                    ? "border-blue-500 text-corporate-primary"
                     : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                 }`}
               >
@@ -192,7 +192,7 @@ export default function SolicitudesPage() {
                 onClick={() => setActiveTab("listar")}
                 className={`py-4 px-1 border-b-2 font-medium text-sm ${
                   activeTab === "listar"
-                    ? "border-blue-500 text-blue-600"
+                    ? "border-blue-500 text-corporate-primary"
                     : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                 }`}
               >
@@ -203,7 +203,7 @@ export default function SolicitudesPage() {
                   onClick={() => setActiveTab("aprobar")}
                   className={`py-4 px-1 border-b-2 font-medium text-sm ${
                     activeTab === "aprobar"
-                      ? "border-blue-500 text-blue-600"
+                      ? "border-blue-500 text-corporate-primary"
                       : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                   }`}
                 >
@@ -293,7 +293,7 @@ export default function SolicitudesPage() {
                     <button
                       type="button"
                       onClick={addElemento}
-                      className="mt-3 px-4 py-2 text-sm text-blue-600 hover:text-blue-800"
+                      className="mt-3 px-4 py-2 text-sm text-corporate-primary hover:text-blue-800"
                     >
                       + Agregar elemento
                     </button>
@@ -303,7 +303,7 @@ export default function SolicitudesPage() {
                     <button
                       type="submit"
                       disabled={loading}
-                      className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
+                      className="px-6 py-2 bg-corporate-primary text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
                     >
                       {loading ? "Enviando..." : "Enviar Solicitud"}
                     </button>

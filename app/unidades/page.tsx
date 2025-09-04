@@ -110,7 +110,7 @@ export default function UnidadesPage() {
         <h1 className="text-3xl font-bold text-gray-900">Gestión de Unidades</h1>
         <button
           onClick={() => setShowForm(true)}
-          className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+          className="bg-corporate-primary hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
         >
           Nueva Unidad
         </button>
@@ -158,7 +158,7 @@ export default function UnidadesPage() {
               </button>
               <button
                 type="submit"
-                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                className="px-4 py-2 bg-corporate-primary text-white rounded-md hover:bg-blue-700"
               >
                 {editingUnidad ? 'Actualizar' : 'Crear'}
               </button>
@@ -194,7 +194,7 @@ export default function UnidadesPage() {
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                   <button
                     onClick={() => handleEdit(unidad)}
-                    className="text-blue-600 hover:text-blue-900 mr-3"
+                    className="text-corporate-primary hover:text-blue-900 mr-3"
                   >
                     Editar
                   </button>

@@ -210,7 +210,7 @@ export default function GestionarSolicitudes() {
                 onClick={() => setFiltroEstado(estado)}
                 className={`px-4 py-2 rounded-lg font-medium transition-colors ${
                   filtroEstado === estado
-                    ? 'bg-blue-600 text-white'
+                    ? 'bg-corporate-primary text-white'
                     : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-300'
                 }`}
               >

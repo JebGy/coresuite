@@ -196,7 +196,7 @@ export const ConstanciaRecepcionView: React.FC<ConstanciaRecepcionViewProps> = (
           <button
             onClick={handleGenerateConstancia}
             disabled={loading}
-            className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white px-4 py-2 rounded-md font-medium transition-colors duration-200 flex items-center justify-center"
+            className="w-full bg-corporate-primary hover:bg-blue-700 disabled:bg-blue-400 text-white px-4 py-2 rounded-md font-medium transition-colors duration-200 flex items-center justify-center"
           >
             {loading ? (
               <>
@@ -240,7 +240,7 @@ export const ConstanciaRecepcionView: React.FC<ConstanciaRecepcionViewProps> = (
 
           <button
             onClick={() => setConstanciaData(null)}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md font-medium transition-colors duration-200 no-print"
+            className="w-full bg-corporate-primary hover:bg-blue-700 text-white px-4 py-2 rounded-md font-medium transition-colors duration-200 no-print"
           >
             Generar Nueva Constancia
           </button>

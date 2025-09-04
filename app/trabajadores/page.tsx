@@ -152,7 +152,7 @@ export default function TrabajadoresPage() {
         <h1 className="text-3xl font-bold text-gray-900">Gestión de Trabajadores</h1>
         <button
           onClick={() => setShowForm(true)}
-          className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+          className="bg-corporate-primary hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
         >
           Nuevo Trabajador
         </button>
@@ -277,7 +277,7 @@ export default function TrabajadoresPage() {
               </div>
             )}
             <div className="flex gap-4 mt-4">
-              <button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+              <button type="submit" className="bg-corporate-primary hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
                 {editingTrabajador ? 'Actualizar' : 'Crear'}
               </button>
               <button type="button" onClick={cancelForm} className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded">
@@ -339,7 +339,7 @@ export default function TrabajadoresPage() {
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                   <button
                     onClick={() => handleEdit(trabajador)}
-                    className="text-blue-600 hover:text-blue-900 mr-3"
+                    className="text-corporate-primary hover:text-blue-900 mr-3"
                   >
                     Editar
                   </button>

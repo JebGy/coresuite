@@ -189,7 +189,7 @@ const BoletaView: React.FC<BoletaViewProps> = ({ tipo, id }) => {
                     }`}
                     onClick={() => setSelectedBoleta(boleta)}
                   >
-                    <div className="font-semibold text-blue-600 text-sm">
+                    <div className="font-semibold text-corporate-primary text-sm">
                       {boleta.numero}
                     </div>
                     <div className="text-xs text-gray-600">{boleta.fecha}</div>
@@ -217,7 +217,7 @@ const BoletaView: React.FC<BoletaViewProps> = ({ tipo, id }) => {
             <div className="print:hidden mb-4 flex justify-end space-x-2">
               <button
                 onClick={reactToPrintFn}
-                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                className="bg-corporate-primary text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
               >
                 Imprimir
               </button>
