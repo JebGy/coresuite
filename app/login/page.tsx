@@ -28,9 +28,9 @@ function Home() {
   };
 
   return (
-    <div className="min-h-screen grid grid-cols-1 md:grid-cols-2 bg-gray-50">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 bg-login">
       {/* Columna del formulario */}
-      <div className="flex items-center justify-center p-8">
+      <div className="flex items-center justify-center p-8 w-96 shadow-lg border bg-stone-50 border-gray-300 rounded-lg">
         <div className="w-full max-w-md space-y-8">
           <div>
             <h2 className="mt-6 text-center text-3xl font-bold text-gray-900">
@@ -70,7 +70,7 @@ function Home() {
             <div>
               <button
                 type="submit"
-                className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-lg font-medium rounded-lg text-white bg-corporate-primary hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                className="cursor-pointer group relative w-full flex justify-center py-3 px-4 border border-transparent text-lg font-medium rounded-lg text-white bg-corporate-primary hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
               >
                 Ingresar
               </button>
@@ -79,13 +79,7 @@ function Home() {
         </div>
       </div>
 
-      {/* Columna de CoreSuite */}
-      <div className="hidden md:flex items-center justify-center bg-corporate-primary p-8">
-        <div className="text-center text-white">
-          <h1 className="text-5xl font-bold mb-4">CoreSuite</h1>
-          <p className="text-xl">Sistema de gestión integral</p>
-        </div>
-      </div>
+      
     </div>
   );
 }
