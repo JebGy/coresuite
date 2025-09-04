@@ -3,7 +3,7 @@ import "./globals.css";
 import SessionWrapperComponent from "./components/SessionWrapperComponent";
 
 export const metadata: Metadata = {
-  title: "Core Manager - Sistema de Gestión Empresarial",
+  title: "CoreSuite - Sistema de Gestión Empresarial",
   description:
     "Plataforma integral de gestión empresarial con control de inventario, kardex y análisis de datos",
   keywords: "gestión empresarial, inventario, kardex, dashboard, análisis",

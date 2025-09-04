@@ -17,7 +17,11 @@ import {
   Proveedor,
 } from "@/types";
 import { addAlmacen, getAlmacenes } from "../actions/AlmacenesActions";
-import { addProudcto, getProductos, updateProducto } from "../actions/ProductosActions";
+import {
+  addProudcto,
+  getProductos,
+  updateProducto,
+} from "../actions/ProductosActions";
 import { addMovimiento, getMovimientos } from "../actions/MovimientosActions";
 import { getProveedores } from "../actions/ProveedoresActions";
 import { useRouter } from "next/navigation";
@@ -58,7 +62,7 @@ export default function Dashboard() {
     descripcion: "",
     almacenId: 0,
   });
-  
+
   // Estados para edición de productos
   const [editingProduct, setEditingProduct] = useState<Producto | null>(null);
   const [isEditing, setIsEditing] = useState(false);
@@ -136,7 +140,12 @@ export default function Dashboard() {
     const cargarDatos = async () => {
       try {
         const [almacenesData, productosData, movimientosData, proveedoresData] =
-          await Promise.all([getAlmacenes(), getProductos(), getMovimientos(), getProveedores()]);
+          await Promise.all([
+            getAlmacenes(),
+            getProductos(),
+            getMovimientos(),
+            getProveedores(),
+          ]);
 
         if (
           almacenesData.success &&
@@ -367,8 +376,6 @@ export default function Dashboard() {
     }
   };
 
-
-
   const handleMovimientoSubmit = async (formData: any) => {
     if (
       !formData.productoId ||
@@ -390,26 +397,22 @@ export default function Dashboard() {
               ? Number(formData.precioUnitario)
               : undefined,
           motivo: formData.motivo,
-          factura:
-            formData.tipo === "entrada"
-              ? formData.factura
-              : undefined,
+          factura: formData.tipo === "entrada" ? formData.factura : undefined,
           productoId: Number(formData.productoId),
           almacenId: Number(formData.almacenId),
         },
         user.id
       );
 
-      
       // Recargar movimientos
       const nuevosMovimientos = await getMovimientos();
       setMovimientos(nuevosMovimientos);
-      
+
       setNotificacion({
         mensaje: "Movimiento registrado exitosamente",
         tipo: "exito",
       });
-      
+
       return constancia;
     } catch (error) {
       console.error("Error al registrar movimiento:", error);
@@ -551,44 +554,13 @@ export default function Dashboard() {
     >
       <div className="mb-8">
         <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center">
-            <div className="w-10 h-10 bg-gradient-to-r from-blue-600 to-blue-800 rounded-lg flex items-center justify-center mr-3">
-              <svg
-                className="w-5 h-5 text-white"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
-                />
-              </svg>
-            </div>
-            <h1 className="text-xl font-bold text-gray-800">Core Manager</h1>
+          <div className="flex flex-col items-start">
+            <img src="/rg.png" alt="RG - logo" className="w-48 -ml-3" />
+            <h1 className="text-xl font-bold text-gray-800">
+              CoreSuite Management System
+            </h1>
           </div>
-          <button
-            onClick={() => setSidebarOpen(false)}
-            className="lg:hidden text-gray-600 hover:text-gray-800"
-          >
-            <svg
-              className="w-6 h-6"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M6 18L18 6M6 6l12 12"
-              />
-            </svg>
-          </button>
         </div>
-        <p className="text-gray-600 text-sm">Sistema de Gestión Empresarial</p>
       </div>
 
       <nav className="space-y-2">
@@ -744,7 +716,7 @@ export default function Dashboard() {
           <button
             className={`flex items-center w-full px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 ${
               activeSection === "gestionar-solicitudes"
-                ? "bg-blue-100 text-blue-700 border border-blue-200" 
+                ? "bg-blue-100 text-blue-700 border border-blue-200"
                 : ""
             }`}
             onClick={() => {
@@ -754,7 +726,7 @@ export default function Dashboard() {
           >
             <svg
               className="w-5 h-5 mr-3"
-              fill="none" 
+              fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
             >
@@ -854,7 +826,7 @@ export default function Dashboard() {
             Vista de Boletas
           </button>
         )}
-        
+
         <button
           className={`flex items-center w-full px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 ${
             activeSection === "solicitudes"
@@ -1050,7 +1022,6 @@ export default function Dashboard() {
             Importar/Exportar
           </button>
         )}
-
       </nav>
 
       <div className="mt-auto pt-8">
@@ -1075,7 +1046,6 @@ export default function Dashboard() {
               Sistema Activo
             </span>
           </div>
-        
         </div>
         <button
           onClick={() => {
@@ -1291,7 +1261,7 @@ export default function Dashboard() {
 
       case "almacenes":
         return (
-           <WarehouseManagement
+          <WarehouseManagement
             almacenes={almacenes}
             almacenForm={almacenForm}
             submitting={submitting}
@@ -1350,7 +1320,12 @@ export default function Dashboard() {
                   </h2>
                 </div>
 
-                <form onSubmit={isEditing ? handleUpdateProduct : handleProductoSubmit} className="space-y-4">
+                <form
+                  onSubmit={
+                    isEditing ? handleUpdateProduct : handleProductoSubmit
+                  }
+                  className="space-y-4"
+                >
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">
                       Nombre del producto
@@ -1403,13 +1378,43 @@ export default function Dashboard() {
                       disabled={submitting}
                       className="flex-1 bg-corporate-primary hover:bg-blue-700 disabled:bg-blue-400 text-white px-4 py-3 rounded-lg font-medium transition-colors duration-200 flex items-center justify-center"
                     >
-                    {submitting ? (
-                      <>
-                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-                        {isEditing ? "Actualizando..." : "Agregando..."}
-                      </>
-                    ) : (
-                      <>
+                      {submitting ? (
+                        <>
+                          <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                          {isEditing ? "Actualizando..." : "Agregando..."}
+                        </>
+                      ) : (
+                        <>
+                          <svg
+                            className="w-5 h-5 mr-2"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d={
+                                isEditing
+                                  ? "M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                                  : "M12 6v6m0 0v6m0-6h6m-6 0H6"
+                              }
+                            />
+                          </svg>
+                          {isEditing
+                            ? "Actualizar Producto"
+                            : "Agregar Producto"}
+                        </>
+                      )}
+                    </button>
+                    {isEditing && (
+                      <button
+                        type="button"
+                        onClick={handleCancelEdit}
+                        disabled={submitting}
+                        className="px-4 py-3 border border-gray-300 rounded-lg font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 transition-colors duration-200 flex items-center justify-center"
+                      >
                         <svg
                           className="w-5 h-5 mr-2"
                           fill="none"
@@ -1420,38 +1425,14 @@ export default function Dashboard() {
                             strokeLinecap="round"
                             strokeLinejoin="round"
                             strokeWidth={2}
-                            d={isEditing ? "M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" : "M12 6v6m0 0v6m0-6h6m-6 0H6"}
+                            d="M6 18L18 6M6 6l12 12"
                           />
                         </svg>
-                        {isEditing ? "Actualizar Producto" : "Agregar Producto"}
-                       </>
-                     )}
-                   </button>
-                   {isEditing && (
-                     <button
-                       type="button"
-                       onClick={handleCancelEdit}
-                       disabled={submitting}
-                       className="px-4 py-3 border border-gray-300 rounded-lg font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 transition-colors duration-200 flex items-center justify-center"
-                     >
-                       <svg
-                         className="w-5 h-5 mr-2"
-                         fill="none"
-                         stroke="currentColor"
-                         viewBox="0 0 24 24"
-                       >
-                         <path
-                           strokeLinecap="round"
-                           strokeLinejoin="round"
-                           strokeWidth={2}
-                           d="M6 18L18 6M6 6l12 12"
-                         />
-                       </svg>
-                       Cancelar
-                     </button>
-                   )}
-                 </div>
-                 </form>
+                        Cancelar
+                      </button>
+                    )}
+                  </div>
+                </form>
               </div>
 
               {/* Lista de productos */}
@@ -1811,11 +1792,8 @@ export default function Dashboard() {
           />
         );
 
-        case "proveedores":
-          return (
-            <ProveedoresView/>
-          );
-
+      case "proveedores":
+        return <ProveedoresView />;
 
       case "import-export":
         return (
@@ -1877,15 +1855,19 @@ export default function Dashboard() {
             <div className="bg-white/95 backdrop-blur-sm rounded-xl p-6 shadow-lg border border-gray-200">
               <div className="grid grid-cols-1 lg:grid-rows-2 gap-6">
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-800 mb-4">Órdenes de Entrega</h3>
+                  <h3 className="text-lg font-semibold text-gray-800 mb-4">
+                    Órdenes de Entrega
+                  </h3>
                   <BoletaView tipo="orden-entrega" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-800 mb-4">Traslados</h3>
+                  <h3 className="text-lg font-semibold text-gray-800 mb-4">
+                    Traslados
+                  </h3>
                   <BoletaView tipo="traslado" />
                 </div>
               </div>
-              </div>
+            </div>
           </div>
         );
 
@@ -1902,7 +1884,7 @@ export default function Dashboard() {
                 </p>
               </div>
             </div>
-            <SolicitudesManagement userRole={trabajador.rol?.nombre || ''} />
+            <SolicitudesManagement userRole={trabajador.rol?.nombre || ""} />
           </div>
         );
 
