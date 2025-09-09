@@ -7,9 +7,10 @@ export function middleware(req: NextRequest) {
 
   // Rutas que no requieren autenticación
   if (
-    pathname.startsWith("/registro-proveedor") ||
-    pathname.startsWith("/login") ||
-    pathname === "/"
+    !session &&
+    (pathname.startsWith("/registro-proveedor") ||
+      pathname.startsWith("/login") ||
+      pathname === "/")
   ) {
     return NextResponse.next();
   }
