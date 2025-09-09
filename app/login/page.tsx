@@ -6,25 +6,39 @@ function Home() {
   const router = useRouter();
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    
     const formData = new FormData(e.target as HTMLFormElement);
     const email = formData.get("email");
     const password = formData.get("password");
 
-    fetch("/api/login", {
-      method: "POST",
-      body: JSON.stringify({
-        email,
-        password: password,
-      }),
-      headers: {
-        "Content-Type": "application/json",
-      },
-    }).then((res) => {
-      if (res.status === 200) {
-        router.push("/application");
+    try {
+      const response = await fetch("/api/login", {
+        method: "POST",
+        body: JSON.stringify({
+          email,
+          password: password,
+        }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: 'include', // Importante para incluir cookies
+      });
+
+      if (response.ok) {
+        // Esperar un momento para que la cookie se establezca
+        setTimeout(() => {
+          router.push("/application");
+        }, 100);
+      } else {
+        const errorData = await response.json();
+        console.error('Error de login:', errorData.message);
+        alert('Error de login: ' + errorData.message);
       }
-    });
-    e.preventDefault();
+    } catch (error) {
+      console.error('Error de conexión:', error);
+      alert('Error de conexión. Intenta nuevamente.');
+    }
   };
 
   return (
