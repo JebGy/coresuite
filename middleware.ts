@@ -5,15 +5,29 @@ export function middleware(req: NextRequest) {
   const session = req.cookies.get('session')?.value;
   const pathname = req.nextUrl.pathname;
   
+  // Rutas que no requieren autenticación
+  if (pathname.startsWith('/registro-proveedor') || 
+      pathname.startsWith('/login') ||
+      pathname === '/') {
+    return NextResponse.next();
+  }
+  
   // Si no hay sesión y el usuario intenta acceder a rutas protegidas
-  if (!session && (req.nextUrl.pathname.startsWith('/application') || 
-                  req.nextUrl.pathname.startsWith('/ordenes-entrega') ||
-                  req.nextUrl.pathname.startsWith('/trabajadores') ||
-                  req.nextUrl.pathname.startsWith('/traslados') ||
-                  req.nextUrl.pathname.startsWith('/unidades')) &&
-                  !req.nextUrl.pathname.startsWith('/registro-proveedor')) {
+  if (!session && (pathname.startsWith('/application') || 
+                  pathname.startsWith('/ordenes-entrega') ||
+                  pathname.startsWith('/trabajadores') ||
+                  pathname.startsWith('/traslados') ||
+                  pathname.startsWith('/unidades') ||
+                  pathname.startsWith('/boletas') ||
+                  pathname.startsWith('/cotizaciones') ||
+                  pathname.startsWith('/logs') ||
+                  pathname.startsWith('/recursoshumanos') ||
+                  pathname.startsWith('/solicitudes') ||
+                  pathname.startsWith('/valorizado'))) {
     return NextResponse.redirect(new URL('/login', req.url));
   }
+  
+  return NextResponse.next();
 }
 
 export const config = {
