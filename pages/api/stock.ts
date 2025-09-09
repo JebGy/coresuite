@@ -67,24 +67,37 @@ export default async function handler(
       
       // Calcular stock y valor basado en movimientos
       for (const movimiento of producto.movimientos) {
+        // Validar datos del movimiento
+        if (!movimiento.cantidad || movimiento.cantidad <= 0) {
+          continue; // Saltar movimientos con cantidad inválida
+        }
+        
         const precio = movimiento.precioUnitario || 0;
         
         if (movimiento.tipo === 'entrada') {
           stock += movimiento.cantidad;
           valorTotal += movimiento.cantidad * precio;
+          // Recalcular costo promedio después de entrada
+          costoPromedio = stock > 0 ? valorTotal / stock : 0;
         } else if (movimiento.tipo === 'salida') {
-          // Para salidas, usar el costo promedio actual
-          stock -= movimiento.cantidad;
-          valorTotal -= movimiento.cantidad * costoPromedio;
+          // Para salidas, usar el costo promedio actual antes de la salida
+          const cantidadSalida = Math.min(movimiento.cantidad, stock); // No permitir salidas mayores al stock
+          stock -= cantidadSalida;
+          valorTotal -= cantidadSalida * costoPromedio;
+          // El costo promedio se mantiene igual después de una salida
         }
-        
-        // Recalcular costo promedio después de cada movimiento
-        costoPromedio = stock > 0 ? valorTotal / stock : 0;
       }
       
-      // Asegurar que el stock no sea negativo
+      // Asegurar que el stock no sea negativo y manejar casos edge
       stock = Math.max(0, stock);
       valorTotal = Math.max(0, valorTotal);
+      
+      // Recalcular costo promedio final para evitar inconsistencias
+      if (stock > 0 && valorTotal > 0) {
+        costoPromedio = valorTotal / stock;
+      } else {
+        costoPromedio = 0;
+      }
       
       return {
         id: producto.id,
@@ -93,7 +106,7 @@ export default async function handler(
         descripcion: producto.descripcion || undefined,
         almacenId: producto.almacenId || undefined,
         almacenNombre: producto.almacen?.nombre || undefined,
-        stock: stock,
+        stock: Math.round(stock), // Asegurar que el stock sea un entero
         valorInventario: Math.round(valorTotal * 100) / 100, // Redondear a 2 decimales
         costoPromedio: Math.round(costoPromedio * 100) / 100 // Redondear a 2 decimales
       };
