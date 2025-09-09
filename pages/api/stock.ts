@@ -27,12 +27,14 @@ export default async function handler(
   
   // Manejar preflight requests
   if (req.method === 'OPTIONS') {
-    return res.status(200).end();
+    res.status(200).end();
+    return;
   }
   
   // Solo permitir GET requests
   if (req.method !== 'GET') {
-    return res.status(405).json({ error: 'Método no permitido' });
+    res.status(405).json({ error: 'Método no permitido' });
+    return;
   }
 
   try {
@@ -127,6 +129,7 @@ export default async function handler(
       total: productosConMovimientos.length,
       timestamp: new Date().toISOString()
     });
+    return;
 
   } catch (error) {
     console.error('Error al obtener stock de productos:', error);
@@ -134,5 +137,6 @@ export default async function handler(
       success: false,
       error: 'Error interno del servidor al obtener el stock de productos'
     });
+    return;
   }
 }
