@@ -5,34 +5,41 @@ export function middleware(req: NextRequest) {
   const session = req.cookies.get("session")?.value;
   const pathname = req.nextUrl.pathname;
 
-  // Rutas que no requieren autenticación
-  if (
-    !session &&
-    (pathname.startsWith("/registro-proveedor") ||
-      pathname.startsWith("/login") ||
-      pathname === "/")
-  ) {
+  // Rutas públicas que no requieren autenticación
+  const publicRoutes = ["/", "/login", "/registro-proveedor"];
+  const isPublicRoute = publicRoutes.some(route => 
+    pathname === route || pathname.startsWith(route + "/")
+  );
+
+  // Rutas protegidas que requieren autenticación
+  const protectedRoutes = [
+    "/application",
+    "/ordenes-entrega",
+    "/trabajadores",
+    "/traslados",
+    "/unidades",
+    "/boletas",
+    "/cotizaciones",
+    "/logs",
+    "/recursoshumanos",
+    "/solicitudes",
+    "/valorizado"
+  ];
+  const isProtectedRoute = protectedRoutes.some(route => 
+    pathname.startsWith(route)
+  );
+
+  // Si es una ruta pública, permitir acceso
+  if (isPublicRoute) {
     return NextResponse.next();
   }
 
-  // Si no hay sesión y el usuario intenta acceder a rutas protegidas
-  if (
-    !session &&
-    (pathname.startsWith("/application") ||
-      pathname.startsWith("/ordenes-entrega") ||
-      pathname.startsWith("/trabajadores") ||
-      pathname.startsWith("/traslados") ||
-      pathname.startsWith("/unidades") ||
-      pathname.startsWith("/boletas") ||
-      pathname.startsWith("/cotizaciones") ||
-      pathname.startsWith("/logs") ||
-      pathname.startsWith("/recursoshumanos") ||
-      pathname.startsWith("/solicitudes") ||
-      pathname.startsWith("/valorizado"))
-  ) {
+  // Si es una ruta protegida y no hay sesión, redirigir al login
+  if (isProtectedRoute && !session) {
     return NextResponse.redirect(new URL("/login", req.url));
   }
 
+  // Si hay sesión o no es una ruta específicamente manejada, permitir acceso
   return NextResponse.next();
 }
 
