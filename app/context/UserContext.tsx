@@ -1,6 +1,6 @@
 "use client";
 import { createContext, useContext, useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 
 // Define el tipo para el usuario
 export type RootUser = {
@@ -31,8 +31,22 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     isLoading: true
   });
   const router = useRouter();
+  const pathname = usePathname();
 
   useEffect(() => {
+    // Rutas públicas que no requieren verificación de sesión
+    const publicRoutes = ["/", "/login", "/registro-proveedor"];
+    const isPublicRoute = publicRoutes.some(route => 
+      pathname === route || pathname?.startsWith(route + "/")
+    );
+    console.log("isPublicRoute", isPublicRoute);
+
+    // Si es una ruta pública, no verificar sesión
+    if (isPublicRoute) {
+      setUser(prev => ({ ...prev, isLoading: false }));
+      return;
+    }
+
     const verifySession = async () => {
       try {
         const response = await fetch('/api/auth/me', {
@@ -62,7 +76,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     };
 
     verifySession();
-  }, []);
+  }, [pathname]);
 
   return (
     <UserContext.Provider value={user}>

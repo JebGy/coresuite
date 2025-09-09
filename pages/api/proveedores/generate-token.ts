@@ -45,7 +45,7 @@ export default async function handler(
     });
 
     // Generar URL de registro
-    const baseUrl = process.env.NEXTAUTH_URL || 'https://coresuite.ramirezgroup.com.pe/';
+    const baseUrl = process.env.NEXTAUTH_URL || 'https://coresuite.ramirezgroup.com.pe';
     const registrationUrl = `${baseUrl}/registro-proveedor?token=${token}`;
 
     res.status(200).json({
