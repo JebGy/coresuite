@@ -3,6 +3,7 @@ import { MovementForm } from './MovementForm';
 import { MovementList } from './MovementList';
 import { Producto, Almacen, Movimiento, Proveedor, ConstanciaRecepcion } from '@/types';
 import { ConstanciaRecepcionView } from './ConstanciaRecepcionView';
+import { useUser } from '../context/UserContext';
 
 interface MovementManagementProps {
   productos: Producto[];
@@ -21,11 +22,12 @@ export const MovementManagement: React.FC<MovementManagementProps> = ({
   onSubmitMovement,
   submitting
 }) => {
+  const trabajador = useUser();
   return (
     <div className="space-y-6 col-span-full">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-800">Gestión de Movimientos</h1>
+          <h1 className="text-3xl font-bold text-gray-800">Gestión de Movimientos - {trabajador.unidad}</h1>
           <p className="text-gray-600">Registra entradas y salidas de inventario</p>
         </div>
       </div>

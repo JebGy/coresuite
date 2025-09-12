@@ -18,6 +18,7 @@ export default async function handler(
       },
       include: {
         rol: true,
+        unidad: true,
       },
       omit: {
         password: true,

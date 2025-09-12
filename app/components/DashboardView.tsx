@@ -109,7 +109,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         <div>
           <h1 className="text-3xl font-bold text-gray-800">
             Dashboard - {trabajador.nombres} -{" "}
-            {trabajador.rol?.nombre || "Sin Rol"}
+            {trabajador.unidad?.nombre || "Sin Unidad"}
           </h1>
           <p className="text-gray-600">
             Resumen general del sistema de gestión

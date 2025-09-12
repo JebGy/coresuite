@@ -153,10 +153,30 @@ export default function Dashboard() {
           productosData.success &&
           productosData.data
         ) {
-          setAlmacenes(almacenesData.data);
-          setProductos(productosData.data);
+          setAlmacenes(
+            almacenesData.data.filter(
+              (almacen) => almacen.unidadId === trabajador.unidadId
+            )
+          );
+          setProductos(
+            productosData.data.filter((producto) => {
+              const almacen = almacenesData.data?.find(
+                (a) => a.id === producto.almacenId
+              );
+              return almacen?.unidadId === trabajador.unidadId;
+            })
+          );
         }
-        setMovimientos(movimientosData);
+        setMovimientos(
+          movimientosData
+          ? movimientosData.filter((movimiento) => {
+              const almacen = almacenesData?.data?.find(
+                (a) => a.id === movimiento.almacenId
+              );
+              return almacen?.unidadId === trabajador.unidadId;
+            })
+          : []
+        );
         setProveedores(proveedoresData);
       } catch (error) {
         console.error("Error al cargar datos:", error);
@@ -258,7 +278,14 @@ export default function Dashboard() {
       // Recargar productos
       const nuevosProductos = await getProductos();
       if (nuevosProductos.success && nuevosProductos.data) {
-        setProductos(nuevosProductos.data);
+        setProductos(
+          nuevosProductos.data.filter((producto) => {
+            const almacen = almacenes.find(
+              (a) => a.id === producto.almacenId
+            );
+            return almacen?.unidadId === trabajador.unidadId;
+          })
+        );
       }
 
       setProductoForm({
@@ -450,78 +477,7 @@ export default function Dashboard() {
     almacenes
   );
 
-  // Cálculos para métricas
-  const totalAlmacenes = almacenes.length;
-  const totalProductos = productos.length;
-  const totalMovimientos = movimientos.length;
 
-  function calcularValorTotalInventario(
-    movimientos: Movimiento[],
-    debug = false
-  ) {
-    let total = 0;
-
-    movimientos.forEach((m, index) => {
-      // Conversión segura
-      const cantidad = parseFloat(m.cantidad.toString()) || 0;
-      const precioUnitario =
-        parseFloat(m.precioUnitario?.toString() ?? "0") || 0;
-      const tipo = (m.tipo || "").toLowerCase().trim();
-
-      let valorMovimiento = 0;
-
-      if (tipo === "entrada") {
-        valorMovimiento = cantidad * precioUnitario;
-      } else if (tipo === "salida") {
-        valorMovimiento = -(cantidad * precioUnitario);
-      }
-
-      total += valorMovimiento;
-
-      if (debug) {
-        console.log(
-          `#${
-            index + 1
-          } Tipo:${tipo}, Cant:${cantidad}, Precio:${precioUnitario}, Valor:${valorMovimiento}`
-        );
-      }
-    });
-
-    return total;
-  }
-  const entradas = movimientos.filter((m) => m.tipo === "entrada").length;
-  const salidas = movimientos.filter((m) => m.tipo === "salida").length;
-  const valorTotalInventario = calcularValorTotalInventario(movimientos);
-
-  // Función para importar datos
-  const handleImportar = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!fileInputRef.current?.files?.[0]) return;
-    setImportando(true);
-    setResultadoImportacion(null);
-    try {
-      const res = await fetch("/api/import-export", {
-        method: "POST",
-        body: fileInputRef.current.files[0],
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setNotificacion({ mensaje: "Importación exitosa", tipo: "exito" });
-        setResultadoImportacion({ results: data.results, errors: data.errors });
-      } else {
-        let mensaje = "Error al importar datos";
-        try {
-          const data = await res.json();
-          if (data.error) mensaje = data.error;
-        } catch {}
-        setNotificacion({ mensaje, tipo: "error" });
-      }
-    } catch (err) {
-      setNotificacion({ mensaje: "Error de red al importar", tipo: "error" });
-    } finally {
-      setImportando(false);
-    }
-  };
 
   // Función para exportar datos
   const handleExportar = async () => {
@@ -1142,6 +1098,12 @@ export default function Dashboard() {
     nombres: "",
     apellidos: "",
     email: "",
+    unidadId: 0,
+    unidad: {
+      id: 0,
+      nombre: "",
+      descripcion: "",
+    },
     rolId: 0,
     rol: {
       id: 0,
@@ -1272,23 +1234,27 @@ export default function Dashboard() {
 
       case "productos":
         // Filtrar productos basado en la búsqueda
-        const filteredProducts = productos.filter(
-          (producto) =>
-            producto.codigo
-              ?.toLowerCase()
-              .includes(searchQuery.toLowerCase()) ||
-            producto.nombre.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            producto.descripcion
-              ?.toLowerCase()
-              .includes(searchQuery.toLowerCase())
-        );
+        const filteredProducts = productos
+          .filter((producto) => producto.almacenId === trabajador.unidadId)
+          .filter(
+            (producto) =>
+              producto.codigo
+                ?.toLowerCase()
+                .includes(searchQuery.toLowerCase()) ||
+              producto.nombre
+                .toLowerCase()
+                .includes(searchQuery.toLowerCase()) ||
+              producto.descripcion
+                ?.toLowerCase()
+                .includes(searchQuery.toLowerCase())
+          );
 
         return (
           <div className="space-y-6 col-span-full">
             <div className="flex items-center justify-between">
               <div>
                 <h1 className="text-3xl font-bold text-gray-800">
-                  Gestión de Productos
+                  Gestión de Productos - {trabajador.unidad?.nombre}
                 </h1>
                 <p className="text-gray-600">
                   Administra el catálogo de productos
@@ -1433,87 +1399,6 @@ export default function Dashboard() {
                     )}
                   </div>
                 </form>
-              </div>
-
-              {/* Lista de productos */}
-              <div className="bg-white/95 backdrop-blur-sm rounded-xl p-6 shadow-lg border border-gray-200">
-                <h2 className="text-xl font-bold text-gray-800 mb-6">
-                  Productos Registrados
-                </h2>
-                <div className="space-y-3 max-h-96 overflow-y-auto">
-                  {productos.map((producto) => (
-                    <div
-                      key={producto.id}
-                      className="bg-gray-50 rounded-lg p-4 border border-gray-200"
-                    >
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <h3 className="font-semibold text-gray-800">
-                            {producto.nombre}
-                          </h3>
-                          <p className="text-sm text-gray-600">
-                            Código: {producto.codigo}
-                          </p>
-                          {producto.descripcion && (
-                            <p className="text-sm text-gray-500 mt-1">
-                              {producto.descripcion}
-                            </p>
-                          )}
-                          {producto.almacenId && (
-                            <p className="text-sm text-corporate-primary mt-1">
-                              Almacén:{" "}
-                              {almacenes.find(
-                                (a) => a.id === producto.almacenId
-                              )?.nombre || "No encontrado"}
-                            </p>
-                          )}
-                        </div>
-                        <div className="text-right flex flex-col items-end space-y-2">
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                            Activo
-                          </span>
-                          <button
-                            onClick={() => handleEditProduct(producto)}
-                            className="text-corporate-primary hover:text-blue-900 flex items-center text-sm"
-                          >
-                            <svg
-                              className="w-4 h-4 mr-1"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                              />
-                            </svg>
-                            Editar
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                  {productos.length === 0 && (
-                    <div className="text-center py-8 text-gray-500">
-                      <svg
-                        className="w-12 h-12 mx-auto mb-4 text-gray-300"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
-                        />
-                      </svg>
-                      <p>No hay productos registrados</p>
-                    </div>
-                  )}
-                </div>
               </div>
 
               {/* Buscador de productos */}

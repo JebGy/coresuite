@@ -66,6 +66,8 @@ export type UsuarioSession = {
   nombres: string;
   apellidos: string;
   email: string;
+  unidadId: number;
+  unidad?: Unidad;
   rolId: number;
   rol?: Rol;
 };

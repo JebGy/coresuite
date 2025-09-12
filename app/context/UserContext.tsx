@@ -8,6 +8,7 @@ export type RootUser = {
   nombre: string;
   rol: string;
   email?: string;
+  unidad?: string;
   isLoading?: boolean;
 };
 
@@ -62,6 +63,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
             id: trabajador.id,
             nombre: trabajador.nombre,
             rol: trabajador.rol?.nombre || 'USER',
+            unidad: trabajador.unidad?.nombre || 'UNIDAD',
             email: trabajador.email,
             isLoading: false
           });
