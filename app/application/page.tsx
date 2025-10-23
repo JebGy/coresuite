@@ -1,5 +1,7 @@
 "use client";
 import React, { useState, useEffect, useRef } from "react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import { ReportCharts } from "../components/ReportCharts";
 import { KardexTable } from "../components/kardexTable";
 import { KardexConsolidadoTable } from "../components/KardexConsolidadoTable";
@@ -38,6 +40,10 @@ import ProveedoresView from "../components/ProveedoresView";
 import ImportExportHeader from "../components/ImportExportHeader";
 import BoletaView from "../components/BoletaView";
 import { SolicitudesManagement } from "../components/SolicitudesManagement";
+import { ChatBubbleLeftIcon } from "@heroicons/react/24/solid";
+import { PaperAirplaneIcon } from "@heroicons/react/24/solid";
+import { XMarkIcon } from "@heroicons/react/24/solid";
+import remarkBreaks from "remark-breaks";
 
 // Tipos de datos ya importados desde @/types
 
@@ -93,7 +99,6 @@ export default function Dashboard() {
     tipo?: "exito" | "error" | "info";
   } | null>(null);
 
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const [importando, setImportando] = useState(false);
   const [exportando, setExportando] = useState(false);
   // Estado para resultados de importación
@@ -105,7 +110,7 @@ export default function Dashboard() {
   // Estado para autocompletado de producto en movimientos
   const [productoInput, setProductoInput] = useState("");
   const [sugerenciasProducto, setSugerenciasProducto] = useState<Producto[]>(
-    []
+    [],
   );
   const [mostrarSugerencias, setMostrarSugerencias] = useState(false);
   const inputProductoRef = useRef<HTMLInputElement>(null);
@@ -114,12 +119,6 @@ export default function Dashboard() {
   const [productoInputTraslado, setProductoInputTraslado] = useState("");
   const [sugerenciasProductoTraslado, setSugerenciasProductoTraslado] =
     useState<Producto[]>([]);
-  const [mostrarSugerenciasTraslado, setMostrarSugerenciasTraslado] =
-    useState(false);
-  const [selectedOrigin, setSelectedOrigin] = useState("");
-  const [selectedDestination, setSelectedDestination] = useState("");
-  const [quantityTraslado, setQuantityTraslado] = useState("");
-  const [observationsTraslado, setObservationsTraslado] = useState("");
 
   // Autocompletado para traslado
   useEffect(() => {
@@ -130,7 +129,7 @@ export default function Dashboard() {
     const sugerencias = productos.filter(
       (p) =>
         p.nombre.toLowerCase().includes(productoInputTraslado.toLowerCase()) ||
-        p.codigo?.toLowerCase().includes(productoInputTraslado.toLowerCase())
+        p.codigo?.toLowerCase().includes(productoInputTraslado.toLowerCase()),
     );
     setSugerenciasProductoTraslado(sugerencias);
   }, [productoInputTraslado, productos]);
@@ -153,30 +152,10 @@ export default function Dashboard() {
           productosData.success &&
           productosData.data
         ) {
-          setAlmacenes(
-            almacenesData.data.filter(
-              (almacen) => almacen.unidadId === trabajador.unidadId
-            )
-          );
-          setProductos(
-            productosData.data.filter((producto) => {
-              const almacen = almacenesData.data?.find(
-                (a) => a.id === producto.almacenId
-              );
-              return almacen?.unidadId === trabajador.unidadId;
-            })
-          );
+          setAlmacenes(almacenesData.data);
+          setProductos(productosData.data);
         }
-        setMovimientos(
-          movimientosData
-          ? movimientosData.filter((movimiento) => {
-              const almacen = almacenesData?.data?.find(
-                (a) => a.id === movimiento.almacenId
-              );
-              return almacen?.unidadId === trabajador.unidadId;
-            })
-          : []
-        );
+        setMovimientos(movimientosData);
         setProveedores(proveedoresData);
       } catch (error) {
         console.error("Error al cargar datos:", error);
@@ -200,14 +179,14 @@ export default function Dashboard() {
     const sugerencias = productos.filter(
       (p) =>
         p.nombre.toLowerCase().includes(productoInput.toLowerCase()) ||
-        p.codigo?.toLowerCase().includes(productoInput.toLowerCase())
+        p.codigo?.toLowerCase().includes(productoInput.toLowerCase()),
     );
     setSugerenciasProducto(sugerencias);
   }, [productoInput, productos]);
 
   // Handlers para almacenes
   const handleAlmacenChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
     setAlmacenForm({ ...almacenForm, [e.target.name]: e.target.value });
   };
@@ -244,7 +223,7 @@ export default function Dashboard() {
 
   // Handlers para productos
   const handleProductoChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
   ) => {
     const value =
       e.target.name === "almacenId" ? Number(e.target.value) : e.target.value;
@@ -272,7 +251,7 @@ export default function Dashboard() {
           descripcion: productoForm.descripcion,
           almacenId: productoForm.almacenId || undefined,
         },
-        user.id
+        user.id,
       );
 
       // Recargar productos
@@ -280,11 +259,9 @@ export default function Dashboard() {
       if (nuevosProductos.success && nuevosProductos.data) {
         setProductos(
           nuevosProductos.data.filter((producto) => {
-            const almacen = almacenes.find(
-              (a) => a.id === producto.almacenId
-            );
+            const almacen = almacenes.find((a) => a.id === producto.almacenId);
             return almacen?.unidadId === trabajador.unidadId;
-          })
+          }),
         );
       }
 
@@ -349,7 +326,7 @@ export default function Dashboard() {
           descripcion: productoForm.descripcion,
           almacenId: productoForm.almacenId || undefined,
         },
-        user.id
+        user.id,
       );
 
       // Recargar productos
@@ -428,7 +405,7 @@ export default function Dashboard() {
           productoId: Number(formData.productoId),
           almacenId: Number(formData.almacenId),
         },
-        user.id
+        user.id,
       );
 
       // Recargar movimientos
@@ -457,7 +434,7 @@ export default function Dashboard() {
     number | null
   >(null);
   const [almacenSeleccionado, setAlmacenSeleccionado] = useState<number | null>(
-    null
+    null,
   );
   const [tipoKardex, setTipoKardex] = useState<
     "producto" | "almacen" | "consolidado"
@@ -465,7 +442,7 @@ export default function Dashboard() {
 
   // Cálculos de Kardex
   const movimientosFiltrados = movimientos.filter(
-    (m) => m.productoId === productoSeleccionado
+    (m) => m.productoId === productoSeleccionado,
   );
   const kardex = calcularKardex(movimientosFiltrados, almacenes);
   const kardexPorAlmacen = almacenSeleccionado
@@ -474,10 +451,8 @@ export default function Dashboard() {
   const kardexConsolidado = calcularKardexConsolidado(
     movimientos,
     productos,
-    almacenes
+    almacenes,
   );
-
-
 
   // Función para exportar datos
   const handleExportar = async () => {
@@ -1246,7 +1221,7 @@ export default function Dashboard() {
                 .includes(searchQuery.toLowerCase()) ||
               producto.descripcion
                 ?.toLowerCase()
-                .includes(searchQuery.toLowerCase())
+                .includes(searchQuery.toLowerCase()),
           );
 
         return (
@@ -1483,7 +1458,7 @@ export default function Dashboard() {
                       {filteredProducts
                         .slice(
                           currentPage * itemsPerPage,
-                          (currentPage + 1) * itemsPerPage
+                          (currentPage + 1) * itemsPerPage,
                         )
                         .map((producto) => (
                           <tr key={producto.id}>
@@ -1498,13 +1473,13 @@ export default function Dashboard() {
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                               {almacenes.find(
-                                (a) => a.id === producto.almacenId
+                                (a) => a.id === producto.almacenId,
                               )?.nombre || "-"}
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
                               {(() => {
                                 const movs = movimientos.filter(
-                                  (m) => m.productoId === producto.id
+                                  (m) => m.productoId === producto.id,
                                 );
                                 let stock = 0;
                                 movs.forEach((m) => {
@@ -1579,7 +1554,7 @@ export default function Dashboard() {
                           <span className="font-medium">
                             {Math.min(
                               (currentPage + 1) * itemsPerPage,
-                              filteredProducts.length
+                              filteredProducts.length,
                             )}
                           </span>{" "}
                           de{" "}
@@ -1777,10 +1752,132 @@ export default function Dashboard() {
         return null;
     }
   };
+  const chatContainerRef = useRef<HTMLDivElement>(null);
+  const [messagelist, setMessageList] = useState<
+    {
+      role: string;
+      message: string;
+    }[]
+  >([]); // Root user is always authenticated
+  useEffect(() => {}, [messagelist]);
+  useEffect(() => {
+    if (chatContainerRef.current) {
+      chatContainerRef.current.scrollTop =
+        chatContainerRef.current.scrollHeight;
+    }
+  }, [messagelist]);
 
-  // Root user is always authenticated
+  function normalizeBotOutput(output: unknown): string {
+    let text = typeof output === "string" ? output : JSON.stringify(output);
+
+    // Si vino como string JSON entrecomillado: "\"hola\\n...\"" -> "hola\n..."
+    try {
+      if (/^".*"$/.test(text)) text = JSON.parse(text);
+    } catch (_) {
+      /* no-op: si falla, seguimos con text */
+    }
+
+    // Convierte secuencias escapadas a reales
+    text = text.replaceAll("\\n", "\n").replaceAll("\\t", "\t");
+    return text.trim();
+  }
+  const [closed, setClosed] = useState(true);
+
   return (
     <main className="grid grid-cols-12">
+      <button
+        onClick={() => setClosed(!closed)}
+        className="absolute p-4 cursor-pointer bg-black bottom-8 right-8 rounded-full z-[99999]"
+      >
+        <ChatBubbleLeftIcon className="w-8 h-8 text-white" />
+      </button>
+      {!closed && (
+        <div className="absolute border-stone-300 border  shadow-lg p-4 w-[500px] h-96  bg-stone-100 bottom-8 right-8 rounded-md z-[99999] grid grid-rows-[auto_1fr_auto] gap-2">
+          <div className="flex flex-row justify-between items-center">
+            <h2 className="text-lg font-semibold">PAUL - Chat</h2>
+            <button className="cursor-pointer">
+              <XMarkIcon
+                className="w-6 h-6 text-gray-600"
+                onClick={() => setClosed(!closed)}
+              />
+            </button>
+          </div>
+          <div ref={chatContainerRef} className="flex flex-col overflow-y-auto">
+            {messagelist.map((msg, index) => (
+              <div
+                key={index}
+                className={`flex mb-2 ${
+                  msg.role === "user" ? "justify-end" : "justify-start"
+                }`}
+              >
+                <div
+                  className={`max-w-[70%] p-3 rounded-lg ${
+                    msg.role === "user"
+                      ? "bg-blue-500 text-white"
+                      : "bg-gray-300 text-gray-800"
+                  }`}
+                >
+                  {msg.role === "bot" ? (
+                    <ReactMarkdown remarkPlugins={[remarkGfm, remarkBreaks]}>
+                      {msg.message}
+                    </ReactMarkdown>
+                  ) : (
+                    <p className="text-sm">{msg.message}</p>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              const provList = messagelist;
+              provList?.push({
+                role: "user",
+                message: e.currentTarget.message.value,
+              });
+              setMessageList([...provList]);
+              fetch(
+                "https://n8n.srv1002835.hstgr.cloud/webhook/5d194253-e6fa-4656-9a45-e439d97a7dcb",
+                {
+                  method: "POST",
+                  headers: {
+                    "Content-Type": "application/json",
+                  },
+                  body: JSON.stringify({
+                    message: e.currentTarget.message.value,
+                  }),
+                },
+              )
+                .then((response) => response.json())
+                .then((data) => {
+                  console.log(data);
+                  provList?.push({
+                    role: "bot",
+                    message: normalizeBotOutput(
+                      JSON.stringify(data.output).slice(1, -1),
+                    ),
+                  });
+                  setMessageList([...provList]);
+                });
+              console.log(provList);
+              e.currentTarget.message.value = "";
+            }}
+            className="flex flex-row w-full gap-2 "
+          >
+            <textarea
+              required
+              name="message"
+              id="message"
+              className="w-full px-2 py-1 rounded"
+              placeholder="Hola necesito ayuda . . ."
+            />
+            <button className="cursor-pointer">
+              <PaperAirplaneIcon className="w-6 h-6 text-gray-600" />
+            </button>
+          </form>
+        </div>
+      )}
       <Sidebar />
       <span className="col-span-2"></span>
       <div className="col-span-10 grid grid-cols-12 pl-16 pr-8 pt-8">
