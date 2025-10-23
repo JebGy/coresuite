@@ -1785,12 +1785,17 @@ export default function Dashboard() {
 
   return (
     <main className="grid grid-cols-12">
-      <button
-        onClick={() => setClosed(!closed)}
-        className="absolute p-4 cursor-pointer bg-black bottom-8 right-8 rounded-full z-[99999]"
-      >
-        <ChatBubbleLeftIcon className="w-8 h-8 text-white" />
-      </button>
+      <div className="absolute p-4  bottom-8 right-8 z-[99999] flex flex-row gap-4 items-center">
+        <span className="bg-black text-white px-2 py-1 rounded-lg">
+          Ahora chatea con IA
+        </span>
+        <button
+          onClick={() => setClosed(!closed)}
+          className=" p-4 cursor-pointer bg-black rounded-full z-[99999]"
+        >
+          <ChatBubbleLeftIcon className="w-8 h-8 text-white" />
+        </button>
+      </div>
       {!closed && (
         <div className="absolute border-stone-300 border  shadow-lg p-4 w-[500px] h-96  bg-stone-100 bottom-8 right-8 rounded-md z-[99999] grid grid-rows-[auto_1fr_auto] gap-2">
           <div className="flex flex-row justify-between items-center">
