@@ -257,12 +257,7 @@ export default function Dashboard() {
       // Recargar productos
       const nuevosProductos = await getProductos();
       if (nuevosProductos.success && nuevosProductos.data) {
-        setProductos(
-          nuevosProductos.data.filter((producto) => {
-            const almacen = almacenes.find((a) => a.id === producto.almacenId);
-            return almacen?.unidadId === trabajador.unidadId;
-          }),
-        );
+        setProductos(nuevosProductos.data);
       }
 
       setProductoForm({
