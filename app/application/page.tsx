@@ -1204,20 +1204,16 @@ export default function Dashboard() {
 
       case "productos":
         // Filtrar productos basado en la búsqueda
-        const filteredProducts = productos
-          .filter((producto) => producto.almacenId === trabajador.unidadId)
-          .filter(
-            (producto) =>
-              producto.codigo
-                ?.toLowerCase()
-                .includes(searchQuery.toLowerCase()) ||
-              producto.nombre
-                .toLowerCase()
-                .includes(searchQuery.toLowerCase()) ||
-              producto.descripcion
-                ?.toLowerCase()
-                .includes(searchQuery.toLowerCase()),
-          );
+        const filteredProducts = productos.filter(
+          (producto) =>
+            producto.codigo
+              ?.toLowerCase()
+              .includes(searchQuery.toLowerCase()) ||
+            producto.nombre.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            producto.descripcion
+              ?.toLowerCase()
+              .includes(searchQuery.toLowerCase()),
+        );
 
         return (
           <div className="space-y-6 col-span-full">
