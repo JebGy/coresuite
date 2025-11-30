@@ -196,3 +196,21 @@ Si tienes problemas o preguntas:
 - [ ] Integración con proveedores
 - [ ] App móvil
 - [ ] Notificaciones en tiempo real
+## Testing
+
+- Ejecutar pruebas: `npm run test`
+- Cobertura: `npm run test -- --coverage` genera reporte en `coverage/` (text y lcov).
+- Entorno:
+  - Cliente: `jsdom` con `@testing-library/react` y `@testing-library/jest-dom`.
+  - Servidor: `node` con `ts-jest`.
+- Mocks: assets y estilos mapeados en `jest.config.js` y `__mocks__/`.
+
+## CI/CD
+
+- GitHub Actions ejecuta pruebas y cobertura en cada `push` y `pull_request`.
+- Flujo de revisión de pares para cambios en tests: workflow exige al menos una aprobación.
+- Interacciones probadas:
+  - Hooks (`useProductos`) y su cacheo/estado
+  - PageRouter APIs: rutas `pages/api/*` incluyendo dinámicas `[id]`
+  - Actions de servidor: flujos de aprobación/rechazo y errores
+  - Navegación y protección con `UserProvider` usando `next/navigation`

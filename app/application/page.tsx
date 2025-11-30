@@ -1776,7 +1776,7 @@ export default function Dashboard() {
 
   return (
     <main className="grid grid-cols-12">
-      <div className="absolute p-4  bottom-8 right-8 z-[99999] flex flex-row gap-4 items-center">
+      <div className="fixed p-4  bottom-8 right-8 z-[99999] flex flex-row gap-4 items-center">
         <span className="bg-black text-white px-2 py-1 rounded-lg">
           Ahora chatea con IA
         </span>
@@ -1788,7 +1788,7 @@ export default function Dashboard() {
         </button>
       </div>
       {!closed && (
-        <div className="absolute border-stone-300 border  shadow-lg p-4 w-[500px] h-96  bg-stone-100 bottom-8 right-8 rounded-md z-[99999] grid grid-rows-[auto_1fr_auto] gap-2">
+        <div className="fixed border-stone-300 border  shadow-lg p-4 w-[500px] h-96  bg-stone-100 bottom-8 right-8 rounded-md z-[99999] grid grid-rows-[auto_1fr_auto] gap-2">
           <div className="flex flex-row justify-between items-center">
             <h2 className="text-lg font-semibold">PAUL - Chat</h2>
             <button className="cursor-pointer">

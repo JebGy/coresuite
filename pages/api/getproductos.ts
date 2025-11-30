@@ -16,33 +16,35 @@ export default async function handler(
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
-  
-  // Optimización: Obtener productos con precios en una sola consulta
-  const productosConPrecio = await prisma.producto.findMany({
-    include: {
-      almacen: true,
-      movimientos: {
-        where: {
-          tipo: "entrada",
-          precioUnitario: { not: null },
-        },
-        orderBy: {
-          fecha: "desc",
-        },
-        take: 1,
-        select: {
-          precioUnitario: true,
+  try {
+    const productosConPrecio = await prisma.producto.findMany({
+      include: {
+        almacen: true,
+        movimientos: {
+          where: {
+            tipo: "entrada",
+            precioUnitario: { not: null },
+          },
+          orderBy: {
+            fecha: "desc",
+          },
+          take: 1,
+          select: {
+            precioUnitario: true,
+          },
         },
       },
-    },
-  });
+    });
 
-  // Mapear los resultados para incluir el precio unitario
-  const productosFormateados = productosConPrecio.map((producto) => ({
-    ...producto,
-    precioUnitario: producto.movimientos[0]?.precioUnitario || 0,
-    movimientos: undefined, // Remover movimientos del resultado final
-  }));
+    const productosFormateados = productosConPrecio.map((producto) => ({
+      ...producto,
+      precioUnitario: producto.movimientos[0]?.precioUnitario || 0,
+      movimientos: undefined,
+    }));
 
-  res.status(200).json(productosFormateados);
+    res.status(200).json(productosFormateados);
+  } catch (error) {
+    console.error('Error en getproductos:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
 }

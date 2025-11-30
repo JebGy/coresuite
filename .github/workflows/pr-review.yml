@@ -1,0 +1,23 @@
+name: CI - Peer Review for Tests
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, edited, ready_for_review]
+
+jobs:
+  require-review:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/github-script@v7
+        with:
+          script: |
+            const pr = context.payload.pull_request;
+            const reviews = await github.rest.pulls.listReviews({ owner: context.repo.owner, repo: context.repo.repo, pull_number: pr.number });
+            const approved = reviews.data.some(r => r.state === 'APPROVED');
+            const files = await github.rest.pulls.listFiles({ owner: context.repo.owner, repo: context.repo.repo, pull_number: pr.number });
+            const testChanges = files.data.some(f => /\\.(test|spec)\\.(ts|tsx|js)$/.test(f.filename));
+            if (testChanges && !approved) {
+              core.setFailed('Se requiere al menos una aprobación para cambios en pruebas.');
+            } else {
+              core.notice('Revisión de pares verificada para cambios en pruebas.');
+            }
