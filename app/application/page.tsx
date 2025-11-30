@@ -1776,7 +1776,7 @@ export default function Dashboard() {
 
   return (
     <main className="grid grid-cols-12">
-      <div className="fixed p-4  bottom-8 right-8 z-[99999] flex flex-row gap-4 items-center">
+      <div className="fixed p-4  bottom-16 right-8 z-[99999] flex flex-row gap-4 items-center">
         <span className="bg-black text-white px-2 py-1 rounded-lg">
           Ahora chatea con IA
         </span>
