@@ -91,6 +91,14 @@ export type OrdenEntrega = {
   updatedAt: string;
 };
 
+export type ItemOrdenEntrega = {
+  productoId: number;
+  productoNombre: string;
+  almacenId: number;
+  almacenNombre: string;
+  cantidad: number;
+};
+
 export type Movimiento = {
   id: number;
   tipo: "entrada" | "salida";

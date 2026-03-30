@@ -1,7 +1,7 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
-import { OrdenEntrega } from "@/types";
+import { OrdenEntrega, ItemOrdenEntrega } from "@/types";
 import { registrarLog } from "@/lib/logger";
 
 export async function getOrdenesEntrega(): Promise<OrdenEntrega[]> {
@@ -148,6 +148,94 @@ export async function createOrdenEntrega(
     console.error("Error al crear orden de entrega:", error);
     throw new Error("Error al crear orden de entrega");
   }
+}
+
+export async function createOrdenesEntregaBatch(
+  data: {
+    trabajadorId: number;
+    trabajadorNombre: string;
+    motivo: string;
+    observaciones?: string;
+    items: ItemOrdenEntrega[];
+  },
+  usuarioId: number
+): Promise<OrdenEntrega[]> {
+  if (!data.items || data.items.length === 0) {
+    throw new Error("Debe agregar al menos un ítem a la orden");
+  }
+
+  const ticketBase = `TKT-${Date.now()}-${Math.random()
+    .toString(36)
+    .substr(2, 9)}`;
+
+  const { trabajadorNombre, items, ...baseData } = data;
+
+  const ordenes = await prisma.$transaction(
+    items.map((item, index) =>
+      prisma.ordenEntrega.create({
+        data: {
+          ...baseData,
+          productoId: item.productoId,
+          almacenId: item.almacenId,
+          cantidad: item.cantidad,
+          numeroTicket: `${ticketBase}-${String(index + 1).padStart(2, "0")}`,
+          estado: "pendiente",
+        },
+        include: {
+          trabajador: { include: { unidad: true } },
+          producto: true,
+          almacen: true,
+        },
+      })
+    )
+  );
+
+  for (const orden of ordenes) {
+    await registrarLog({
+      usuarioId,
+      accion: "CREAR",
+      entidad: "OrdenEntrega",
+      entidadId: orden.id,
+      detalles: `Orden de entrega creada (batch): Ticket ${orden.numeroTicket}`,
+    });
+  }
+
+  return ordenes.map((orden) => ({
+    ...orden,
+    estado: orden.estado as "pendiente" | "aprobada" | "rechazada" | "entregada",
+    fechaSolicitud: orden.fechaSolicitud.toISOString(),
+    fechaAprobacion: orden.fechaAprobacion
+      ? orden.fechaAprobacion.toISOString()
+      : undefined,
+    createdAt: orden.createdAt.toISOString(),
+    updatedAt: orden.updatedAt.toISOString(),
+    trabajador: orden.trabajador
+      ? {
+          ...orden.trabajador,
+          createdAt: orden.trabajador.createdAt.toISOString(),
+          updatedAt: orden.trabajador.updatedAt.toISOString(),
+          unidad: orden.trabajador.unidad
+            ? {
+                ...orden.trabajador.unidad,
+                descripcion: orden.trabajador.unidad.descripcion ?? undefined,
+              }
+            : undefined,
+        }
+      : undefined,
+    producto: orden.producto
+      ? {
+          ...orden.producto,
+          descripcion: orden.producto.descripcion ?? undefined,
+        }
+      : undefined,
+    almacen: orden.almacen
+      ? {
+          ...orden.almacen,
+          descripcion: orden.almacen.descripcion ?? undefined,
+          ubicacion: orden.almacen.ubicacion ?? undefined,
+        }
+      : undefined,
+  })) as OrdenEntrega[];
 }
 
 export async function aprobarOrdenEntrega(
