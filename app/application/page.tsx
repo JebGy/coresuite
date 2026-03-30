@@ -50,6 +50,33 @@ import remarkBreaks from "remark-breaks";
 // Lógica de Kardex importada desde lib/kardex.ts
 
 export default function Dashboard() {
+  // Estado del trabajador autenticado (debe declararse antes de Sidebar)
+  const [trabajador, setTrabajador] = useState<UsuarioSession>({
+    id: 0,
+    nombres: "",
+    apellidos: "",
+    email: "",
+    unidadId: 0,
+    unidad: {
+      id: 0,
+      nombre: "",
+      descripcion: "",
+    },
+    rolId: 0,
+    rol: {
+      id: 0,
+      nombre: "",
+      descripcion: "",
+      permisos: {
+        accesoTotal: false,
+        puedeCrearOrdenes: false,
+        puedeEditarUsuarios: false,
+        puedeGestionarInventario: false,
+        puedeVerReportes: false,
+      },
+    },
+  });
+
   // Estados para productos y movimientos
   const [almacenes, setAlmacenes] = useState<Almacen[]>([]);
   const [productos, setProductos] = useState<Producto[]>([]);
@@ -1062,32 +1089,6 @@ export default function Dashboard() {
       </div>
     </div>
   );
-
-  const [trabajador, setTrabajador] = useState<UsuarioSession>({
-    id: 0,
-    nombres: "",
-    apellidos: "",
-    email: "",
-    unidadId: 0,
-    unidad: {
-      id: 0,
-      nombre: "",
-      descripcion: "",
-    },
-    rolId: 0,
-    rol: {
-      id: 0,
-      nombre: "",
-      descripcion: "",
-      permisos: {
-        accesoTotal: false,
-        puedeCrearOrdenes: false,
-        puedeEditarUsuarios: false,
-        puedeGestionarInventario: false,
-        puedeVerReportes: false,
-      },
-    },
-  });
 
   useEffect(() => {
     fetch("/api/auth/me", {
