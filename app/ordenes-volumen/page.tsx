@@ -193,7 +193,11 @@ export default function OrdenesVolumenPage() {
   const handleAprobar = async (id: number) => {
     if (!confirm("¿Aprobar esta orden de volumen?")) return;
     try {
-      await aprobarOrdenVolumen(id, user.id);
+      const result = await aprobarOrdenVolumen(id, user.id);
+      if (!result.success) {
+        setNotificacion({ mensaje: result.error, tipo: "error" });
+        return;
+      }
       setNotificacion({ mensaje: "Orden aprobada correctamente", tipo: "exito" });
       loadOrdenes();
     } catch (err) {
@@ -208,7 +212,11 @@ export default function OrdenesVolumenPage() {
     const motivoRechazo = prompt("Motivo del rechazo:");
     if (!motivoRechazo) return;
     try {
-      await rechazarOrdenVolumen(id, motivoRechazo, user.id);
+      const result = await rechazarOrdenVolumen(id, motivoRechazo, user.id);
+      if (!result.success) {
+        setNotificacion({ mensaje: result.error, tipo: "error" });
+        return;
+      }
       setNotificacion({ mensaje: "Orden rechazada", tipo: "exito" });
       loadOrdenes();
     } catch {

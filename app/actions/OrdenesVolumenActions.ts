@@ -112,13 +112,15 @@ export async function createOrdenVolumen(
     include: includeCompleto,
   });
 
-  await registrarLog({
-    usuarioId,
-    accion: "CREAR",
-    entidad: "OrdenVolumen",
-    entidadId: orden.id,
-    detalles: `Orden de volumen creada: Ticket ${orden.numeroTicket} con ${data.items.length} ítem(s)`,
-  });
+  if (usuarioId > 0) {
+    await registrarLog({
+      usuarioId,
+      accion: "CREAR",
+      entidad: "OrdenVolumen",
+      entidadId: orden.id,
+      detalles: `Orden de volumen creada: Ticket ${orden.numeroTicket} con ${data.items.length} ítem(s)`,
+    });
+  }
 
   return serializarOrden(orden);
 }
@@ -127,62 +129,71 @@ export async function createOrdenVolumen(
 export async function aprobarOrdenVolumen(
   id: number,
   usuarioId: number
-): Promise<OrdenVolumen> {
-  const orden = await prisma.ordenVolumen.findUnique({
-    where: { id },
-    include: includeCompleto,
-  });
-
-  if (!orden) throw new Error("Orden no encontrada");
-  if (orden.estado !== "pendiente")
-    throw new Error("La orden no está en estado pendiente");
-
-  // Verificar stock por cada ítem
-  for (const item of orden.items) {
-    const movimientos = await prisma.movimiento.findMany({
-      where: { productoId: item.productoId, almacenId: item.almacenId },
-    });
-    let stock = 0;
-    for (const m of movimientos) {
-      stock += m.tipo === "entrada" ? m.cantidad : -m.cantidad;
-    }
-    if (stock < item.cantidad) {
-      throw new Error(
-        `Stock insuficiente para el producto ${item.producto?.nombre ?? item.productoId}. Disponible: ${stock}, Solicitado: ${item.cantidad}`
-      );
-    }
-  }
-
-  // Actualizar estado y crear movimientos por ítem en una transacción
-  const [ordenActualizada] = await prisma.$transaction([
-    prisma.ordenVolumen.update({
+): Promise<{ success: true; orden: OrdenVolumen } | { success: false; error: string }> {
+  try {
+    const orden = await prisma.ordenVolumen.findUnique({
       where: { id },
-      data: { estado: "aprobada", fechaAprobacion: new Date() },
       include: includeCompleto,
-    }),
-    ...orden.items.map((item) =>
-      prisma.movimiento.create({
-        data: {
-          tipo: "salida",
-          fecha: new Date(),
-          cantidad: item.cantidad,
-          motivo: `Entrega volumen aprobada - Ticket: ${orden.numeroTicket}`,
-          productoId: item.productoId,
-          almacenId: item.almacenId,
-        },
-      })
-    ),
-  ]);
+    });
 
-  await registrarLog({
-    usuarioId,
-    accion: "ACTUALIZAR",
-    entidad: "OrdenVolumen",
-    entidadId: id,
-    detalles: `Orden de volumen aprobada: ${orden.numeroTicket}`,
-  });
+    if (!orden) return { success: false, error: "Orden no encontrada" };
+    if (orden.estado !== "pendiente")
+      return { success: false, error: "La orden no está en estado pendiente" };
 
-  return serializarOrden(ordenActualizada);
+    // Verificar stock por cada ítem
+    for (const item of orden.items) {
+      const movimientos = await prisma.movimiento.findMany({
+        where: { productoId: item.productoId, almacenId: item.almacenId },
+      });
+      let stock = 0;
+      for (const m of movimientos) {
+        stock += m.tipo === "entrada" ? m.cantidad : -m.cantidad;
+      }
+      if (stock < item.cantidad) {
+        return {
+          success: false,
+          error: `Stock insuficiente para el producto ${item.producto?.nombre ?? item.productoId}. Disponible: ${stock}, Solicitado: ${item.cantidad}`,
+        };
+      }
+    }
+
+    // Actualizar estado y crear movimientos por ítem en una transacción
+    const [ordenActualizada] = await prisma.$transaction([
+      prisma.ordenVolumen.update({
+        where: { id },
+        data: { estado: "aprobada", fechaAprobacion: new Date() },
+        include: includeCompleto,
+      }),
+      ...orden.items.map((item) =>
+        prisma.movimiento.create({
+          data: {
+            tipo: "salida",
+            fecha: new Date(),
+            cantidad: item.cantidad,
+            motivo: `Entrega volumen aprobada - Ticket: ${orden.numeroTicket}`,
+            productoId: item.productoId,
+            almacenId: item.almacenId,
+          },
+        })
+      ),
+    ]);
+
+    if (usuarioId > 0) {
+      await registrarLog({
+        usuarioId,
+        accion: "ACTUALIZAR",
+        entidad: "OrdenVolumen",
+        entidadId: id,
+        detalles: `Orden de volumen aprobada: ${orden.numeroTicket}`,
+      });
+    }
+
+    return { success: true, orden: serializarOrden(ordenActualizada) };
+  } catch (err) {
+    const mensaje = err instanceof Error ? err.message : "Error desconocido al aprobar";
+    console.error("[aprobarOrdenVolumen]", err);
+    return { success: false, error: mensaje };
+  }
 }
 
 // ─── RECHAZAR ────────────────────────────────────────────────────────────────
@@ -190,20 +201,28 @@ export async function rechazarOrdenVolumen(
   id: number,
   motivo: string,
   usuarioId: number
-): Promise<OrdenVolumen> {
-  const orden = await prisma.ordenVolumen.update({
-    where: { id },
-    data: { estado: "rechazada", observaciones: motivo },
-    include: includeCompleto,
-  });
+): Promise<{ success: true; orden: OrdenVolumen } | { success: false; error: string }> {
+  try {
+    const orden = await prisma.ordenVolumen.update({
+      where: { id },
+      data: { estado: "rechazada", observaciones: motivo },
+      include: includeCompleto,
+    });
 
-  await registrarLog({
-    usuarioId,
-    accion: "ACTUALIZAR",
-    entidad: "OrdenVolumen",
-    entidadId: id,
-    detalles: `Orden de volumen rechazada: ${orden.numeroTicket}`,
-  });
+    if (usuarioId > 0) {
+      await registrarLog({
+        usuarioId,
+        accion: "ACTUALIZAR",
+        entidad: "OrdenVolumen",
+        entidadId: id,
+        detalles: `Orden de volumen rechazada: ${orden.numeroTicket}`,
+      });
+    }
 
-  return serializarOrden(orden);
+    return { success: true, orden: serializarOrden(orden) };
+  } catch (err) {
+    const mensaje = err instanceof Error ? err.message : "Error desconocido al rechazar";
+    console.error("[rechazarOrdenVolumen]", err);
+    return { success: false, error: mensaje };
+  }
 }
