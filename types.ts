@@ -99,6 +99,40 @@ export type ItemOrdenEntrega = {
   cantidad: number;
 };
 
+export type ItemOrdenVolumen = {
+  id: number;
+  ordenId: number;
+  productoId: number;
+  almacenId: number;
+  cantidad: number;
+  producto?: Producto;
+  almacen?: Almacen;
+};
+
+export type OrdenVolumen = {
+  id: number;
+  numeroTicket: string;
+  fechaSolicitud: string;
+  fechaAprobacion?: string;
+  estado: "pendiente" | "aprobada" | "rechazada";
+  motivo: string;
+  observaciones?: string;
+  trabajadorId: number;
+  trabajador?: Trabajador;
+  items: ItemOrdenVolumen[];
+  createdAt: string;
+  updatedAt: string;
+};
+
+// Tipo para el formulario (ítem en proceso de edición)
+export type ItemOrdenVolumenForm = {
+  productoId: number;
+  productoNombre: string;
+  almacenId: number;
+  almacenNombre: string;
+  cantidad: number;
+};
+
 export type Movimiento = {
   id: number;
   tipo: "entrada" | "salida";

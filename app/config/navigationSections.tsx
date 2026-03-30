@@ -1,4 +1,4 @@
-import { UnidadesIcon, TrabajadoresIcon, OrdenesEntregaIcon, RecursosHumanosIcon, BoletasIcon, SolicitudesIcon } from '../components/Icons';
+import { UnidadesIcon, TrabajadoresIcon, OrdenesEntregaIcon, RecursosHumanosIcon, BoletasIcon, SolicitudesIcon, OrdenesVolumenIcon } from '../components/Icons';
 
 export interface NavigationSectionConfig {
   title: string;
@@ -50,5 +50,12 @@ export const navigationSections: Record<string, NavigationSectionConfig> = {
     href: '/solicitudes',
     linkText: 'Ir a la página de Solicitudes',
     icon: <SolicitudesIcon />
+  },
+  'ordenes-volumen': {
+    title: 'Órdenes por Volumen',
+    description: 'Crea órdenes de entrega con múltiples ítems en una sola solicitud',
+    href: '/ordenes-volumen',
+    linkText: 'Ir a Órdenes por Volumen',
+    icon: <OrdenesVolumenIcon />
   }
 };

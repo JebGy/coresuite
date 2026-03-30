@@ -3,23 +3,23 @@ generator client {
 }
 
 datasource db {
-  provider  = "postgresql"
-  url       = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL")
+  provider = "postgresql"
+  url      = env("DIRECT_URL")
 }
 
 model Almacen {
-  id               Int            @id @default(autoincrement())
+  id               Int                @id @default(autoincrement())
   nombre           String
   ubicacion        String?
   descripcion      String?
   unidadId         Int?
-  unidad           Unidad?        @relation(fields: [unidadId], references: [id])
+  unidad           Unidad?            @relation(fields: [unidadId], references: [id])
   movimientos      Movimiento[]
   ordenesEntrega   OrdenEntrega[]
+  ordenesVolumen   ItemOrdenVolumen[]
   productos        Producto[]
-  trasladosDestino Traslado[]     @relation("TrasladoDestino")
-  trasladosOrigen  Traslado[]     @relation("TrasladoOrigen")
+  trasladosDestino Traslado[]         @relation("TrasladoDestino")
+  trasladosOrigen  Traslado[]         @relation("TrasladoOrigen")
 }
 
 model Unidad {
@@ -52,6 +52,7 @@ model Trabajador {
   password       String?
   logs           Log[]
   ordenesEntrega OrdenEntrega[]
+  ordenesVolumen OrdenVolumen[]
   rol            Rol            @relation(fields: [rolId], references: [id])
   unidad         Unidad         @relation(fields: [unidadId], references: [id])
   traslados      Traslado[]
@@ -59,14 +60,15 @@ model Trabajador {
 }
 
 model Producto {
-  id             Int            @id @default(autoincrement())
-  codigo         String         @unique
+  id             Int                @id @default(autoincrement())
+  codigo         String             @unique
   nombre         String
   descripcion    String?
   almacenId      Int?
   movimientos    Movimiento[]
   ordenesEntrega OrdenEntrega[]
-  almacen        Almacen?       @relation(fields: [almacenId], references: [id])
+  ordenesVolumen ItemOrdenVolumen[]
+  almacen        Almacen?           @relation(fields: [almacenId], references: [id])
   traslados      Traslado[]
 }
 
@@ -105,6 +107,32 @@ model OrdenEntrega {
   almacen         Almacen      @relation(fields: [almacenId], references: [id])
   producto        Producto     @relation(fields: [productoId], references: [id])
   trabajador      Trabajador   @relation(fields: [trabajadorId], references: [id])
+}
+
+model OrdenVolumen {
+  id              Int                @id @default(autoincrement())
+  numeroTicket    String             @unique
+  fechaSolicitud  DateTime           @default(now())
+  fechaAprobacion DateTime?
+  estado          String             @default("pendiente")
+  motivo          String
+  observaciones   String?
+  trabajadorId    Int
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+  trabajador      Trabajador         @relation(fields: [trabajadorId], references: [id])
+  items           ItemOrdenVolumen[]
+}
+
+model ItemOrdenVolumen {
+  id         Int          @id @default(autoincrement())
+  ordenId    Int
+  productoId Int
+  almacenId  Int
+  cantidad   Int
+  orden      OrdenVolumen @relation(fields: [ordenId], references: [id])
+  producto   Producto     @relation(fields: [productoId], references: [id])
+  almacen    Almacen      @relation(fields: [almacenId], references: [id])
 }
 
 model Traslado {
@@ -150,12 +178,12 @@ model Notificacion {
 }
 
 model Segmento {
-  id          Int         @id @default(autoincrement())
-  nombre      String      @unique
-  descripcion String?
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
-  proveedores Proveedor[]
+  id                 Int                          @id @default(autoincrement())
+  nombre             String                       @unique
+  descripcion        String?
+  createdAt          DateTime                     @default(now())
+  updatedAt          DateTime                     @updatedAt
+  proveedores        Proveedor[]
   registrationTokens ProveedorRegistrationToken[]
 
   @@map("segmentos")
@@ -213,17 +241,17 @@ model Solicitud {
 }
 
 model ProveedorRegistrationToken {
-  id          Int       @id @default(autoincrement())
-  token       String    @unique
-  segmentoId  Int?      // Segmento predefinido (opcional)
-  expiresAt   DateTime  // Fecha de expiración
-  used        Boolean   @default(false) // Si ya fue usado
-  usedAt      DateTime? // Cuándo fue usado
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  
+  id         Int       @id @default(autoincrement())
+  token      String    @unique
+  segmentoId Int? // Segmento predefinido (opcional)
+  expiresAt  DateTime // Fecha de expiración
+  used       Boolean   @default(false) // Si ya fue usado
+  usedAt     DateTime? // Cuándo fue usado
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
   // Relaciones
-  segmento    Segmento? @relation(fields: [segmentoId], references: [id])
-  
+  segmento Segmento? @relation(fields: [segmentoId], references: [id])
+
   @@map("proveedor_registration_tokens")
 }
