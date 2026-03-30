@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import { OrdenEntrega, ItemOrdenEntrega, Trabajador, Producto, Almacen } from "@/types";
 import {
   getOrdenesEntrega,
@@ -206,12 +207,20 @@ export default function OrdenesEntregaPage() {
     <div className="container mx-auto p-6">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold text-gray-900">Órdenes de Entrega</h1>
-        <button
-          onClick={() => setShowForm(true)}
-          className="bg-corporate-primary hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-        >
-          Nueva Orden
-        </button>
+        <div className="flex gap-3">
+          <Link
+            href="/ordenes-volumen"
+            className="bg-blue-100 hover:bg-blue-200 text-blue-700 font-bold py-2 px-4 rounded transition-colors flex items-center gap-2"
+          >
+            Ir a Volumen (Multi-ítem)
+          </Link>
+          <button
+            onClick={() => setShowForm(true)}
+            className="bg-corporate-primary hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+          >
+            Nueva Orden
+          </button>
+        </div>
       </div>
 
       {/* ── FORMULARIO MULTI-ÍTEM ──────────────────────────────────────────── */}
